@@ -1,0 +1,70 @@
+{
+  "summary": "Backend-only testing completed for routing restructure. All 20 new tests passed for the /api/public/default-project endpoint and related functionality. The new endpoint correctly returns project, config, and documents without requiring authentication. Existing API endpoints continue to work correctly.",
+
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+
+  "passed_tests": [
+    "Health Check: GET /api/health returns healthy status",
+    "Root API: GET /api/ returns API info",
+    "Default Project: GET /api/public/default-project returns 200",
+    "Default Project: Returns project object with id, name, slug, user_id",
+    "Default Project: Returns config object with project_id",
+    "Default Project: Returns documents array with proper structure",
+    "Default Project: No authentication required",
+    "Default Project: Documents have actual content",
+    "Public Project by Slug: GET /api/public/projects/{slug} returns 200",
+    "Public Project by Slug: Returns same data as default-project",
+    "Public Project by Slug: Returns 404 for non-existent slug",
+    "Public Project by Slug: No authentication required",
+    "Auth Protection: GET /api/projects requires auth (401)",
+    "Auth Protection: GET /api/projects/{id}/config requires auth (401)",
+    "Auth Protection: GET /api/projects/{id}/documents requires auth (401)",
+    "Auth Protection: GET /api/auth/me requires auth (401)",
+    "Authenticated: GET /api/projects works with valid token",
+    "Authenticated: GET /api/auth/me works with valid token",
+    "Navigation: Default project has navigation config",
+    "Navigation: Documents have order field for sorting"
+  ],
+
+  "test_report_links": [
+    "/app/tests/test_routing_restructure.py",
+    "/app/test_reports/pytest/pytest_routing_restructure.xml"
+  ],
+
+  "action_items": [],
+
+  "critical_code_review_comments": [
+    "New /api/public/default-project endpoint at line 1633-1663 correctly fetches first project by created_at order",
+    "Endpoint properly excludes MongoDB _id from all responses using {'_id': 0} projection",
+    "No authentication required for public endpoints - correctly implemented",
+    "Frontend PublicDocs.jsx correctly uses the new endpoint at line 537",
+    "AdminLogin.jsx properly redirects authenticated users to /admin/dashboard"
+  ],
+
+  "updated_files": [
+    "/app/tests/test_routing_restructure.py"
+  ],
+
+  "success_rate": {
+    "backend": "100% (20/20 new tests passed, 16/17 existing tests passed - 1 pre-existing data issue)",
+    "frontend": "N/A (backend-only testing requested)"
+  },
+
+  "test_credentials": "test_session_1768652984547",
+
+  "seed_data_creation": "No new seed data created - used existing project 'my-api-docs'",
+
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+
+  "context_for_next_testing_agent": "Routing restructure backend testing complete. New /api/public/default-project endpoint works correctly. It returns the first project (by created_at) with its config and documents. Public endpoints don't require auth, authenticated endpoints still protected. One pre-existing test failure in test_backend_api.py::TestExistingProjectDocuments::test_document_content_has_custom_components - expects <CardGroup> and <Tabs> in document content but actual content only has <Steps> and <Accordion>. This is a data issue, not a code regression."
+}

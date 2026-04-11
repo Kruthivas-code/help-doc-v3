@@ -1,0 +1,137 @@
+{
+  "design_system": {
+    "identity": {
+      "name": "Emergent Docs - Mintlify Clone",
+      "aesthetic": "Technical, Precision, Deep Dark Mode",
+      "inspiration": "Mintlify (docs.base44.com)",
+      "primary_theme": "dark"
+    },
+    "colors": {
+      "palette": {
+        "primary": {
+          "DEFAULT": "#188455",
+          "hover": "#157149",
+          "foreground": "#ffffff",
+          "glow": "rgba(24, 132, 85, 0.5)"
+        },
+        "background": {
+          "main": "#020617",
+          "secondary": "#0f172a",
+          "tertiary": "#1e293b",
+          "glass": "rgba(2, 6, 23, 0.8)"
+        },
+        "text": {
+          "primary": "#f8fafc",
+          "secondary": "#94a3b8",
+          "muted": "#64748b"
+        },
+        "border": {
+          "subtle": "rgba(255, 255, 255, 0.08)",
+          "default": "rgba(255, 255, 255, 0.12)",
+          "active": "#188455"
+        }
+      },
+      "gradients": {
+        "hero_glow": "radial-gradient(circle at 50% -20%, rgba(24, 132, 85, 0.25) 0%, rgba(2, 6, 23, 0) 50%)",
+        "card_hover": "linear-gradient(180deg, rgba(30, 41, 59, 0.5) 0%, rgba(30, 41, 59, 0) 100%)"
+      }
+    },
+    "typography": {
+      "font_family": {
+        "sans": "Inter, -apple-system, BlinkMacSystemFont, sans-serif",
+        "mono": "JetBrains Mono, Fira Code, monospace"
+      },
+      "scale": {
+        "h1": "text-4xl font-bold tracking-tight lg:text-5xl",
+        "h2": "text-2xl font-semibold tracking-tight mt-10 mb-4",
+        "h3": "text-xl font-semibold tracking-tight mt-8 mb-3",
+        "body": "text-base leading-7 text-slate-400",
+        "small": "text-sm leading-6 text-slate-500"
+      }
+    },
+    "visual_enhancers": {
+      "grid_pattern": {
+        "css": "background-size: 40px 40px; background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);",
+        "usage": "Apply to the main background <body> or a fixed <div> behind content."
+      },
+      "glassmorphism": {
+        "nav": "backdrop-blur-xl bg-[#020617]/80 border-b border-white/5",
+        "sidebar": "backdrop-blur-lg bg-[#020617]/50 border-r border-white/5"
+      },
+      "shadows": {
+        "glow": "0 0 40px -10px rgba(24, 132, 85, 0.3)",
+        "card": "0 1px 2px 0 rgba(0, 0, 0, 0.05)"
+      }
+    },
+    "layout": {
+      "max_width": "max-w-[1600px]",
+      "content_width": "max-w-3xl",
+      "sidebar_width": "w-72",
+      "toc_width": "w-64",
+      "spacing": {
+        "section": "py-12",
+        "element": "mb-6"
+      }
+    },
+    "components": {
+      "buttons": {
+        "primary": "bg-[#188455] hover:bg-[#157149] text-white shadow-lg shadow-emerald-900/20 rounded-lg px-4 py-2 font-medium transition-all",
+        "secondary": "bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-lg px-4 py-2 font-medium transition-all"
+      },
+      "cards": {
+        "base": "group relative rounded-xl border border-white/10 bg-slate-900/20 p-6 hover:bg-slate-900/40 transition-all duration-300",
+        "hover_effect": "hover:border-[#188455]/50 hover:shadow-[0_0_30px_-10px_rgba(24,132,85,0.3)]"
+      },
+      "inputs": {
+        "base": "bg-slate-900/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#188455]/50"
+      },
+      "sidebar_link": {
+        "base": "flex items-center gap-2 px-3 py-2 text-sm text-slate-400 rounded-md transition-colors hover:text-white hover:bg-white/5",
+        "active": "text-[#188455] bg-[#188455]/10 font-medium"
+      }
+    },
+    "assets": {
+      "images": [
+        {
+          "category": "hero_background",
+          "url": "https://images.pexels.com/photos/28428587/pexels-photo-28428587.jpeg",
+          "description": "Abstract dark gradient for hero section background (optional overlay)"
+        }
+      ],
+      "icons": "Lucide React (already installed)"
+    }
+  },
+  "implementation_steps": [
+    {
+      "step": 1,
+      "file": "/app/frontend/src/index.css",
+      "action": "Update CSS variables",
+      "details": "Replace root variables with the new Deep Dark palette. Add the .bg-grid-pattern utility class."
+    },
+    {
+      "step": 2,
+      "file": "/app/frontend/src/App.css",
+      "action": "Refine Global Styles",
+      "details": "Update typography to use 'Inter' with tight tracking. Add the radial gradient background to the body."
+    },
+    {
+      "step": 3,
+      "file": "/app/frontend/src/pages/PublicDocs.jsx",
+      "action": "Update Layout & Theme",
+      "details": "Modify the THEMES object to use the new #188455 primary color. Update the SidebarNav to use the new active states. Add the grid pattern background div."
+    },
+    {
+      "step": 4,
+      "file": "/app/frontend/src/components/ui/card.jsx",
+      "action": "Enhance Cards",
+      "details": "Ensure cards support the new hover effects and border styles defined in design_system.components.cards."
+    }
+  ],
+  "universal_guidelines": [
+    "Do not use pure black (#000000) for backgrounds; use #020617 or #0f172a.",
+    "Always add a subtle 1px border (border-white/5) to cards and sidebars to define edges in dark mode.",
+    "Use 'text-balance' on headlines for better optical alignment.",
+    "Ensure all interactive elements have a :focus-visible state with the primary green ring.",
+    "Use 'backdrop-blur' heavily on sticky elements (nav, sidebar) to create depth."
+  ]
+}

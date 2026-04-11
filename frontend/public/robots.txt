@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://help.emergent.sh/sitemap.xml
