@@ -5,7 +5,7 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useState, useMemo, useEffect, Children, isValidElement, Fragment } from 'react';
-import { Copy, Check, Info, Lightbulb, AlertTriangle, AlertCircle, CheckCircle } from 'lucide-react';
+import { Copy, Check, Hash, Info, Lightbulb, AlertTriangle, AlertCircle, CheckCircle } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -58,10 +58,12 @@ const CALLOUT_CONFIG = {
 const CodeBlockRenderer = ({ children, className }) => {
   const { isDark } = useTheme();
   const [copied, setCopied] = useState(false);
+  const [showLines, setShowLines] = useState(false);
   const match = /language-(\w+)/.exec(className || '');
   const language = match ? match[1] : '';
   const code = String(children).replace(/\n$/, '');
   const codeTheme = useMemo(() => buildCodeTheme(isDark), [isDark]);
+  const lineCount = code.split('\n').length;
 
   const handleCopy = async () => {
     try { await navigator.clipboard.writeText(code); } catch (e) {}
@@ -75,17 +77,34 @@ const CodeBlockRenderer = ({ children, className }) => {
 
   return (
     <div className="code-block group relative my-5 w-full max-w-3xl" data-testid="code-block">
-      <button
-        onClick={handleCopy}
-        className="btn-press absolute top-2 right-2 z-10 flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white opacity-0 group-hover:opacity-100 transition-opacity bg-zinc-100/80 dark:bg-zinc-900/80 backdrop-blur rounded-md"
-        data-testid="copy-code-btn"
-      >
-        {copied ? (
-          <><Check className="w-3.5 h-3.5 text-brand" /><span className="text-brand">Copied</span></>
-        ) : (
-          <><Copy className="w-3.5 h-3.5" /><span>Copy</span></>
+      <div className="absolute top-2 right-2 z-10 flex items-center gap-1">
+        {lineCount > 1 && (
+          <button
+            onClick={() => setShowLines((v) => !v)}
+            className={`btn-press inline-flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium rounded-md transition-colors bg-zinc-100/80 dark:bg-zinc-900/80 backdrop-blur ${
+              showLines
+                ? 'text-zinc-950 dark:text-white'
+                : 'text-zinc-600 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white'
+            }`}
+            title={showLines ? 'Hide line numbers' : 'Show line numbers'}
+            data-testid="toggle-line-numbers-btn"
+          >
+            <Hash className="w-3.5 h-3.5" />
+            <span>{lineCount}</span>
+          </button>
         )}
-      </button>
+        <button
+          onClick={handleCopy}
+          className="btn-press inline-flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white transition-colors bg-zinc-100/80 dark:bg-zinc-900/80 backdrop-blur rounded-md"
+          data-testid="copy-code-btn"
+        >
+          {copied ? (
+            <><Check className="w-3.5 h-3.5 text-brand" /><span className="text-brand">Copied</span></>
+          ) : (
+            <><Copy className="w-3.5 h-3.5" /><span>Copy</span></>
+          )}
+        </button>
+      </div>
       <div className="overflow-x-auto w-full">
         <SyntaxHighlighter
           language={language}
@@ -97,6 +116,13 @@ const CodeBlockRenderer = ({ children, className }) => {
             whiteSpace: 'pre',
             wordBreak: 'normal',
             overflowWrap: 'normal'
+          }}
+          showLineNumbers={showLines}
+          lineNumberStyle={{
+            minWidth: '2.25em',
+            paddingRight: '1em',
+            color: isDark ? '#52525b' : '#a1a1aa',
+            userSelect: 'none',
           }}
           wrapLongLines={false}
         >
