@@ -164,7 +164,18 @@ const TweakMode = ({ content, selection, onApplyContent, onApplySelection }) => 
       });
       setProposal(data.markdown || '');
     } catch (e) {
-      setError(e?.response?.data?.detail || 'Could not reach the assistant.');
+      // Build a useful message instead of swallowing it
+      if (e?.response?.data?.detail) {
+        setError(e.response.data.detail);
+      } else if (e?.response?.status === 404) {
+        setError('The /api/assistant/tweak endpoint was not found on this server. If you\'re on production, the backend hasn\'t been re-deployed since this feature was added.');
+      } else if (e?.response?.status === 401) {
+        setError('Your session expired — refresh the page and sign in again.');
+      } else if (e?.response?.status) {
+        setError(`Server returned ${e.response.status}. ${e.response.statusText || ''}`);
+      } else {
+        setError('Network error — could not reach the assistant. Check that the backend is running.');
+      }
     } finally {
       setLoading(false);
     }
