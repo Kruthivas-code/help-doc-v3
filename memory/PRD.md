@@ -106,6 +106,22 @@ Build a Mintlify-class documentation platform for **Emergent's Documentation** w
 - Verify Drag-and-Drop navigation reorder feature (P1 — user verification pending)
 - Sync "Deleting Your Account" content into production admin (P1 — user action; preview DB is updated)
 
+## Completed work — Feb 13, 2026 (Admin Editor overhaul)
+- **Search icon** removed from the admin sidebar Navigation header.
+- **Images & Media** panel and **GitHub Sync** panel + button **fully removed**:
+  - Frontend: deleted `MediaPanel.jsx`, `GitHubPanel.jsx`, removed sidebar buttons, removed imports/state.
+  - Backend: deleted all 6 GitHub routes (`/api/github/auth`, `/callback`, `/projects/:id/github/{sync,link,info}`) and GitHubAccount/GitHubLinkRequest models. Removed `base64` import + GitHub OAuth env vars.
+- **Drag-and-drop navigation** (full hierarchy: Tabs > Groups > Pages) via new `EditorNavTree.jsx` using `@dnd-kit`. Reorders persist immediately to `project_configs.navigation`.
+- **Per-page metadata popup** via new `PageMetaDialog.jsx`, opened from a 3-dots button next to every page in the sidebar. Edits title, slug, icon, description; includes a Delete-with-confirm flow. Slug renames auto-mirror into the navigation config to keep links intact.
+- Added `description` field to `Document` model (and Create/Update variants) — used by the metadata dialog and available for SEO/nav previews.
+- **Writing Assistant** replaces the old Mintlify Helper:
+  - New slide-over panel `WritingAssistant.jsx` with 3 modes: **Tweak** (rewrite whole doc or selected text), **New Page** (raw notes → markdown → auto-create + link to chosen nav group), **Chat** (free-form Q&A).
+  - 6 one-click quick-tweak actions (Improve, Expand, Shorten, Simpler language, Add examples, Add callouts) + free-form custom instruction.
+  - New backend endpoint `POST /api/assistant/tweak` (Claude Sonnet 4.5 via Universal Key). Existing `/api/generator/markdown` is reused for New Page mode.
+  - Deleted `MintlifyAIHelper.jsx`.
+- Backend regression: **23/23 tests pass** (`/app/backend/tests/test_assistant_tweak_and_github_removal.py`).
+
+## Completed work — Feb 13, 2026 (Code block + monochrome polish)
 ## Completed work — Feb 13, 2026 (Monochrome icons + Hex picker)
 - **Removed all blue/colored backgrounds from icon badges**: `Card` (Cards.jsx) and `Step` number circles (Steps.jsx) now use solid black-on-white in light mode and solid white-on-black in dark mode. The `color` prop on `<Card>` is intentionally ignored.
 - Step connecting line desaturated to neutral zinc (was `bg-brand/20`).
