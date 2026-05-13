@@ -35,10 +35,27 @@ const TopHeader = ({ config, project, onSearchOpen, onMobileMenuToggle, mobileMe
     const links = navbar.links || [{ label: 'Support', href: '#' }];
     const primaryCta = navbar.primary || { label: 'Try Emergent', href: 'https://app.emergent.sh' };
     const logoSrc = isDark ? (config?.logo_dark_url || config?.logo_light_url) : (config?.logo_light_url || config?.logo_dark_url);
+    // Admin-configurable logo sizing (defaults match the original h-6 / w-auto)
+    const logoHeight = Number(config?.logo_height) || 24;
+    const logoMaxWidth = config?.logo_max_width ? Number(config.logo_max_width) : null;
+    // Grow the header bar when the logo is bigger than the default 32px lane
+    const headerMinHeight = Math.max(56, logoHeight + 24);
+
+    // Expose the resolved header height as a CSS variable so the layout
+    // offsets (sidebars, main content top padding) grow with the logo.
+    useEffect(() => {
+        document.documentElement.style.setProperty('--header-h', `${headerMinHeight}px`);
+        return () => {
+            document.documentElement.style.setProperty('--header-h', '56px');
+        };
+    }, [headerMinHeight]);
 
     return (
-        <header className="fixed top-0 left-0 right-0 z-40 border-b border-zinc-200 dark:border-zinc-800 bg-white/85 dark:bg-zinc-950/85 backdrop-blur-md">
-            <div className="h-14 px-4 sm:px-6 lg:px-10 flex items-center gap-4">
+        <header
+            className="fixed top-0 left-0 right-0 z-40 border-b border-zinc-200 dark:border-zinc-800 bg-white/85 dark:bg-zinc-950/85 backdrop-blur-md"
+            style={{ minHeight: headerMinHeight }}
+        >
+            <div className="px-4 sm:px-6 lg:px-10 flex items-center gap-4" style={{ minHeight: headerMinHeight }}>
                 {/* Mobile menu */}
                 <button
                     type="button"
@@ -52,7 +69,16 @@ const TopHeader = ({ config, project, onSearchOpen, onMobileMenuToggle, mobileMe
 
                 <Link to="/" className="flex items-center gap-2 flex-shrink-0" data-testid="logo-link">
                     {logoSrc ? (
-                        <img src={logoSrc} alt={project?.name || 'Logo'} className="h-6 w-auto" />
+                        <img
+                            src={logoSrc}
+                            alt={project?.name || 'Logo'}
+                            className="w-auto"
+                            style={{
+                                height: logoHeight,
+                                maxWidth: logoMaxWidth ? `${logoMaxWidth}px` : undefined,
+                                objectFit: 'contain',
+                            }}
+                        />
                     ) : (
                         <span className="font-heading text-base font-black tracking-tight text-zinc-950 dark:text-white">
                             {config?.site_title || project?.name || 'emergent'}
@@ -210,12 +236,13 @@ const LeftSidebar = ({ tabs, documents, activeSlug, onDocSelect, mobileOpen, onM
             )}
             <aside
                 className={`
-                    fixed top-14 bottom-0 left-0 z-40 w-72 lg:w-64
+                    fixed bottom-0 left-0 z-40 w-72 lg:w-64
                     bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800
                     overflow-y-auto
                     transform transition-transform duration-300 ease-out
                     ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
                 `}
+                style={{ top: 'var(--header-h, 56px)' }}
                 data-testid="left-sidebar"
             >
                 <nav className="px-3 pb-12 pt-2">
@@ -279,7 +306,10 @@ const RightTOC = ({ headings }) => {
     if (valid.length === 0) return null;
 
     return (
-        <aside className="hidden xl:block fixed top-14 right-0 bottom-0 w-60 overflow-y-auto z-10 px-6 py-8">
+        <aside
+            className="hidden xl:block fixed right-0 bottom-0 w-60 overflow-y-auto z-10 px-6 py-8"
+            style={{ top: 'var(--header-h, 56px)' }}
+        >
             <p className="eyebrow text-zinc-500 mb-4">On this page</p>
             <nav className="space-y-1">
                 {valid.map(h => (
@@ -652,7 +682,10 @@ const PublicDocs = () => {
                 onMobileClose={() => setMobileMenuOpen(false)}
             />
 
-            <main className="lg:ml-64 xl:mr-60 min-h-screen pt-14">
+            <main
+                className="lg:ml-64 xl:mr-60 min-h-screen"
+                style={{ paddingTop: 'var(--header-h, 56px)' }}
+            >
                 {selectedDoc ? (
                     <article
                         key={selectedDoc.id}

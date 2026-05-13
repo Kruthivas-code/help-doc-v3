@@ -1363,6 +1363,44 @@ export const ConfigurationsPanel = ({ projectId, onClose }) => {
                         placeholder="/"
                       />
                     </div>
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-sm text-zinc-600 dark:text-zinc-400">Logo Height</label>
+                        <span className="text-xs font-mono text-zinc-500">{config.logo_height || 24}px</span>
+                      </div>
+                      <input
+                        type="range"
+                        min={16}
+                        max={64}
+                        step={1}
+                        value={config.logo_height || 24}
+                        onChange={(e) => updateConfig('logo_height', Number(e.target.value))}
+                        className="w-full accent-zinc-950 dark:accent-white"
+                        data-testid="logo-height-slider"
+                      />
+                      <p className="text-[11px] text-zinc-400 dark:text-zinc-600 mt-1">
+                        Header bar grows automatically when the logo exceeds 32px.
+                      </p>
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-sm text-zinc-600 dark:text-zinc-400">Logo Max Width</label>
+                        <span className="text-xs font-mono text-zinc-500">{config.logo_max_width ? `${config.logo_max_width}px` : 'auto'}</span>
+                      </div>
+                      <input
+                        type="number"
+                        min={0}
+                        max={480}
+                        value={config.logo_max_width || ''}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          updateConfig('logo_max_width', v === '' ? null : Number(v));
+                        }}
+                        placeholder="Leave blank for auto"
+                        className="w-full px-3 py-2 bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-950 dark:text-white text-sm"
+                        data-testid="logo-max-width-input"
+                      />
+                    </div>
                   </>
                 )}
 

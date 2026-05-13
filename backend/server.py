@@ -104,6 +104,8 @@ class ProjectConfig(BaseModel):
     logo_light_url: Optional[str] = None
     logo_dark_url: Optional[str] = None
     logo_link: str = "/"
+    logo_height: int = 24  # px, range ~16-64. Drives header logo size and grows header bar past 32px.
+    logo_max_width: Optional[int] = None  # px cap on rendered logo width; null = auto
     # Styling / Background
     background_color: Optional[str] = None
     background_image_url: Optional[str] = None
@@ -135,6 +137,8 @@ class ProjectConfigUpdate(BaseModel):
     logo_light_url: Optional[str] = None
     logo_dark_url: Optional[str] = None
     logo_link: Optional[str] = None
+    logo_height: Optional[int] = None
+    logo_max_width: Optional[int] = None
     background_color: Optional[str] = None
     background_image_url: Optional[str] = None
     background_pattern: Optional[str] = None
