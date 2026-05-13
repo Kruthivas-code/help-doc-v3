@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, createContext, useContext } from "react";
+import { useState, useEffect, useRef, useCallback, createContext, useContext } from "react";
 import "@/App.css";
 import { BrowserRouter, Routes, Route, useNavigate, useLocation, Navigate } from "react-router-dom";
 import axios from "axios";
@@ -82,19 +82,35 @@ const AuthCallback = () => {
 
 // Protected Route - redirects to /admin if not authenticated
 const ProtectedRoute = ({ children }) => {
-  const { checkAuth } = useAuth();
+  const { user, loading, checkAuth } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const [isChecking, setIsChecking] = useState(!location.state?.user);
+  const [isChecking, setIsChecking] = useState(false);
+  const verifiedRef = useRef(false);
 
   useEffect(() => {
-    if (location.state?.user) return;
+    // Wait for AuthProvider's initial check to finish.
+    if (loading) return;
+
+    // Already authenticated (via context or fresh auth-callback state).
+    if (user || location.state?.user) {
+      verifiedRef.current = true;
+      return;
+    }
+
+    // Run the verification check exactly once per mount. Without this guard,
+    // any subsequent re-render of AuthProvider would re-trigger checkAuth and
+    // bounce the user back to /admin on a transient failure.
+    if (verifiedRef.current) return;
+    verifiedRef.current = true;
+
+    setIsChecking(true);
     checkAuth()
       .then(() => setIsChecking(false))
       .catch(() => navigate("/admin", { replace: true }));
-  }, [location.state, checkAuth, navigate]);
+  }, [user, loading, location.state, checkAuth, navigate]);
 
-  if (isChecking && !location.state?.user) {
+  if (loading || isChecking) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-950">
         <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
@@ -177,7 +193,7 @@ function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/auth/me`);
       // Store token from response for cross-domain support
@@ -193,23 +209,23 @@ function AuthProvider({ children }) {
       setLoading(false);
       throw error;
     }
-  };
+  }, []);
 
-  const login = () => {
+  const login = useCallback(() => {
     const redirectUrl = window.location.origin + '/admin/dashboard';
     window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
-  };
+  }, []);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try { await axios.post(`${API}/auth/logout`); } catch (e) {}
     localStorage.removeItem('auth_token');  // Clear token on logout
     setUser(null);
     window.location.href = "/admin";
-  };
+  }, []);
 
   useEffect(() => {
     checkAuth().catch(() => setLoading(false));
-  }, []);
+  }, [checkAuth]);
 
   return (
     <AuthContext.Provider value={{ user, setUser, loading, login, logout, checkAuth }}>

@@ -438,6 +438,16 @@ const RenderComponent = ({ type, children: items, props, content, mdComponents }
         </div>
       );
 
+    case 'DeleteAccountButton':
+      return (
+        <div className="my-6">
+          <DeleteAccountButton 
+            label={props?.label}
+            variant={props?.variant}
+          />
+        </div>
+      );
+
     case 'Callout':
       return (
         <Callout type={props?.type} title={props?.title}>
@@ -523,12 +533,16 @@ export const DocContent = ({ content, className = '', onHeadings }) => {
       return <CodeBlockRenderer className={className}>{children}</CodeBlockRenderer>;
     },
 
-    // Pre blocks - add width constraints for plain code blocks
+    // Pre blocks - constrain width and enforce horizontal scrolling so long
+    // single-line code (e.g. URLs, commands) never overflows the doc column
+    // or overlaps the right-hand TOC sidebar.
     pre: ({ children }) => {
       return (
-        <pre className="my-4 p-4 bg-slate-100 dark:bg-slate-900 rounded-lg overflow-x-auto w-full max-w-3xl border border-slate-200 dark:border-slate-800">
-          {children}
-        </pre>
+        <div className="my-4 max-w-full overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800">
+          <pre className="m-0 p-4 bg-slate-100 dark:bg-slate-900 overflow-x-auto text-sm whitespace-pre">
+            {children}
+          </pre>
+        </div>
       );
     },
 

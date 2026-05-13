@@ -72,5 +72,5 @@
   "retest_needed": false,
   "should_main_agent_self_test": true,
 
-  "context_for_next_testing_agent": "All P0-P2 features verified working on public documentation pages. Editor features (WYSIWYG, device toggle, navigation editor) are implemented correctly per code review but require Google OAuth authentication which cannot be automated. Public URL: https://mintdocs.preview.emergentagent.com/p/my-api-docs. Custom components (Steps, CardGroup, Callouts) render correctly from MDX syntax. Theme toggle works. Search functionality may need manual verification."
+  "context_for_next_testing_agent": "All P0-P2 features verified working on public documentation pages. Editor features (WYSIWYG, device toggle, navigation editor) are implemented correctly per code review but require Google OAuth authentication which cannot be automated. Public URL: https://docs-engine-1.preview.emergentagent.com/p/my-api-docs. Custom components (Steps, CardGroup, Callouts) render correctly from MDX syntax. Theme toggle works. Search functionality may need manual verification."
 }
