@@ -31,7 +31,10 @@ const QUICK_TWEAKS = [
   { id: 'shorten', label: 'Shorten', instruction: 'Make this more concise. Cut filler words and redundant phrasing while keeping every meaningful point.' },
   { id: 'simpler', label: 'Simpler language', instruction: 'Rewrite for a less technical audience. Replace jargon with plain language where appropriate.' },
   { id: 'examples', label: 'Add examples', instruction: 'Add concrete code examples or use cases where they would help the reader understand.' },
-  { id: 'callouts', label: 'Add callouts', instruction: 'Insert <Callout> blocks (note/tip/warning) at the spots where they would aid comprehension.' },
+  { id: 'callouts', label: 'Add callouts', instruction: 'Insert <Callout> blocks (note/tip/warning) at the spots where they would aid comprehension. Keep existing structure.' },
+  { id: 'to-steps', label: 'Convert to Steps', instruction: 'Identify sequential procedures in this content (numbered lists, "first/then/finally", install→configure→run patterns) and convert them into a <Steps><Step title="…">body</Step></Steps> block. Leave non-sequential content untouched.' },
+  { id: 'to-cards', label: 'Convert to CardGroup', instruction: 'Find sections that present parallel options or features (e.g. multiple frameworks, multiple platforms, related links) and convert them into a <CardGroup cols={2}><Card title="…" icon="lucide-icon-name" href="…">short description</Card></CardGroup>. Use lucide icon names like rocket, book, code, settings, link, zap, terminal. Do not invent links — use # if no href is mentioned.' },
+  { id: 'to-tabs', label: 'Add code Tabs', instruction: 'For any code example in this content, wrap or extend it in a <Tabs> component with at least three <Tab title="JavaScript|Python|cURL"> children, each containing the equivalent code block in its language. Preserve the surrounding prose. If the original sample is not portable, mark the missing languages with a one-line comment explaining why.' },
 ];
 
 const STYLES = [
