@@ -288,13 +288,18 @@ const RightTOC = ({ headings }) => {
 
     useEffect(() => {
         if (valid.length === 0) return;
+        // Read the live header height (set by TopHeader via --header-h)
+        const headerH = parseInt(
+          getComputedStyle(document.documentElement).getPropertyValue('--header-h') || '56',
+          10,
+        );
         const observer = new IntersectionObserver(
             (entries) => {
                 entries.forEach((entry) => {
                     if (entry.isIntersecting) setActiveId(entry.target.id);
                 });
             },
-            { rootMargin: '-80px 0px -80% 0px' }
+            { rootMargin: `-${headerH + 8}px 0px -75% 0px` },
         );
         valid.forEach(h => {
             const el = document.getElementById(h.id);
@@ -585,6 +590,35 @@ const PublicDocs = () => {
             });
         }
     }, [documents, navigate, selectedDoc, isNavigating]);
+
+    // Auto-scroll to URL hash once content is rendered. Two trigger paths:
+    //   (1) Initial landing on /page#section — toc gets populated, hash is present.
+    //   (2) Doc switch followed by clicking a TOC link — hash changes, content already in DOM.
+    // We deliberately wait for the heading to actually exist (toc.length > 0 + el lookup).
+    useEffect(() => {
+        if (!toc?.length) return;
+        const hash = decodeURIComponent(window.location.hash.replace(/^#/, ''));
+        if (!hash) return;
+        // requestAnimationFrame ensures the heading has been laid out
+        const id = requestAnimationFrame(() => {
+            const el = document.getElementById(hash);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        return () => cancelAnimationFrame(id);
+    }, [toc, selectedDoc?.id]);
+
+    // Native <a href="#anchor"> click already triggers hashchange; intercept to ensure
+    // smooth scroll respecting the dynamic header offset (Safari ignores scroll-margin on raw # nav).
+    useEffect(() => {
+        const onHashChange = () => {
+            const hash = decodeURIComponent(window.location.hash.replace(/^#/, ''));
+            if (!hash) return;
+            const el = document.getElementById(hash);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        };
+        window.addEventListener('hashchange', onHashChange);
+        return () => window.removeEventListener('hashchange', onHashChange);
+    }, []);
 
     useEffect(() => {
         const handler = (e) => {

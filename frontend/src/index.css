@@ -299,8 +299,8 @@ html.dark ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); 
 .doc-content img { max-width: 100%; border-radius: 8px; margin: 1.5rem 0; border: 1px solid hsl(var(--border)); }
 
 /* Scroll margin for anchor links */
-.scroll-mt-20 { scroll-margin-top: 5rem; }
-.scroll-mt-24 { scroll-margin-top: 6rem; }
+.scroll-mt-20 { scroll-margin-top: calc(var(--header-h, 56px) + 24px); }
+.scroll-mt-24 { scroll-margin-top: calc(var(--header-h, 56px) + 24px); }
 
 /* ========================================================================
    CALLOUT TEXT COLORS — readable in both modes
