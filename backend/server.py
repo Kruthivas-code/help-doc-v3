@@ -909,10 +909,7 @@ async def upload_asset(
     project = await get_project_with_admin_check(project_id, user)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
-    
-    if not supabase:
-        raise HTTPException(status_code=500, detail="Storage not configured")
-    
+
     # Determine file type
     mime_type = file.content_type or "application/octet-stream"
     if mime_type.startswith("image/"):

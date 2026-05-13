@@ -1,0 +1,70 @@
+{
+  "summary": "Backend regression testing complete for Supabase->Tigris storage migration. 22/22 tests passed covering public file proxy from Tigris, 404 handling, public default-project response shape, auth gating on /api/auth/me & upload, and AI generator endpoint (no 500 from storage init side-effects).",
+
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "GET /api/public/files/{path}",
+        "issue": "Backend sets `Cache-Control: public, max-age=31536000, immutable` in serve_public_file (server.py:2082), but the preview ingress/CDN rewrites the response header to `no-store, no-cache, must-revalidate`. Browsers will not cache migrated assets, defeating the immutable hint. Investigate ingress annotations or set `Expires` header alongside. Not a regression from the migration."
+      }
+    ]
+  },
+
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+
+  "passed_tests": [
+    "GET /api/public/files/{path}: 8/8 migrated paths return 200 with image/* content-type",
+    "GET /api/public/files/{path}: returns 404 for non-existent migrated path",
+    "GET /api/public/files/{path}: returns 404 for random bogus path",
+    "GET /api/public/default-project: returns project + config + documents keys",
+    "GET /api/public/default-project: documents array length >= 50 (53 reported)",
+    "GET /api/public/default-project: no `_id` leaked in project/config/documents",
+    "GET /api/public/default-project: no `.supabase.co/storage` URLs anywhere in JSON",
+    "GET /api/public/default-project: config logo/favicon URLs are proxied (/api/public/files/...)",
+    "GET /api/public/default-project: markdown image URLs not pointing at Supabase Storage",
+    "GET /api/auth/me: 401 unauthenticated",
+    "POST /api/projects/{id}/assets: 401 with no auth header",
+    "POST /api/projects/{id}/assets: 401 with invalid Bearer token (no 500 from storage init)",
+    "POST /api/generator/markdown: 401 unauthenticated (no 500 due to storage_service import)",
+    "POST /api/generator/markdown: 401 with invalid token (no 500)",
+    "GET /api/health: 200 (backend reachable)"
+  ],
+
+  "test_report_links": [
+    "/app/backend/tests/test_storage_migration.py",
+    "/app/test_reports/pytest/pytest_storage_migration.xml"
+  ],
+
+  "action_items": [
+    "(Optional, minor) Investigate ingress overriding immutable Cache-Control for /api/public/files/* — migrated images will not be browser-cached as intended."
+  ],
+
+  "critical_code_review_comments": [
+    "storage_service.py is clean and lazy-initializes the storage key (no import-time network call) — confirmed by 401-not-500 behavior on /api/generator/markdown when storage backend may not yet be initialized.",
+    "server.py:2074 swallows all exceptions in serve_public_file and returns 404. This is correct for not-found cases, but a Tigris outage (e.g. 5xx, timeout) will also surface as 404 to clients with only a `logger.warning`. Consider distinguishing not-found vs upstream-error and logging at error level for the latter.",
+    "server.py:908 docstring still says 'Upload an asset to Supabase storage' — stale comment after the Tigris migration; update to avoid future confusion.",
+    "Cache-Control header on serve_public_file is being overridden by ingress to `no-store, no-cache, must-revalidate`. The intent (year-long immutable) is lost — coordinate with infra or add an Expires header to reinforce."
+  ],
+
+  "updated_files": [
+    "/app/backend/tests/test_storage_migration.py"
+  ],
+
+  "success_rate": {
+    "backend": "100% (22/22)",
+    "frontend": "N/A (backend-only requested)"
+  },
+
+  "test_credentials": "None used — all tested endpoints either unauthenticated or asserted to return 401 without auth.",
+  "seed_data_creation": "None.",
+
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+
+  "context_for_next_testing_agent": "Tigris storage migration regression suite lives at /app/backend/tests/test_storage_migration.py. It covers /api/public/files/{path} (parametrized over 8 migrated assets + 2 negative cases), /api/public/default-project (shape, ObjectId hygiene, Supabase Storage URL absence), /api/auth/me, /api/projects/{id}/assets, and /api/generator/markdown (smoke 401, not 500). Re-run via: `pytest /app/backend/tests/test_storage_migration.py -v`. Note: ingress rewrites Cache-Control on /api/public/files/* — the test does not assert it. Only Supabase Storage CDN URLs (`.supabase.co/storage`) are flagged; prose mentions of 'supabase.com' in document content are allowed."
+}
