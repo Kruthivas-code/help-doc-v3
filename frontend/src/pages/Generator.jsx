@@ -1,284 +1,273 @@
+/**
+ * Generator — AI-powered Markdown generator.
+ *
+ * Takes a raw text/notes input plus a style hint and uses Claude Sonnet
+ * (via Emergent Universal Key) to produce polished Markdown ready to paste
+ * into the editor. Designed to match the brand palette.
+ */
 import { useState } from "react";
 import { useAuth, API } from "@/App";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import { 
-  ArrowLeft, Sparkles, Copy, Check, Loader2, Code2, FileText, BookOpen
+import {
+    ArrowLeft, Sparkles, Copy, Check, Loader2, FileText, BookOpen, ListChecks, Newspaper,
+    Wand2, ArrowRight,
 } from "lucide-react";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+
+const STYLES = [
+    { value: "documentation", label: "Documentation", icon: BookOpen, hint: "Technical product docs" },
+    { value: "tutorial",      label: "Tutorial",      icon: ListChecks, hint: "Step-by-step guide" },
+    { value: "reference",     label: "API Reference", icon: FileText,   hint: "API endpoints, params, examples" },
+    { value: "blog",          label: "Blog Post",     icon: Newspaper,  hint: "Narrative article" },
+];
 
 const Generator = () => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const [code, setCode] = useState("");
-  const [language, setLanguage] = useState("python");
-  const [docType, setDocType] = useState("api");
-  const [generating, setGenerating] = useState(false);
-  const [result, setResult] = useState("");
-  const [copied, setCopied] = useState(false);
-  const [showPreview, setShowPreview] = useState(true);
+    const { user } = useAuth();
+    const navigate = useNavigate();
 
-  const languages = [
-    { value: "python", label: "Python" },
-    { value: "javascript", label: "JavaScript" },
-    { value: "typescript", label: "TypeScript" },
-    { value: "go", label: "Go" },
-    { value: "rust", label: "Rust" },
-    { value: "java", label: "Java" },
-  ];
+    const [rawInput, setRawInput] = useState("");
+    const [title, setTitle] = useState("");
+    const [style, setStyle] = useState("documentation");
+    const [generating, setGenerating] = useState(false);
+    const [result, setResult] = useState("");
+    const [copied, setCopied] = useState(false);
+    const [error, setError] = useState("");
 
-  const docTypes = [
-    { value: "api", label: "API Reference", icon: Code2 },
-    { value: "guide", label: "Guide", icon: BookOpen },
-    { value: "readme", label: "README", icon: FileText },
-  ];
+    const charCount = rawInput.length;
+    const maxChars = 30000;
+    const canGenerate = rawInput.trim().length > 10 && !generating;
 
-  const handleGenerate = async () => {
-    if (!code.trim()) return;
-    
-    setGenerating(true);
-    setResult("");
-    
-    try {
-      const response = await axios.post(`${API}/generate`, {
-        code,
-        language,
-        doc_type: docType
-      });
-      setResult(response.data.documentation);
-    } catch (error) {
-      console.error("Generation failed:", error);
-      alert(error.response?.data?.detail || "Failed to generate documentation");
-    } finally {
-      setGenerating(false);
-    }
-  };
+    const handleGenerate = async () => {
+        if (!canGenerate) return;
+        setGenerating(true);
+        setResult("");
+        setError("");
+        try {
+            const res = await axios.post(`${API}/generator/markdown`, {
+                raw_input: rawInput,
+                title: title || null,
+                style,
+            });
+            setResult(res.data.markdown || "");
+        } catch (e) {
+            setError(e.response?.data?.detail || "Generation failed. Please try again.");
+        } finally {
+            setGenerating(false);
+        }
+    };
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(result);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+    const handleCopy = async () => {
+        try { await navigator.clipboard.writeText(result); } catch (e) {}
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1800);
+    };
 
-  const exampleCode = `def calculate_fibonacci(n: int) -> list[int]:
-    """
-    Calculate Fibonacci sequence up to n numbers.
-    """
-    if n <= 0:
-        return []
-    elif n == 1:
-        return [0]
-    
-    fib = [0, 1]
-    for i in range(2, n):
-        fib.append(fib[i-1] + fib[i-2])
-    return fib`;
-
-  return (
-    <div className="min-h-screen bg-background flex flex-col" data-testid="generator-page">
-      {/* Header */}
-      <header className="h-14 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between px-4 bg-background sticky top-0 z-50">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate("/admin/dashboard")}
-            className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white transition-colors"
-            data-testid="back-to-dashboard"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="hidden sm:inline">Dashboard</span>
-          </button>
-          
-          <div className="h-5 w-px bg-zinc-100 dark:bg-zinc-800" />
-          
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-brand" />
-            <span className="text-zinc-950 dark:text-white font-medium">AI Generator</span>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Input Panel */}
-        <div className="w-1/2 border-r border-zinc-200 dark:border-zinc-800 flex flex-col">
-          <div className="p-6 border-b border-zinc-200 dark:border-zinc-800">
-            <h2 className="text-lg font-semibold text-zinc-950 dark:text-white mb-4">Code Input</h2>
-            
-            {/* Options */}
-            <div className="flex gap-4 mb-4">
-              <div className="flex-1">
-                <label className="block text-xs text-zinc-500 mb-2">Language</label>
-                <select
-                  value={language}
-                  onChange={(e) => setLanguage(e.target.value)}
-                  className="w-full h-9 px-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-950 dark:text-white focus:outline-none focus:border-zinc-200 dark:border-zinc-800"
-                  data-testid="language-select"
-                >
-                  {languages.map((l) => (
-                    <option key={l.value} value={l.value}>{l.label}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex-1">
-                <label className="block text-xs text-zinc-500 mb-2">Doc Type</label>
-                <select
-                  value={docType}
-                  onChange={(e) => setDocType(e.target.value)}
-                  className="w-full h-9 px-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-950 dark:text-white focus:outline-none focus:border-zinc-200 dark:border-zinc-800"
-                  data-testid="doctype-select"
-                >
-                  {docTypes.map((t) => (
-                    <option key={t.value} value={t.value}>{t.label}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Doc Type Pills */}
-            <div className="flex gap-2">
-              {docTypes.map((t) => {
-                const Icon = t.icon;
-                return (
-                  <button
-                    key={t.value}
-                    onClick={() => setDocType(t.value)}
-                    className={`h-8 px-3 rounded-lg text-sm flex items-center gap-2 transition-colors ${
-                      docType === t.value
-                        ? 'bg-brand/20 text-brand border border-brand/30'
-                        : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-200 dark:border-zinc-800'
-                    }`}
-                    data-testid={`doctype-pill-${t.value}`}
-                  >
-                    <Icon className="w-3.5 h-3.5" />
-                    {t.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Code Input */}
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="flex items-center justify-between px-6 py-3 border-b border-zinc-200 dark:border-zinc-800">
-              <span className="text-xs text-zinc-500">Paste your code</span>
-              <button
-                onClick={() => setCode(exampleCode)}
-                className="text-xs text-brand hover:text-brand-600 transition-colors"
-                data-testid="load-example"
-              >
-                Load example
-              </button>
-            </div>
-            <textarea
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              placeholder="Paste your code here..."
-              className="flex-1 w-full px-6 py-4 bg-transparent text-zinc-700 dark:text-zinc-300 placeholder:text-zinc-400 dark:text-zinc-600 font-mono text-sm leading-relaxed resize-none focus:outline-none"
-              data-testid="code-input"
-            />
-          </div>
-
-          {/* Generate Button */}
-          <div className="p-4 border-t border-zinc-200 dark:border-zinc-800">
-            <button
-              onClick={handleGenerate}
-              disabled={generating || !code.trim()}
-              className="w-full h-11 bg-brand hover:bg-brand-600 disabled:opacity-50 disabled:hover:bg-brand text-zinc-950 dark:text-white rounded-md font-medium flex items-center justify-center gap-2 transition-colors"
-              data-testid="generate-button"
-            >
-              {generating ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Generating...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-4 h-4" />
-                  Generate Documentation
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* Output Panel */}
-        <div className="w-1/2 flex flex-col">
-          <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-800">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => setShowPreview(true)}
-                className={`text-sm font-medium transition-colors ${
-                  showPreview ? 'text-zinc-950 dark:text-white' : 'text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
-                }`}
-                data-testid="preview-tab"
-              >
-                Preview
-              </button>
-              <button
-                onClick={() => setShowPreview(false)}
-                className={`text-sm font-medium transition-colors ${
-                  !showPreview ? 'text-zinc-950 dark:text-white' : 'text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
-                }`}
-                data-testid="markdown-tab"
-              >
-                Markdown
-              </button>
-            </div>
-            
-            {result && (
-              <button
-                onClick={handleCopy}
-                className="h-8 px-3 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-md text-sm flex items-center gap-2 transition-colors"
-                data-testid="copy-button"
-              >
-                {copied ? (
-                  <>
-                    <Check className="w-3.5 h-3.5 text-brand" />
-                    Copied
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-3.5 h-3.5" />
-                    Copy
-                  </>
-                )}
-              </button>
-            )}
-          </div>
-
-          <div className="flex-1 overflow-auto">
-            {result ? (
-              showPreview ? (
-                <div className="p-6 page-transition">
-                  <article className="doc-content" data-testid="generated-preview">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {result}
-                    </ReactMarkdown>
-                  </article>
+    return (
+        <div className="min-h-screen bg-zinc-50/40 dark:bg-zinc-950 text-zinc-950 dark:text-zinc-100" data-testid="generator-page">
+            {/* Sticky header */}
+            <header className="sticky top-0 z-30 h-14 backdrop-blur-md bg-white/85 dark:bg-zinc-950/85 border-b border-zinc-200 dark:border-zinc-800">
+                <div className="h-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <button
+                            type="button"
+                            onClick={() => navigate(-1)}
+                            className="btn-press inline-flex h-9 w-9 items-center justify-center rounded-md text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-950 dark:hover:text-white"
+                            aria-label="Back"
+                            data-testid="generator-back"
+                        >
+                            <ArrowLeft className="h-4 w-4" />
+                        </button>
+                        <div className="flex items-center gap-2.5">
+                            <div className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-brand">
+                                <Sparkles className="h-3.5 w-3.5 text-white" />
+                            </div>
+                            <div>
+                                <h1 className="font-heading text-sm font-black tracking-tight">AI Generator</h1>
+                                <p className="text-[10px] tracking-[0.2em] uppercase font-bold text-zinc-500">Powered by Claude Sonnet 4.5</p>
+                            </div>
+                        </div>
+                    </div>
+                    <ThemeToggle compact />
                 </div>
-              ) : (
-                <pre className="p-6 text-sm text-zinc-700 dark:text-zinc-300 font-mono whitespace-pre-wrap" data-testid="generated-markdown">
-                  {result}
-                </pre>
-              )
-            ) : (
-              <div className="flex items-center justify-center h-full">
-                <div className="text-center">
-                  <div className="w-12 h-12 bg-zinc-100 dark:bg-zinc-800 rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <Sparkles className="w-6 h-6 text-zinc-400 dark:text-zinc-600" />
-                  </div>
-                  <p className="text-zinc-500 text-sm">
-                    Generated documentation will appear here
-                  </p>
+            </header>
+
+            <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 py-8 sm:py-12">
+                <div className="mb-10 fade-up">
+                    <p className="eyebrow text-zinc-500 mb-2">AI Markdown</p>
+                    <h2 className="h-display text-3xl sm:text-4xl text-zinc-950 dark:text-white text-balance">
+                        Turn rough notes into polished docs
+                    </h2>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-2 max-w-xl">
+                        Drop in your raw text, voice transcripts, or scratch notes. Pick a style. Get clean Markdown — headings, callouts, code blocks, the works.
+                    </p>
                 </div>
-              </div>
-            )}
-          </div>
+
+                <div className="grid lg:grid-cols-2 gap-6">
+                    {/* INPUT side */}
+                    <section className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 lg:p-8 fade-up">
+                        <p className="eyebrow text-zinc-500 mb-2">Input</p>
+                        <h3 className="h-section text-base text-zinc-950 dark:text-white mb-5">Raw text</h3>
+
+                        {/* Title */}
+                        <label className="block mb-4">
+                            <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1.5 block">
+                                Document title <span className="text-zinc-400 font-normal">(optional)</span>
+                            </span>
+                            <input
+                                type="text"
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                                placeholder="e.g. Setting up GitHub OAuth"
+                                className="adm-input2"
+                                data-testid="generator-title-input"
+                            />
+                        </label>
+
+                        {/* Style picker */}
+                        <div className="mb-4">
+                            <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-2 block">Style</span>
+                            <div className="grid grid-cols-2 gap-2">
+                                {STYLES.map((s) => {
+                                    const Icon = s.icon;
+                                    const active = style === s.value;
+                                    return (
+                                        <button
+                                            key={s.value}
+                                            type="button"
+                                            onClick={() => setStyle(s.value)}
+                                            className={`btn-press text-left p-3 rounded-md border transition-all ${
+                                                active
+                                                    ? 'border-brand bg-brand/5 dark:bg-brand/10'
+                                                    : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700'
+                                            }`}
+                                            data-testid={`style-${s.value}`}
+                                        >
+                                            <div className="flex items-start gap-2.5">
+                                                <Icon className={`h-4 w-4 mt-0.5 flex-shrink-0 ${active ? 'text-brand' : 'text-zinc-500'}`} />
+                                                <div className="min-w-0">
+                                                    <p className={`text-sm font-bold ${active ? 'text-brand' : 'text-zinc-950 dark:text-white'}`}>{s.label}</p>
+                                                    <p className="text-[11px] text-zinc-500 leading-tight mt-0.5">{s.hint}</p>
+                                                </div>
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Raw input */}
+                        <label className="block mb-4">
+                            <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300 mb-1.5 block flex items-center justify-between">
+                                <span>Raw notes</span>
+                                <span className={`tabular-nums font-mono font-normal ${charCount > maxChars * 0.9 ? 'text-amber-600' : 'text-zinc-400'}`}>
+                                    {charCount.toLocaleString()} / {maxChars.toLocaleString()}
+                                </span>
+                            </span>
+                            <textarea
+                                value={rawInput}
+                                onChange={(e) => setRawInput(e.target.value.slice(0, maxChars))}
+                                placeholder={`Paste anything — meeting notes, voice transcripts, half-written drafts, bullet points…\n\nThe model will clean it up, add structure, and produce production-ready Markdown.`}
+                                className="adm-input2 font-mono text-[13px] leading-relaxed resize-y"
+                                rows={14}
+                                data-testid="generator-input"
+                            />
+                        </label>
+
+                        {error && (
+                            <div className="mb-4 rounded-md border border-rose-200 dark:border-rose-500/30 bg-rose-50 dark:bg-rose-500/10 px-3 py-2 text-sm text-rose-700 dark:text-rose-300">
+                                {error}
+                            </div>
+                        )}
+
+                        <button
+                            type="button"
+                            onClick={handleGenerate}
+                            disabled={!canGenerate}
+                            className="btn-press w-full h-11 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 rounded-md font-bold text-sm hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
+                            data-testid="generate-btn"
+                        >
+                            {generating ? (
+                                <>
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                    Generating…
+                                </>
+                            ) : (
+                                <>
+                                    <Wand2 className="h-4 w-4" />
+                                    Generate Markdown
+                                </>
+                            )}
+                        </button>
+                    </section>
+
+                    {/* OUTPUT side */}
+                    <section className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 lg:p-8 fade-up delay-1 flex flex-col">
+                        <div className="flex items-center justify-between mb-5">
+                            <div>
+                                <p className="eyebrow text-zinc-500 mb-2">Output</p>
+                                <h3 className="h-section text-base text-zinc-950 dark:text-white">Generated Markdown</h3>
+                            </div>
+                            {result && (
+                                <button
+                                    type="button"
+                                    onClick={handleCopy}
+                                    className="btn-press inline-flex items-center gap-2 h-9 px-3 rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-xs font-bold hover:border-zinc-300 dark:hover:border-zinc-600"
+                                    data-testid="copy-result-btn"
+                                >
+                                    {copied ? (
+                                        <><Check className="h-3.5 w-3.5 text-brand" /><span className="text-brand">Copied</span></>
+                                    ) : (
+                                        <><Copy className="h-3.5 w-3.5" /><span>Copy</span></>
+                                    )}
+                                </button>
+                            )}
+                        </div>
+
+                        <div className="flex-1 min-h-[400px] rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 overflow-hidden flex flex-col">
+                            {generating ? (
+                                <div className="flex-1 flex flex-col items-center justify-center text-center px-6 py-12">
+                                    <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-brand/10 mb-4">
+                                        <Loader2 className="h-5 w-5 animate-spin text-brand" />
+                                    </div>
+                                    <p className="text-sm font-semibold text-zinc-950 dark:text-white">Crafting your Markdown…</p>
+                                    <p className="text-xs text-zinc-500 mt-1">Claude Sonnet is structuring the content</p>
+                                </div>
+                            ) : result ? (
+                                <pre
+                                    className="flex-1 overflow-auto px-4 py-4 text-[13px] leading-relaxed font-mono text-zinc-800 dark:text-zinc-200 whitespace-pre-wrap break-words"
+                                    data-testid="generator-result"
+                                >
+                                    {result}
+                                </pre>
+                            ) : (
+                                <div className="flex-1 flex flex-col items-center justify-center text-center px-6 py-12">
+                                    <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-100 dark:bg-zinc-800 mb-4">
+                                        <Sparkles className="h-5 w-5 text-zinc-400" />
+                                    </div>
+                                    <p className="text-sm font-semibold text-zinc-950 dark:text-white">Your generated Markdown will appear here</p>
+                                    <p className="text-xs text-zinc-500 mt-1">Paste your notes and hit Generate</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {result && (
+                            <div className="mt-4 flex items-center justify-between text-xs text-zinc-500">
+                                <span>{result.length.toLocaleString()} chars · ~{Math.ceil(result.split(/\s+/).length / 200)} min read</span>
+                                <button
+                                    type="button"
+                                    onClick={() => navigate("/admin/edit")}
+                                    className="btn-press inline-flex items-center gap-1 text-brand hover:text-brand-600 font-bold"
+                                >
+                                    Open in editor <ArrowRight className="h-3 w-3" />
+                                </button>
+                            </div>
+                        )}
+                    </section>
+                </div>
+            </main>
         </div>
-      </div>
-    </div>
-  );
+    );
 };
 
 export default Generator;

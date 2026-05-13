@@ -9,7 +9,7 @@
  *    slash command lives in /SlashCommands.jsx). Visual mode is for
  *    WYSIWYG editing; structured content can be inserted via the toolbar.
  */
-import { useEditor, EditorContent, BubbleMenu } from '@tiptap/react';
+import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import Link from '@tiptap/extension-link';
@@ -258,25 +258,7 @@ export const TipTapWYSIWYG = ({ content, onChange, placeholder = 'Start writing 
                 </ToolbarButton>
             </div>
 
-            {/* Bubble menu */}
-            <BubbleMenu
-                editor={editor}
-                tippyOptions={{ duration: 100 }}
-                className="flex items-center gap-0.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-1 py-1 shadow-lg"
-            >
-                <ToolbarButton title="Bold" active={editor.isActive('bold')} onClick={() => editor.chain().focus().toggleBold().run()}>
-                    <Bold className="h-3.5 w-3.5" />
-                </ToolbarButton>
-                <ToolbarButton title="Italic" active={editor.isActive('italic')} onClick={() => editor.chain().focus().toggleItalic().run()}>
-                    <Italic className="h-3.5 w-3.5" />
-                </ToolbarButton>
-                <ToolbarButton title="Code" active={editor.isActive('code')} onClick={() => editor.chain().focus().toggleCode().run()}>
-                    <Code className="h-3.5 w-3.5" />
-                </ToolbarButton>
-                <ToolbarButton title="Link" active={editor.isActive('link')} onClick={insertLink}>
-                    <Link2 className="h-3.5 w-3.5" />
-                </ToolbarButton>
-            </BubbleMenu>
+            {/* Bubble menu disabled — top toolbar is always visible for inline actions */}
 
             {/* Editor surface */}
             <div className="flex-1 overflow-y-auto bg-white dark:bg-zinc-950">

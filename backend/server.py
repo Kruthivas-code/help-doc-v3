@@ -1903,6 +1903,83 @@ Return ONLY the converted markdown, nothing else."""
         logger.error(f"Mintlify conversion error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Conversion failed: {str(e)}")
 
+
+# ==================== MARKDOWN GENERATOR (Claude Sonnet via Universal Key) ====================
+
+class MarkdownGenerateRequest(BaseModel):
+    raw_input: str
+    title: Optional[str] = None
+    style: Optional[str] = "documentation"  # "documentation" | "tutorial" | "reference" | "blog"
+
+@api_router.post("/generator/markdown")
+async def generate_markdown(data: MarkdownGenerateRequest, user: User = Depends(get_current_user)):
+    """Convert raw text/notes into well-formatted Markdown documentation using Claude Sonnet 4.5."""
+    from emergentintegrations.llm.chat import LlmChat, UserMessage
+
+    raw = (data.raw_input or "").strip()
+    if not raw:
+        raise HTTPException(status_code=400, detail="raw_input is required")
+    if len(raw) > 30000:
+        raise HTTPException(status_code=400, detail="raw_input too large (max 30k chars)")
+
+    style_hints = {
+        "documentation": "Write technical product documentation. Use clear hierarchical headings, short paragraphs, bullet lists where appropriate, and `inline code` for variable names / commands.",
+        "tutorial": "Write a step-by-step tutorial. Use numbered headings, `<Steps>...<Step title=\"...\">...</Step></Steps>` blocks, and fenced code samples in the relevant language.",
+        "reference": "Write an API reference. Use H2 sections per endpoint/function with tables for parameters and fenced code examples.",
+        "blog": "Write a clear, engaging blog post. Single H1 title, narrative paragraphs, and supporting subheadings.",
+    }
+    style_hint = style_hints.get(data.style, style_hints["documentation"])
+
+    title_hint = f"\nDocument title: {data.title}" if data.title else ""
+
+    system_message = (
+        "You are an expert technical writer creating documentation pages for the Emergent platform. "
+        "Your task: take the user's raw notes/draft and rewrite them as a polished, well-formatted Markdown document.\n\n"
+        "STRICT RULES:\n"
+        "1. Output ONLY the Markdown document — no preface, no explanation, no code fences around the whole thing.\n"
+        "2. Do NOT include a top-level `# Title` heading (the platform renders the title separately). Start at H2.\n"
+        "3. Use fenced code blocks with language tags: ```bash, ```python, ```javascript, ```json etc.\n"
+        "4. For callouts use: <Callout type=\"note|tip|warning|error\">body</Callout>\n"
+        "5. For step-by-step flows use: <Steps><Step title=\"...\">body</Step></Steps>\n"
+        "6. For grouped tips/links use: <CardGroup cols={2}><Card title=\"...\" icon=\"icon-name\">body</Card></CardGroup>\n"
+        "7. Preserve the user's intent and facts — clarify, don't invent.\n"
+        "8. Use **bold** sparingly, `inline code` for identifiers/commands, and short scannable paragraphs."
+    )
+
+    user_prompt = f"""Style: {style_hint}{title_hint}
+
+Raw input from the author:
+\"\"\"
+{raw}
+\"\"\"
+
+Now produce the polished Markdown document."""
+
+    try:
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"gen_md_{uuid.uuid4().hex[:8]}",
+            system_message=system_message,
+        ).with_model("anthropic", "claude-sonnet-4-5-20250929")
+
+        response = await chat.send_message(UserMessage(text=user_prompt))
+        markdown = (response or "").strip()
+
+        # Strip accidental top-level wrapping ```markdown fences if model included them
+        if markdown.startswith("```"):
+            lines = markdown.split("\n")
+            if lines[0].startswith("```"):
+                lines = lines[1:]
+            if lines and lines[-1].strip() == "```":
+                lines = lines[:-1]
+            markdown = "\n".join(lines).strip()
+
+        return {"markdown": markdown, "title": data.title}
+    except Exception as e:
+        logger.error(f"Markdown generation error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Generation failed: {str(e)}")
+
+
 # ==================== IMAGE SEARCH ====================
 
 class ImageSearchRequest(BaseModel):

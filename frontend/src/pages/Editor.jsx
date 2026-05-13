@@ -26,6 +26,7 @@ import { UnifiedEditor } from "@/components/editor/UnifiedEditor";
 import { GitHubPanel } from "@/components/editor/GitHubPanel";
 import { VersionHistoryPanel } from "@/components/editor/VersionHistoryPanel";
 import { LiveEditor } from "@/components/editor/LiveEditor";
+import { TipTapWYSIWYG } from "@/components/editor/TipTapWYSIWYG";
 import { MintlifyAIHelper } from "@/components/editor/MintlifyAIHelper";
 import { ImagePickerModal } from "@/components/editor/ImagePickerModal";
 import { AnchorsMenu } from "@/components/editor/AnchorsMenu";
@@ -165,7 +166,7 @@ const Editor = () => {
   
   // UI state
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [viewMode, setViewMode] = useState('markdown'); // 'markdown' | 'visual' | 'split' | 'preview'
+  const [viewMode, setViewMode] = useState('visual'); // 'markdown' | 'visual' | 'split'
   const [theme, setTheme] = useState('dark');
   const [activePanel, setActivePanel] = useState(null); // null | 'config' | 'media' | 'files' | 'github' | 'history'
   const [previewDevice, setPreviewDevice] = useState('desktop'); // 'desktop' | 'tablet' | 'mobile'
@@ -822,88 +823,50 @@ const Editor = () => {
             {/* Anchors menu */}
             <AnchorsMenu content={content} onContentChange={setContent} slug={slug} />
 
-            {/* View Mode Toggle - Markdown / Split / Visual / Preview */}
-            <div className="flex items-center bg-zinc-100 dark:bg-zinc-800/50 rounded-lg p-0.5">
+            {/* View Mode Toggle — Visual / Markdown / Split */}
+            <div className="inline-flex items-center rounded-full border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 p-0.5">
               <button
-                onClick={() => setViewMode('markdown')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                  viewMode === 'markdown' ? 'bg-white dark:bg-zinc-700 text-zinc-950 dark:text-white shadow-sm' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
+                type="button"
+                onClick={() => setViewMode('visual')}
+                className={`btn-press flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-colors ${
+                  viewMode === 'visual'
+                    ? 'bg-white dark:bg-zinc-700 text-zinc-950 dark:text-white shadow-sm'
+                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
                 }`}
-                title="Markdown Editor"
+                title="Visual WYSIWYG editor"
+                data-testid="view-mode-visual"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Visual</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('markdown')}
+                className={`btn-press flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-colors ${
+                  viewMode === 'markdown'
+                    ? 'bg-white dark:bg-zinc-700 text-zinc-950 dark:text-white shadow-sm'
+                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
+                }`}
+                title="Markdown editor"
                 data-testid="view-mode-markdown"
               >
-                <Code2 className="w-4 h-4" />
+                <Code2 className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Markdown</span>
               </button>
               <button
+                type="button"
                 onClick={() => setViewMode('split')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                  viewMode === 'split' ? 'bg-white dark:bg-zinc-700 text-zinc-950 dark:text-white shadow-sm' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
+                className={`btn-press flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-colors ${
+                  viewMode === 'split'
+                    ? 'bg-white dark:bg-zinc-700 text-zinc-950 dark:text-white shadow-sm'
+                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
                 }`}
-                title="Split View"
+                title="Split — markdown + preview"
                 data-testid="view-mode-split"
               >
                 <span>Split</span>
               </button>
-              <button
-                onClick={() => setViewMode('visual')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                  viewMode === 'visual' ? 'bg-white dark:bg-zinc-700 text-zinc-950 dark:text-white shadow-sm' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
-                }`}
-                title="Visual Editor"
-                data-testid="view-mode-visual"
-              >
-                <Edit3 className="w-4 h-4" />
-                <span className="hidden sm:inline">Visual</span>
-              </button>
-              <button
-                onClick={() => setViewMode('preview')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                  viewMode === 'preview' ? 'bg-white dark:bg-zinc-700 text-zinc-950 dark:text-white shadow-sm' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
-                }`}
-                title="Device Preview"
-                data-testid="view-mode-preview"
-              >
-                <Eye className="w-4 h-4" />
-                <span className="hidden sm:inline">Preview</span>
-              </button>
             </div>
-
-            {/* Device Toggle - Only shown in Preview mode */}
-            {viewMode === 'preview' && (
-              <div className="flex items-center bg-zinc-100 dark:bg-zinc-800/50 rounded-lg p-0.5 ml-2">
-                <button
-                  onClick={() => setPreviewDevice('desktop')}
-                  className={`p-2 rounded-md transition-colors ${
-                    previewDevice === 'desktop' ? 'bg-brand text-zinc-950 dark:text-white' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
-                  }`}
-                  title="Desktop (1280px)"
-                  data-testid="device-desktop"
-                >
-                  <Monitor className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setPreviewDevice('tablet')}
-                  className={`p-2 rounded-md transition-colors ${
-                    previewDevice === 'tablet' ? 'bg-brand text-zinc-950 dark:text-white' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
-                  }`}
-                  title="Tablet (768px)"
-                  data-testid="device-tablet"
-                >
-                  <Tablet className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setPreviewDevice('mobile')}
-                  className={`p-2 rounded-md transition-colors ${
-                    previewDevice === 'mobile' ? 'bg-brand text-zinc-950 dark:text-white' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
-                  }`}
-                  title="Mobile (375px)"
-                  data-testid="device-mobile"
-                >
-                  <Smartphone className="w-4 h-4" />
-                </button>
-              </div>
-            )}
 
             {/* Mintlify AI Helper - Only shown in Markdown view */}
             {(viewMode === 'markdown' || viewMode === 'split') && (
@@ -1008,64 +971,14 @@ const Editor = () => {
             </div>
           )}
 
-          {/* Visual Editor Panel - Live WYSIWYG editing */}
+          {/* Visual Editor Panel — TipTap WYSIWYG */}
           {viewMode === 'visual' && (
-            <div className="flex-1 overflow-auto bg-background">
-              <LiveEditor
-                content={content}
-                onChange={setContent}
-              />
+            <div className="flex-1 overflow-hidden bg-background">
+              <TipTapWYSIWYG content={content} onChange={setContent} />
             </div>
           )}
 
-          {/* Device Preview Panel - Desktop/Tablet/Mobile simulation */}
-          {viewMode === 'preview' && (
-            <div className="flex-1 bg-background flex items-center justify-center p-8 overflow-auto">
-              <DeviceFrame device={previewDevice}>
-                <div className="h-full overflow-auto bg-[#020617]">
-                  {/* Grid Pattern Background */}
-                  <div className="fixed inset-0 bg-grid-pattern pointer-events-none" />
-                  
-                  {/* Simulated Top Nav */}
-                  <div className="sticky top-0 z-10 bg-[#020617]/80 backdrop-blur-xl border-b border-white/5 px-4 h-14 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-md bg-brand flex items-center justify-center">
-                        <FileText className="w-3 h-3 text-zinc-950 dark:text-white" />
-                      </div>
-                      <span className="font-semibold text-zinc-950 dark:text-white text-sm">{project?.name || 'Docs'}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Search className="w-4 h-4 text-zinc-500" />
-                    </div>
-                  </div>
-                  
-                  {/* Content */}
-                  <div className={`px-4 sm:px-6 py-6 ${previewDevice === 'mobile' ? 'text-sm' : ''}`}>
-                    {/* Title */}
-                    <div className="flex items-center gap-3 mb-6">
-                      {IconComponent && (
-                        <div className={`${previewDevice === 'mobile' ? 'w-8 h-8' : 'w-10 h-10'} rounded-lg bg-brand/20 flex items-center justify-center text-[#1588FC]`}>
-                          <IconComponent className={previewDevice === 'mobile' ? 'w-4 h-4' : 'w-5 h-5'} />
-                        </div>
-                      )}
-                      <h1 className={`font-bold text-zinc-950 dark:text-white ${
-                        previewDevice === 'mobile' ? 'text-xl' : previewDevice === 'tablet' ? 'text-2xl' : 'text-3xl'
-                      }`}>
-                        {title || 'Untitled'}
-                      </h1>
-                    </div>
-                    
-                    {/* Doc Content */}
-                    <div className={`prose prose-invert max-w-none ${
-                      previewDevice === 'mobile' ? 'prose-sm' : ''
-                    }`}>
-                      <DocContent content={content} />
-                    </div>
-                  </div>
-                </div>
-              </DeviceFrame>
-            </div>
-          )}
+          {/* (Preview mode removed — Split view shows live preview alongside markdown.) */}
 
           {/* Split View Preview Panel */}
           {viewMode === 'split' && (
