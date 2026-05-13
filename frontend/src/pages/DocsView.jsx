@@ -132,7 +132,7 @@ const DocsView = () => {
       <header className="h-14 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between px-4 bg-background sticky top-0 z-50">
         <div className="flex items-center gap-3">
           <button 
-            className="lg:hidden p-2 -ml-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white"
+            className="lg:hidden p-2 -ml-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -140,7 +140,7 @@ const DocsView = () => {
           
           <button 
             onClick={() => navigate("/admin/dashboard")}
-            className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white transition-colors"
+            className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white transition-colors"
           >
             <div className="w-7 h-7 bg-brand rounded-lg flex items-center justify-center">
               <Book className="w-3.5 h-3.5 text-zinc-950 dark:text-white" />
@@ -198,7 +198,7 @@ const DocsView = () => {
                         className={`group flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer transition-colors ${
                           selectedDoc?.id === doc.id 
                             ? 'bg-brand/10 text-brand' 
-                            : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white'
+                            : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-950 dark:hover:text-white'
                         }`}
                         onClick={() => handleNavSelect({ id: doc.id })}
                         data-testid={`doc-item-${doc.id}`}
@@ -253,7 +253,7 @@ const DocsView = () => {
             <div className="max-w-4xl mx-auto px-6 lg:px-12 py-10 page-transition">
               {/* Breadcrumb */}
               <div className="flex items-center gap-2 text-sm text-zinc-500 mb-6">
-                <button onClick={() => navigate("/admin/dashboard")} className="hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white transition-colors">
+                <button onClick={() => navigate("/admin/dashboard")} className="hover:text-zinc-950 dark:hover:text-white transition-colors">
                   <Home className="w-4 h-4" />
                 </button>
                 <ChevronRight className="w-3 h-3" />
@@ -274,7 +274,7 @@ const DocsView = () => {
                 </div>
                 <button
                   onClick={() => navigate(`/admin/editor/${projectId}/${selectedDoc.id}`)}
-                  className="p-2 text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white transition-colors"
+                  className="p-2 text-zinc-500 hover:text-zinc-950 dark:hover:text-white transition-colors"
                   data-testid="edit-current-doc"
                 >
                   <Edit3 className="w-4 h-4" />
@@ -318,7 +318,7 @@ const DocsView = () => {
                 <a
                   key={i}
                   href={`#${item.id}`}
-                  className={`block text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white transition-colors ${
+                  className={`block text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white transition-colors ${
                     item.level === 3 ? 'pl-3' : ''
                   }`}
                 >
@@ -349,7 +349,7 @@ const DocsView = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-transparent border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white">
+            <AlertDialogCancel className="bg-transparent border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-950 dark:hover:text-white">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction onClick={deleteDoc} className="bg-rose-600 hover:bg-rose-500 text-zinc-950 dark:text-white">

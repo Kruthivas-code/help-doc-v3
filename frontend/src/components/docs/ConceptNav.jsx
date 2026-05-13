@@ -70,7 +70,7 @@ const NavItem = ({
           w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-colors
           ${isSelected 
             ? 'bg-brand/10 text-brand' 
-            : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white'
+            : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-950 dark:hover:text-white'
           }
         `}
         style={{ paddingLeft: `${12 + level * 16}px` }}
@@ -145,7 +145,7 @@ const RelatedDocs = ({ currentId, graph, onSelect }) => {
             <button
               key={node.id}
               onClick={() => onSelect(node)}
-              className="w-full flex items-center gap-2 px-3 py-1.5 text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-900/50 rounded-lg transition-colors"
+              className="w-full flex items-center gap-2 px-3 py-1.5 text-zinc-500 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-900/50 rounded-lg transition-colors"
             >
               <IconComponent className="w-3.5 h-3.5" />
               <span className="text-xs truncate">{node.title}</span>

@@ -93,15 +93,15 @@ const CodeBlockRenderer = ({ children, className }) => {
   }
 
   return (
-    <div className="code-block my-5 rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 w-full max-w-3xl" data-testid="code-block">
-      <div className="flex items-center justify-between px-4 py-2 bg-white dark:bg-zinc-900/70 border-b border-zinc-200 dark:border-zinc-800">
+    <div className="code-block my-5 rounded-xl overflow-hidden w-full max-w-3xl" data-testid="code-block">
+      <div className="flex items-center justify-between px-4 py-2 bg-zinc-100 dark:bg-zinc-900 rounded-t-xl">
         <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
           {isTerminal ? <Terminal className="w-3.5 h-3.5" /> : <FileCode className="w-3.5 h-3.5" />}
           <span className="text-[11px] font-mono font-medium tracking-wide">{langName}</span>
         </div>
         <button
           onClick={handleCopy}
-          className="btn-press flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white rounded-md transition-colors"
+          className="btn-press flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white rounded-md transition-colors"
           data-testid="copy-code-btn"
         >
           {copied ? (
@@ -111,7 +111,7 @@ const CodeBlockRenderer = ({ children, className }) => {
           )}
         </button>
       </div>
-      <div className="overflow-x-auto w-full">
+      <div className="overflow-x-auto w-full rounded-b-xl bg-zinc-50 dark:bg-zinc-950">
         <SyntaxHighlighter
           language={language}
           style={codeTheme}

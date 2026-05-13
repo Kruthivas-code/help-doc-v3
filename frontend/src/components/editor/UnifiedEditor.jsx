@@ -27,7 +27,7 @@ const ToolBtn = ({ onClick, active, disabled, children, title }) => (
     disabled={disabled}
     title={title}
     className={`p-1.5 rounded-md transition-all ${
-      active ? 'bg-brand text-zinc-950 dark:text-white' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800'
+      active ? 'bg-brand text-zinc-950 dark:text-white' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800'
     } ${disabled ? 'opacity-30 cursor-not-allowed' : ''}`}
   >
     {children}
@@ -72,12 +72,12 @@ const ImageDialog = ({ isOpen, onClose, onInsert, projectId }) => {
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl w-full max-w-md" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-200 dark:border-zinc-800">
           <h3 className="font-semibold text-zinc-950 dark:text-white">Insert Image</h3>
-          <button onClick={onClose} className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white"><X className="w-5 h-5" /></button>
+          <button onClick={onClose} className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-4">
           <div className="flex gap-2 mb-4">
-            <button onClick={() => setTab('url')} className={`px-3 py-1.5 rounded-lg text-sm font-medium ${tab === 'url' ? 'bg-brand text-zinc-950 dark:text-white' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white'}`}>URL</button>
-            <button onClick={() => setTab('upload')} className={`px-3 py-1.5 rounded-lg text-sm font-medium ${tab === 'upload' ? 'bg-brand text-zinc-950 dark:text-white' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white'}`}>Upload</button>
+            <button onClick={() => setTab('url')} className={`px-3 py-1.5 rounded-lg text-sm font-medium ${tab === 'url' ? 'bg-brand text-zinc-950 dark:text-white' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'}`}>URL</button>
+            <button onClick={() => setTab('upload')} className={`px-3 py-1.5 rounded-lg text-sm font-medium ${tab === 'upload' ? 'bg-brand text-zinc-950 dark:text-white' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'}`}>Upload</button>
           </div>
           {tab === 'url' ? (
             <div className="space-y-3">
@@ -125,7 +125,7 @@ const YoutubeDialog = ({ isOpen, onClose, onInsert }) => {
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl w-full max-w-md" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-200 dark:border-zinc-800">
           <h3 className="font-semibold text-zinc-950 dark:text-white">Embed YouTube Video</h3>
-          <button onClick={onClose} className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white"><X className="w-5 h-5" /></button>
+          <button onClick={onClose} className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-4 space-y-3">
           <input type="text" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://youtube.com/watch?v=..." className="w-full px-3 py-2.5 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-950 dark:text-white text-sm placeholder:text-zinc-500" />
@@ -152,7 +152,7 @@ const LinkDialog = ({ isOpen, onClose, onInsert, initialUrl = '' }) => {
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl w-full max-w-md" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-200 dark:border-zinc-800">
           <h3 className="font-semibold text-zinc-950 dark:text-white">Insert Link</h3>
-          <button onClick={onClose} className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white"><X className="w-5 h-5" /></button>
+          <button onClick={onClose} className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-4 space-y-3">
           <input type="text" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://example.com" className="w-full px-3 py-2.5 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-950 dark:text-white text-sm placeholder:text-zinc-500" />
@@ -197,7 +197,7 @@ const InsertMenu = ({ isOpen, onClose, editor, onImageClick, onYoutubeClick }) =
         <button
           key={i}
           onClick={() => { item.action(); onClose(); }}
-          className="flex items-center gap-3 w-full px-4 py-2 text-left text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white transition-colors"
+          className="flex items-center gap-3 w-full px-4 py-2 text-left text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-950 dark:hover:text-white transition-colors"
         >
           <item.icon className="w-4 h-4 text-zinc-500" />
           <span className="text-sm">{item.label}</span>
@@ -405,21 +405,21 @@ export const UnifiedEditor = ({
         <div className="flex items-center gap-0.5 bg-zinc-100 dark:bg-zinc-800/50 rounded-lg p-0.5">
           <button
             onClick={() => setDevicePreview('desktop')}
-            className={`p-1.5 rounded transition-colors ${devicePreview === 'desktop' ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-950 dark:text-white' : 'text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white'}`}
+            className={`p-1.5 rounded transition-colors ${devicePreview === 'desktop' ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-950 dark:text-white' : 'text-zinc-500 hover:text-zinc-950 dark:hover:text-white'}`}
             title="Desktop preview"
           >
             <Monitor className="w-4 h-4" />
           </button>
           <button
             onClick={() => setDevicePreview('tablet')}
-            className={`p-1.5 rounded transition-colors ${devicePreview === 'tablet' ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-950 dark:text-white' : 'text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white'}`}
+            className={`p-1.5 rounded transition-colors ${devicePreview === 'tablet' ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-950 dark:text-white' : 'text-zinc-500 hover:text-zinc-950 dark:hover:text-white'}`}
             title="Tablet preview"
           >
             <Tablet className="w-4 h-4" />
           </button>
           <button
             onClick={() => setDevicePreview('mobile')}
-            className={`p-1.5 rounded transition-colors ${devicePreview === 'mobile' ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-950 dark:text-white' : 'text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white'}`}
+            className={`p-1.5 rounded transition-colors ${devicePreview === 'mobile' ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-950 dark:text-white' : 'text-zinc-500 hover:text-zinc-950 dark:hover:text-white'}`}
             title="Mobile preview"
           >
             <Smartphone className="w-4 h-4" />

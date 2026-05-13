@@ -308,7 +308,7 @@ export const IconPicker = ({
                 className={`p-2.5 rounded-lg transition-colors ${
                   value === iconName 
                     ? 'bg-brand text-zinc-950 dark:text-white' 
-                    : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white'
+                    : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-950 dark:hover:text-white'
                 }`}
                 title={iconName}
               >
@@ -333,7 +333,7 @@ export const IconPicker = ({
           </div>
           <button
             onClick={() => onChange(null)}
-            className="text-xs text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white"
+            className="text-xs text-zinc-500 hover:text-zinc-950 dark:hover:text-white"
           >
             Clear
           </button>
@@ -361,7 +361,7 @@ export const IconButton = ({
         className={`w-10 h-10 rounded-lg border border-zinc-200 dark:border-zinc-800 flex items-center justify-center transition-colors ${
           value 
             ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-950 dark:text-white' 
-            : 'bg-white dark:bg-zinc-900 text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white hover:border-zinc-300 dark:border-zinc-600'
+            : 'bg-white dark:bg-zinc-900 text-zinc-500 hover:text-zinc-950 dark:hover:text-white hover:border-zinc-300 dark:border-zinc-600'
         } ${className}`}
         title="Choose icon"
       >

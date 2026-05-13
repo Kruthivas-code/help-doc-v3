@@ -25,7 +25,7 @@ const ToolBtn = ({ onClick, active, disabled, children, title }) => (
     disabled={disabled}
     title={title}
     className={`p-1.5 rounded-md transition-colors ${
-      active ? 'bg-brand text-zinc-950 dark:text-white' : 'text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800'
+      active ? 'bg-brand text-zinc-950 dark:text-white' : 'text-zinc-500 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800'
     } ${disabled ? 'opacity-30 cursor-not-allowed' : ''}`}
   >
     {children}
@@ -67,7 +67,7 @@ const ImageDialog = ({ isOpen, onClose, onInsert, projectId }) => {
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl w-full max-w-md p-5" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold text-zinc-950 dark:text-white">Insert Image</h3>
-          <button onClick={onClose} className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white"><X className="w-5 h-5" /></button>
+          <button onClick={onClose} className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white"><X className="w-5 h-5" /></button>
         </div>
         <div className="flex gap-2 mb-4">
           <button onClick={() => setTab('url')} className={`px-3 py-1.5 rounded text-sm ${tab === 'url' ? 'bg-brand text-zinc-950 dark:text-white' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400'}`}>URL</button>
@@ -100,7 +100,7 @@ const YoutubeDialog = ({ isOpen, onClose, onInsert }) => {
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl w-full max-w-md p-5" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold text-zinc-950 dark:text-white">Embed YouTube</h3>
-          <button onClick={onClose} className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white"><X className="w-5 h-5" /></button>
+          <button onClick={onClose} className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white"><X className="w-5 h-5" /></button>
         </div>
         <input type="text" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://youtube.com/watch?v=..." className="w-full px-3 py-2 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-950 dark:text-white text-sm mb-3" />
         <button onClick={() => { if(url) { onInsert(url); onClose(); }}} disabled={!url} className="w-full py-2 bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-zinc-950 dark:text-white rounded-lg text-sm font-medium">Embed</button>
@@ -261,21 +261,21 @@ export const MintlifyEditor = ({
         <div className="flex items-center gap-0.5 bg-zinc-100 dark:bg-zinc-800/50 rounded-lg p-0.5">
           <button
             onClick={() => setDevicePreview('desktop')}
-            className={`p-1.5 rounded ${devicePreview === 'desktop' ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-950 dark:text-white' : 'text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white'}`}
+            className={`p-1.5 rounded ${devicePreview === 'desktop' ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-950 dark:text-white' : 'text-zinc-500 hover:text-zinc-950 dark:hover:text-white'}`}
             title="Desktop view"
           >
             <Monitor className="w-4 h-4" />
           </button>
           <button
             onClick={() => setDevicePreview('tablet')}
-            className={`p-1.5 rounded ${devicePreview === 'tablet' ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-950 dark:text-white' : 'text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white'}`}
+            className={`p-1.5 rounded ${devicePreview === 'tablet' ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-950 dark:text-white' : 'text-zinc-500 hover:text-zinc-950 dark:hover:text-white'}`}
             title="Tablet view"
           >
             <Tablet className="w-4 h-4" />
           </button>
           <button
             onClick={() => setDevicePreview('mobile')}
-            className={`p-1.5 rounded ${devicePreview === 'mobile' ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-950 dark:text-white' : 'text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white'}`}
+            className={`p-1.5 rounded ${devicePreview === 'mobile' ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-950 dark:text-white' : 'text-zinc-500 hover:text-zinc-950 dark:hover:text-white'}`}
             title="Mobile view"
           >
             <Smartphone className="w-4 h-4" />

@@ -363,20 +363,20 @@ const BlockWrapper = ({ children, onDelete, onMoveUp, onMoveDown, showControls =
         }`}>
           <button 
             onClick={(e) => { e.stopPropagation(); onMoveUp(); }}
-            className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:bg-zinc-700 rounded transition-colors"
+            className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:bg-zinc-700 rounded transition-colors"
             title="Move up"
           >
             <ChevronUp className="w-4 h-4" />
           </button>
           <button 
-            className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white cursor-grab rounded-md"
+            className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white cursor-grab rounded-md"
             title="Drag to reorder"
           >
             <GripVertical className="w-4 h-4" />
           </button>
           <button 
             onClick={(e) => { e.stopPropagation(); onMoveDown(); }}
-            className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:bg-zinc-700 rounded transition-colors"
+            className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:bg-zinc-700 rounded transition-colors"
             title="Move down"
           >
             <ChevronDown className="w-4 h-4" />
@@ -452,7 +452,7 @@ const CalloutBlock = ({ block, onChange, onDelete, onMoveUp, onMoveDown }) => {
         <div className="absolute top-2 right-2">
           <button 
             onClick={() => setShowTypeSelector(!showTypeSelector)}
-            className="p-1 text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white rounded"
+            className="p-1 text-zinc-500 hover:text-zinc-950 dark:hover:text-white rounded"
           >
             <Settings className="w-4 h-4" />
           </button>
@@ -568,7 +568,7 @@ const CardItem = ({ card, onChange }) => {
                     className={`px-2 py-1 text-xs rounded-md transition-colors ${
                       activeCategory === category 
                         ? 'bg-brand text-zinc-950 dark:text-white' 
-                        : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                        : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800'
                     }`}
                   >
                     {category}
@@ -596,7 +596,7 @@ const CardItem = ({ card, onChange }) => {
                       }`}
                       title={iconName}
                     >
-                      <Icon className={`w-5 h-5 ${card.icon === iconName ? 'text-brand' : 'text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white'}`} />
+                      <Icon className={`w-5 h-5 ${card.icon === iconName ? 'text-brand' : 'text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-950 dark:hover:text-white'}`} />
                     </button>
                   );
                 })}
@@ -611,7 +611,7 @@ const CardItem = ({ card, onChange }) => {
               <span className="text-xs text-zinc-500">Selected: <span className="text-zinc-700 dark:text-zinc-300">{card.icon}</span></span>
               <button
                 onClick={() => setShowIconSelector(false)}
-                className="text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white"
+                className="text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white"
               >
                 Done
               </button>
@@ -691,7 +691,7 @@ const CardGroupBlock = ({ block, onChange, onDelete, onMoveUp, onMoveDown }) => 
         </div>
         <button
           onClick={addCard}
-          className="mt-3 flex items-center gap-2 px-3 py-2 text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white border border-dashed border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:border-zinc-600 rounded-md transition-colors"
+          className="mt-3 flex items-center gap-2 px-3 py-2 text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white border border-dashed border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:border-zinc-600 rounded-md transition-colors"
         >
           <Plus className="w-4 h-4" />
           Add Card
@@ -720,7 +720,7 @@ const CodeBlock = ({ block, onChange, onDelete, onMoveUp, onMoveDown }) => {
               placeholder="language"
             />
           </div>
-          <button className="text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white flex items-center gap-1">
+          <button className="text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white flex items-center gap-1">
             Copy
           </button>
         </div>
@@ -822,7 +822,7 @@ const StepsBlock = ({ block, onChange, onDelete, onMoveUp, onMoveDown }) => {
 
         <button
           onClick={addStep}
-          className="mt-4 ml-12 flex items-center gap-2 px-3 py-2 text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white border border-dashed border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:border-zinc-600 rounded-md transition-colors"
+          className="mt-4 ml-12 flex items-center gap-2 px-3 py-2 text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white border border-dashed border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:border-zinc-600 rounded-md transition-colors"
         >
           <Plus className="w-4 h-4" />
           Add Step
@@ -849,7 +849,7 @@ const AddBlockMenu = ({ onAdd, position }) => {
     <div className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full py-2 flex items-center justify-center gap-2 text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white border border-dashed border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:border-zinc-600 rounded-lg transition-colors opacity-0 hover:opacity-100"
+        className="w-full py-2 flex items-center justify-center gap-2 text-zinc-500 hover:text-zinc-950 dark:hover:text-white border border-dashed border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:border-zinc-600 rounded-lg transition-colors opacity-0 hover:opacity-100"
       >
         <Plus className="w-4 h-4" />
         <span className="text-sm">Add block</span>
@@ -864,7 +864,7 @@ const AddBlockMenu = ({ onAdd, position }) => {
                 onAdd(position, { ...defaultBlock, id: Date.now().toString() });
                 setOpen(false);
               }}
-              className="w-full flex items-center gap-3 px-3 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:bg-zinc-700 rounded-lg transition-colors"
+              className="w-full flex items-center gap-3 px-3 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:bg-zinc-700 rounded-lg transition-colors"
             >
               <Icon className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
               {label}

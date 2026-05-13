@@ -372,7 +372,7 @@ const NavGroupEditor = ({ group, index, onChange, onRemove, depth = 0, onCreateD
           <div className="flex items-center gap-3 pt-1">
             <button
               onClick={addPage}
-              className="flex items-center gap-1.5 px-2 py-1 text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white transition-colors"
+              className="flex items-center gap-1.5 px-2 py-1 text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white transition-colors"
             >
               <Plus className="w-3 h-3" />
               Add Page
@@ -684,7 +684,7 @@ const NavGroupEditorWithHandle = ({ group, index, onChange, onRemove, depth = 0,
           <div className="flex items-center gap-2">
             <button
               onClick={addPage}
-              className="flex items-center gap-1.5 px-2 py-1 text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white transition-colors"
+              className="flex items-center gap-1.5 px-2 py-1 text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white transition-colors"
             >
               <Plus className="w-3 h-3" />
               Add Page
@@ -842,7 +842,7 @@ const NavigationEditor = ({ navigation, onChange, onCreateDocument }) => {
         <button
           onClick={() => handleViewModeChange('visual')}
           className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-            viewMode === 'visual' ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-950 dark:text-white' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white'
+            viewMode === 'visual' ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-950 dark:text-white' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
           }`}
           data-testid="nav-visual-mode-btn"
         >
@@ -851,7 +851,7 @@ const NavigationEditor = ({ navigation, onChange, onCreateDocument }) => {
         <button
           onClick={() => handleViewModeChange('json')}
           className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-            viewMode === 'json' ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-950 dark:text-white' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white'
+            viewMode === 'json' ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-950 dark:text-white' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
           }`}
           data-testid="nav-json-mode-btn"
         >
@@ -949,7 +949,7 @@ const NavigationEditor = ({ navigation, onChange, onCreateDocument }) => {
               
             <button
               onClick={addGroup}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2 mt-2 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-md text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white hover:border-zinc-300 dark:border-zinc-600 transition-colors"
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 mt-2 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-md text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:border-zinc-300 dark:border-zinc-600 transition-colors"
               data-testid="add-nav-group-btn"
             >
               <Plus className="w-4 h-4" />
@@ -1033,7 +1033,7 @@ const NavbarEditor = ({ navbar, onChange }) => {
           ))}
           <button
             onClick={addLink}
-            className="flex items-center gap-1.5 px-2 py-1 text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white"
+            className="flex items-center gap-1.5 px-2 py-1 text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white"
           >
             <Plus className="w-3 h-3" />
             Add Link
@@ -1280,7 +1280,7 @@ export const ConfigurationsPanel = ({ projectId, onClose }) => {
             Save
           </button>
           {onClose && (
-            <button onClick={onClose} className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white">
+            <button onClick={onClose} className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white">
               <X className="w-5 h-5" />
             </button>
           )}

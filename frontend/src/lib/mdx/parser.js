@@ -462,6 +462,7 @@ function extractInnerComponents(content, parentType) {
  */
 function extractCardsFromColumns(content) {
   const cards = [];
+  const seenIframeUrls = new Set(); // dedupe — same iframe can match both iframeRegex and divRegex
   // Match Card with various props - title, icon, color, href
   const cardRegex = /<Card\s+([^>]*?)>([\s\S]*?)<\/Card>/gi;
   let match;
@@ -477,24 +478,27 @@ function extractCardsFromColumns(content) {
     });
   }
   
-  // Also check for iframes (embedded videos)
+  // Iframes (embedded videos) at root level
   const iframeRegex = /<iframe\s+([^>]*?)(?:\/>|><\/iframe>|>[\s\S]*?<\/iframe>)/gi;
   while ((match = iframeRegex.exec(content)) !== null) {
     const props = parseIframeProps(match[1]);
+    if (props.src && seenIframeUrls.has(props.src)) continue;
+    if (props.src) seenIframeUrls.add(props.src);
     cards.push({
       type: 'iframe',
       ...props,
     });
   }
   
-  // Check for div elements with style (for video containers)
+  // Iframes wrapped in <div style={{...}}> — only add ones not already seen
   const divRegex = /<div\s+style=\{\{([^}]*)\}\}>([\s\S]*?)<\/div>/gi;
   while ((match = divRegex.exec(content)) !== null) {
     const innerContent = match[2];
-    // Check if div contains an iframe
     const innerIframe = /<iframe\s+([^>]*?)(?:\/>|><\/iframe>|>[\s\S]*?<\/iframe>)/i.exec(innerContent);
     if (innerIframe) {
       const props = parseIframeProps(innerIframe[1]);
+      if (props.src && seenIframeUrls.has(props.src)) continue;
+      if (props.src) seenIframeUrls.add(props.src);
       cards.push({
         type: 'iframe',
         ...props,

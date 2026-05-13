@@ -27,7 +27,7 @@ const ToolbarButton = ({ onClick, active, disabled, children, title }) => (
     className={`p-2 rounded-md transition-colors ${
       active 
         ? 'bg-brand text-zinc-950 dark:text-white' 
-        : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800'
+        : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800'
     } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
   >
     {children}
@@ -81,7 +81,7 @@ const ImageUploadDialog = ({ isOpen, onClose, onInsert, projectId }) => {
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl w-full max-w-md p-6" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-zinc-950 dark:text-white">Insert Image</h3>
-          <button onClick={onClose} className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white">
+          <button onClick={onClose} className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -171,7 +171,7 @@ const YoutubeDialog = ({ isOpen, onClose, onInsert }) => {
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl w-full max-w-md p-6" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-zinc-950 dark:text-white">Embed YouTube Video</h3>
-          <button onClick={onClose} className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white">
+          <button onClick={onClose} className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -216,7 +216,7 @@ const LinkDialog = ({ isOpen, onClose, onInsert, initialUrl = '' }) => {
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl w-full max-w-md p-6" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-zinc-950 dark:text-white">Insert Link</h3>
-          <button onClick={onClose} className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white">
+          <button onClick={onClose} className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -311,7 +311,7 @@ const ComponentPalette = ({ editor }) => {
             <button
               key={comp.name}
               onClick={() => { comp.action(); setIsOpen(false); }}
-              className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white"
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-950 dark:hover:text-white"
             >
               <comp.icon className="w-4 h-4" />
               <span className="text-sm">{comp.name}</span>
