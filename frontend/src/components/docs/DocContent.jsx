@@ -7,7 +7,8 @@ import remarkGfm from 'remark-gfm';
 import { useState, useMemo, useEffect, Children, isValidElement, Fragment } from 'react';
 import { Copy, Check, Terminal, FileCode, Info, Lightbulb, AlertTriangle, AlertCircle, CheckCircle } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { useTheme } from '@/contexts/ThemeContext';
 
 // Import custom components
 import { Steps, Step } from './Steps';
@@ -19,17 +20,25 @@ import { DeleteAccountButton } from './DeleteAccountButton';
 // Import parser
 import { extractComponents, parseContent, generateTOC } from '@/lib/mdx/parser';
 
-// Custom code theme
-const codeTheme = {
-  ...oneDark,
-  'pre[class*="language-"]': {
-    ...oneDark['pre[class*="language-"]'],
-    background: '#0f172a',
-    margin: 0,
-    padding: '1rem 1.25rem',
-    fontSize: '0.875rem',
-    lineHeight: '1.7',
-  },
+// Custom code themes — light + dark
+const buildCodeTheme = (isDark) => {
+  const base = isDark ? oneDark : oneLight;
+  return {
+    ...base,
+    'pre[class*="language-"]': {
+      ...base['pre[class*="language-"]'],
+      background: isDark ? '#0a0a0a' : '#fafafa',
+      margin: 0,
+      padding: '1rem 1.25rem',
+      fontSize: '0.8125rem',
+      lineHeight: '1.7',
+    },
+    'code[class*="language-"]': {
+      ...base['code[class*="language-"]'],
+      background: 'transparent',
+      fontFamily: '"JetBrains Mono", ui-monospace, monospace',
+    },
+  };
 };
 
 // Language display names
@@ -54,25 +63,27 @@ const LANG_NAMES = {
 const CALLOUT_CONFIG = {
   NOTE: { icon: Info, bg: 'bg-blue-500/10', border: 'border-blue-500/30', iconColor: 'text-blue-600 dark:text-blue-400', textColorLight: '#1e40af', textColorDark: '#bfdbfe', title: 'Note' },
   INFO: { icon: Info, bg: 'bg-blue-500/10', border: 'border-blue-500/30', iconColor: 'text-blue-600 dark:text-blue-400', textColorLight: '#1e40af', textColorDark: '#bfdbfe', title: 'Info' },
-  TIP: { icon: Lightbulb, bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', iconColor: 'text-emerald-600 dark:text-emerald-400', textColorLight: '#065f46', textColorDark: '#a7f3d0', title: 'Tip' },
+  TIP: { icon: Lightbulb, bg: 'bg-brand/10', border: 'border-brand/30', iconColor: 'text-emerald-600 dark:text-brand', textColorLight: '#065f46', textColorDark: '#a7f3d0', title: 'Tip' },
   WARNING: { icon: AlertTriangle, bg: 'bg-amber-500/10', border: 'border-amber-500/30', iconColor: 'text-amber-600 dark:text-amber-400', textColorLight: '#92400e', textColorDark: '#fde68a', title: 'Warning' },
   CAUTION: { icon: AlertTriangle, bg: 'bg-amber-500/10', border: 'border-amber-500/30', iconColor: 'text-amber-600 dark:text-amber-400', textColorLight: '#92400e', textColorDark: '#fde68a', title: 'Caution' },
   ERROR: { icon: AlertCircle, bg: 'bg-red-500/10', border: 'border-red-500/30', iconColor: 'text-red-600 dark:text-red-400', textColorLight: '#991b1b', textColorDark: '#fecaca', title: 'Error' },
   DANGER: { icon: AlertCircle, bg: 'bg-red-500/10', border: 'border-red-500/30', iconColor: 'text-red-600 dark:text-red-400', textColorLight: '#991b1b', textColorDark: '#fecaca', title: 'Danger' },
-  SUCCESS: { icon: CheckCircle, bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', iconColor: 'text-emerald-600 dark:text-emerald-400', textColorLight: '#065f46', textColorDark: '#a7f3d0', title: 'Success' },
+  SUCCESS: { icon: CheckCircle, bg: 'bg-brand/10', border: 'border-brand/30', iconColor: 'text-emerald-600 dark:text-brand', textColorLight: '#065f46', textColorDark: '#a7f3d0', title: 'Success' },
 };
 
 // Code block with copy functionality
 const CodeBlockRenderer = ({ children, className }) => {
+  const { isDark } = useTheme();
   const [copied, setCopied] = useState(false);
   const match = /language-(\w+)/.exec(className || '');
   const language = match ? match[1] : '';
   const code = String(children).replace(/\n$/, '');
   const langName = LANG_NAMES[language] || language?.toUpperCase() || 'CODE';
   const isTerminal = ['bash', 'sh', 'shell', 'zsh'].includes(language);
+  const codeTheme = useMemo(() => buildCodeTheme(isDark), [isDark]);
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(code);
+    try { await navigator.clipboard.writeText(code); } catch (e) {}
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -82,19 +93,19 @@ const CodeBlockRenderer = ({ children, className }) => {
   }
 
   return (
-    <div className="code-block my-4 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800 w-full max-w-3xl" data-testid="code-block">
-      <div className="flex items-center justify-between px-4 py-2 bg-slate-100 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
-        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
-          {isTerminal ? <Terminal className="w-4 h-4" /> : <FileCode className="w-4 h-4" />}
-          <span className="text-xs font-medium">{langName}</span>
+    <div className="code-block my-5 rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 w-full max-w-3xl" data-testid="code-block">
+      <div className="flex items-center justify-between px-4 py-2 bg-white dark:bg-zinc-900/70 border-b border-zinc-200 dark:border-zinc-800">
+        <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
+          {isTerminal ? <Terminal className="w-3.5 h-3.5" /> : <FileCode className="w-3.5 h-3.5" />}
+          <span className="text-[11px] font-mono font-medium tracking-wide">{langName}</span>
         </div>
         <button
           onClick={handleCopy}
-          className="flex items-center gap-1.5 px-2 py-1 text-xs text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded transition-colors"
+          className="btn-press flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white rounded transition-colors"
           data-testid="copy-code-btn"
         >
           {copied ? (
-            <><Check className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" /><span className="text-emerald-500 dark:text-emerald-400">Copied</span></>
+            <><Check className="w-3.5 h-3.5 text-brand" /><span className="text-brand">Copied</span></>
           ) : (
             <><Copy className="w-3.5 h-3.5" /><span>Copy</span></>
           )}
@@ -104,8 +115,8 @@ const CodeBlockRenderer = ({ children, className }) => {
         <SyntaxHighlighter
           language={language}
           style={codeTheme}
-          customStyle={{ 
-            margin: 0, 
+          customStyle={{
+            margin: 0,
             borderRadius: 0,
             whiteSpace: 'pre',
             wordBreak: 'normal',
@@ -173,7 +184,7 @@ const YouTubeEmbed = ({ id, title }) => {
   
   return (
     <div className="my-6 relative z-10" data-testid="youtube-embed">
-      <div className="relative w-full rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-lg bg-white dark:bg-slate-900" style={{ paddingBottom: '56.25%' }}>
+      <div className="relative w-full rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-lg bg-white dark:bg-zinc-900" style={{ paddingBottom: '56.25%' }}>
         <iframe
           className="absolute inset-0 w-full h-full"
           src={`https://www.youtube.com/embed/${videoId}`}
@@ -184,7 +195,7 @@ const YouTubeEmbed = ({ id, title }) => {
         />
       </div>
       {title && title.trim() && (
-        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400 text-center">{title}</p>
+        <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400 text-center">{title}</p>
       )}
     </div>
   );
@@ -203,7 +214,7 @@ const LoomEmbed = ({ id, title }) => {
   
   return (
     <div className="my-6 relative z-10" data-testid="loom-embed">
-      <div className="relative w-full rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-lg bg-white dark:bg-slate-900" style={{ paddingBottom: '56.25%' }}>
+      <div className="relative w-full rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-lg bg-white dark:bg-zinc-900" style={{ paddingBottom: '56.25%' }}>
         <iframe
           className="absolute inset-0 w-full h-full"
           src={`https://www.loom.com/embed/${loomId}`}
@@ -215,7 +226,7 @@ const LoomEmbed = ({ id, title }) => {
         />
       </div>
       {title && title.trim() && (
-        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400 text-center">{title}</p>
+        <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400 text-center">{title}</p>
       )}
     </div>
   );
@@ -227,7 +238,7 @@ const VideoEmbed = ({ src, title, poster }) => {
   
   return (
     <div className="my-6 relative z-10" data-testid="video-embed">
-      <div className="relative w-full rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-lg bg-black">
+      <div className="relative w-full rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-lg bg-black">
         <video
           className="w-full"
           controls
@@ -239,7 +250,7 @@ const VideoEmbed = ({ src, title, poster }) => {
         </video>
       </div>
       {title && title.trim() && (
-        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400 text-center">{title}</p>
+        <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400 text-center">{title}</p>
       )}
     </div>
   );
@@ -251,7 +262,7 @@ const Figure = ({ src, alt, caption }) => {
   
   return (
     <figure className="my-6 relative z-10" data-testid="figure">
-      <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-lg bg-white dark:bg-slate-900">
+      <div className="rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-lg bg-white dark:bg-zinc-900">
         <img 
           src={src} 
           alt={alt || caption || 'Image'} 
@@ -260,7 +271,7 @@ const Figure = ({ src, alt, caption }) => {
         />
       </div>
       {caption && caption.trim() && (
-        <figcaption className="mt-2 text-sm text-slate-500 dark:text-slate-400 text-center">
+        <figcaption className="mt-2 text-sm text-zinc-500 dark:text-zinc-400 text-center">
           {caption}
         </figcaption>
       )}
@@ -382,7 +393,7 @@ const RenderComponent = ({ type, children: items, props, content, mdComponents }
     case 'iframe':
       // Standalone iframe embed
       return (
-        <div className="my-6 relative w-full aspect-video rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800">
+        <div className="my-6 relative w-full aspect-video rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800">
           <iframe
             src={props?.src}
             title={props?.title || 'Embedded content'}
@@ -485,7 +496,7 @@ const RenderComponent = ({ type, children: items, props, content, mdComponents }
     case 'Check':
       // Render a checkmark icon with optional text
       return (
-        <span className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+        <span className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-brand">
           <Check className="w-4 h-4" />
           {content && <NestedContent content={content} mdComponents={mdComponents} />}
         </span>
@@ -525,7 +536,7 @@ export const DocContent = ({ content, className = '', onHeadings }) => {
     code: ({ node, inline, className, children, ...props }) => {
       if (inline) {
         return (
-          <code className="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-800 text-pink-600 dark:text-pink-400 rounded text-[0.875em] font-mono" {...props}>
+          <code className="px-1.5 py-0.5 bg-zinc-100 dark:bg-zinc-800 text-brand-700 dark:text-brand-300 rounded text-[0.875em] font-mono" {...props}>
             {children}
           </code>
         );
@@ -533,13 +544,11 @@ export const DocContent = ({ content, className = '', onHeadings }) => {
       return <CodeBlockRenderer className={className}>{children}</CodeBlockRenderer>;
     },
 
-    // Pre blocks - constrain width and enforce horizontal scrolling so long
-    // single-line code (e.g. URLs, commands) never overflows the doc column
-    // or overlaps the right-hand TOC sidebar.
+    // Pre blocks — wrapper enforces column width + internal horizontal scroll
     pre: ({ children }) => {
       return (
-        <div className="my-4 max-w-full overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800">
-          <pre className="m-0 p-4 bg-slate-100 dark:bg-slate-900 overflow-x-auto text-sm whitespace-pre">
+        <div className="my-4 max-w-full overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800">
+          <pre className="m-0 p-4 bg-zinc-50 dark:bg-zinc-950 overflow-x-auto text-sm whitespace-pre font-mono">
             {children}
           </pre>
         </div>
@@ -550,19 +559,19 @@ export const DocContent = ({ content, className = '', onHeadings }) => {
     // Using !important variant to override prose styles
     h1: ({ children }) => {
       const id = String(children).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-      return <h1 id={id} className="scroll-mt-20 !text-gray-900 dark:!text-white font-bold">{children}</h1>;
+      return <h1 id={id} className="scroll-mt-20 !text-zinc-950 dark:!text-white font-bold">{children}</h1>;
     },
     h2: ({ children }) => {
       const id = String(children).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-      return <h2 id={id} className="scroll-mt-20 !text-gray-900 dark:!text-white text-2xl font-semibold mt-10 mb-4">{children}</h2>;
+      return <h2 id={id} className="scroll-mt-20 !text-zinc-950 dark:!text-white text-2xl font-semibold mt-10 mb-4">{children}</h2>;
     },
     h3: ({ children }) => {
       const id = String(children).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-      return <h3 id={id} className="scroll-mt-20 !text-gray-900 dark:!text-white text-xl font-semibold mt-8 mb-3">{children}</h3>;
+      return <h3 id={id} className="scroll-mt-20 !text-zinc-950 dark:!text-white text-xl font-semibold mt-8 mb-3">{children}</h3>;
     },
     h4: ({ children }) => {
       const id = String(children).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-      return <h4 id={id} className="scroll-mt-20 !text-gray-900 dark:!text-white text-lg font-semibold mt-6 mb-2">{children}</h4>;
+      return <h4 id={id} className="scroll-mt-20 !text-zinc-950 dark:!text-white text-lg font-semibold mt-6 mb-2">{children}</h4>;
     },
 
     // Blockquote - detect callout syntax [!TYPE]
@@ -588,7 +597,7 @@ export const DocContent = ({ content, className = '', onHeadings }) => {
       }
 
       return (
-        <blockquote className="my-6 pl-4 border-l-4 border-indigo-500 italic [&>*]:!text-slate-600 dark:[&>*]:!text-slate-300 [&_p]:!text-slate-600 dark:[&_p]:!text-slate-300">
+        <blockquote className="my-6 pl-4 border-l-4 border-brand italic [&>*]:!text-zinc-400 dark:text-zinc-600 dark:[&>*]:!text-zinc-700 dark:text-zinc-300 [&_p]:!text-zinc-400 dark:text-zinc-600 dark:[&_p]:!text-zinc-700 dark:text-zinc-300">
           {children}
         </blockquote>
       );
@@ -596,18 +605,18 @@ export const DocContent = ({ content, className = '', onHeadings }) => {
 
     // Tables
     table: ({ children }) => (
-      <div className="overflow-x-auto my-6 rounded-lg border border-slate-200 dark:border-slate-800">
+      <div className="overflow-x-auto my-6 rounded-lg border border-zinc-200 dark:border-zinc-800">
         <table className="w-full">{children}</table>
       </div>
     ),
-    thead: ({ children }) => <thead className="bg-slate-100 dark:bg-slate-900">{children}</thead>,
+    thead: ({ children }) => <thead className="bg-zinc-100 dark:bg-zinc-900">{children}</thead>,
     th: ({ children }) => (
-      <th className="text-left px-4 py-3 text-sm font-semibold !text-slate-900 dark:!text-slate-200 border-b border-slate-200 dark:border-slate-800">
+      <th className="text-left px-4 py-3 text-sm font-semibold !text-zinc-950 dark:!text-zinc-200 border-b border-zinc-200 dark:border-zinc-800">
         {children}
       </th>
     ),
     td: ({ children }) => (
-      <td className="px-4 py-3 text-sm !text-slate-700 dark:!text-slate-300 border-b border-slate-200/50 dark:border-slate-800/50">
+      <td className="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300 border-b border-zinc-200/50 dark:border-zinc-800">
         {children}
       </td>
     ),
@@ -628,20 +637,20 @@ export const DocContent = ({ content, className = '', onHeadings }) => {
     },
 
     img: ({ src, alt }) => (
-      <img src={src} alt={alt} className="rounded-lg border border-slate-200 dark:border-slate-800 my-6 max-w-full" loading="lazy" />
+      <img src={src} alt={alt} className="rounded-lg border border-zinc-200 dark:border-zinc-800 my-6 max-w-full" loading="lazy" />
     ),
-    hr: () => <hr className="border-slate-200 dark:border-slate-800 my-8" />,
-    ul: ({ children }) => <ul className="my-4 ml-6 list-disc space-y-2 !text-slate-700 dark:!text-slate-300">{children}</ul>,
-    ol: ({ children }) => <ol className="my-4 ml-6 list-decimal space-y-2 !text-slate-700 dark:!text-slate-300">{children}</ol>,
+    hr: () => <hr className="border-zinc-200 dark:border-zinc-800 my-8" />,
+    ul: ({ children }) => <ul className="my-4 ml-6 list-disc space-y-2 text-zinc-700 dark:text-zinc-300">{children}</ul>,
+    ol: ({ children }) => <ol className="my-4 ml-6 list-decimal space-y-2 text-zinc-700 dark:text-zinc-300">{children}</ol>,
     li: ({ children }) => <li className="leading-relaxed">{children}</li>,
-    p: ({ children }) => <p className="my-4 leading-relaxed !text-slate-700 dark:!text-slate-300">{children}</p>,
-    strong: ({ children }) => <strong className="font-semibold !text-slate-900 dark:!text-slate-100">{children}</strong>,
+    p: ({ children }) => <p className="my-4 leading-relaxed text-zinc-700 dark:text-zinc-300">{children}</p>,
+    strong: ({ children }) => <strong className="font-semibold !text-zinc-950 dark:!text-zinc-100">{children}</strong>,
     em: ({ children }) => <em className="italic">{children}</em>,
     details: ({ children }) => (
-      <details className="my-4 border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden group">{children}</details>
+      <details className="my-4 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden group">{children}</details>
     ),
     summary: ({ children }) => (
-      <summary className="px-4 py-3 bg-slate-100 dark:bg-slate-900 cursor-pointer !text-slate-900 dark:!text-white font-medium hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
+      <summary className="px-4 py-3 bg-zinc-100 dark:bg-zinc-900 cursor-pointer !text-zinc-950 dark:!text-white font-medium hover:bg-slate-200 dark:hover:bg-zinc-800 transition-colors">
         {children}
       </summary>
     ),
@@ -649,8 +658,8 @@ export const DocContent = ({ content, className = '', onHeadings }) => {
 
   if (!content) {
     return (
-      <div className="text-slate-500 italic" data-testid="doc-empty">
-        No content yet. Start typing or use <kbd className="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-800 rounded text-slate-500 dark:text-slate-400">/</kbd> for commands.
+      <div className="text-zinc-500 italic" data-testid="doc-empty">
+        No content yet. Start typing or use <kbd className="px-1.5 py-0.5 bg-slate-200 dark:bg-zinc-800 rounded text-zinc-500 dark:text-zinc-400">/</kbd> for commands.
       </div>
     );
   }

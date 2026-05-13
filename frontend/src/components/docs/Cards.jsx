@@ -78,7 +78,7 @@ export const Card = ({
       {IconComponent && (
         <div className="mb-4">
           <div 
-            className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 flex items-center justify-center"
+            className="w-10 h-10 rounded-lg bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 flex items-center justify-center"
             style={color ? { borderColor: `${color}30` } : {}}
           >
             <IconComponent 
@@ -90,7 +90,7 @@ export const Card = ({
       )}
       
       {/* Title */}
-      <h4 className="text-base font-semibold !text-slate-900 dark:!text-white mb-2 group-hover:text-emerald-600 dark:group-hover:text-indigo-400 transition-colors flex items-center gap-2">
+      <h4 className="text-base font-semibold !text-zinc-950 dark:!text-white mb-2 group-hover:text-emerald-600 dark:group-hover:text-brand transition-colors flex items-center gap-2">
         {title}
         {href && (
           <span className="opacity-0 group-hover:opacity-100 transition-opacity">
@@ -104,7 +104,7 @@ export const Card = ({
       </h4>
       
       {/* Description - render as div to allow nested elements */}
-      <div className="text-sm !text-slate-600 dark:!text-slate-400 leading-relaxed prose prose-sm dark:prose-invert max-w-none [&_p]:!text-slate-600 dark:[&_p]:!text-slate-400 [&_p]:!m-0 [&_strong]:!text-slate-700 dark:[&_strong]:!text-slate-300">
+      <div className="text-sm !text-zinc-400 dark:text-zinc-600 dark:!text-zinc-600 dark:text-zinc-400 leading-relaxed prose prose-sm dark:prose-invert max-w-none [&_p]:!text-zinc-400 dark:text-zinc-600 dark:[&_p]:!text-zinc-600 dark:text-zinc-400 [&_p]:!m-0 [&_strong]:!text-zinc-700 dark:[&_strong]:!text-zinc-700 dark:text-zinc-300">
         {children}
       </div>
     </>
@@ -114,7 +114,7 @@ export const Card = ({
     return (
       <button
         onClick={handleClick}
-        className={`card group text-left w-full p-5 bg-white dark:bg-slate-900/30 hover:bg-slate-50 dark:hover:bg-slate-900/60 border border-slate-200 dark:border-slate-800/60 hover:border-slate-300 dark:hover:border-slate-700 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md dark:shadow-none ${className}`}
+        className={`card group text-left w-full p-5 bg-white dark:bg-zinc-900/30 hover:bg-zinc-50 dark:hover:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800/60 hover:border-zinc-300 dark:hover:border-zinc-200 dark:border-zinc-800 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md dark:shadow-none ${className}`}
         data-testid="card"
       >
         {content}
@@ -124,7 +124,7 @@ export const Card = ({
 
   return (
     <div
-      className={`card group p-5 bg-white dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800/60 rounded-xl shadow-sm dark:shadow-none ${className}`}
+      className={`card group p-5 bg-white dark:bg-zinc-900/30 border border-zinc-200 dark:border-zinc-800/60 rounded-xl shadow-sm dark:shadow-none ${className}`}
       data-testid="card"
     >
       {content}

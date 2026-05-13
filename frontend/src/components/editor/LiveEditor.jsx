@@ -303,7 +303,7 @@ const EditableText = ({ value, onChange, className, placeholder, as: Tag = 'p', 
           onChange={(e) => setLocalValue(e.target.value)}
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
-          className={`${className} bg-transparent border-none outline-none ring-2 ring-indigo-500/50 rounded px-1 -mx-1 resize-none`}
+          className={`${className} bg-transparent border-none outline-none ring-2 ring-brand/50 rounded px-1 -mx-1 resize-none`}
           placeholder={placeholder}
           rows={3}
         />
@@ -317,7 +317,7 @@ const EditableText = ({ value, onChange, className, placeholder, as: Tag = 'p', 
         onChange={(e) => setLocalValue(e.target.value)}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
-        className={`${className} bg-transparent border-none outline-none ring-2 ring-indigo-500/50 rounded px-1 -mx-1 w-full`}
+        className={`${className} bg-transparent border-none outline-none ring-2 ring-brand/50 rounded px-1 -mx-1 w-full`}
         placeholder={placeholder}
       />
     );
@@ -325,7 +325,7 @@ const EditableText = ({ value, onChange, className, placeholder, as: Tag = 'p', 
 
   return (
     <Tag 
-      className={`${className} cursor-text hover:ring-2 hover:ring-indigo-500/30 rounded px-1 -mx-1 transition-all ${!localValue ? 'text-slate-500 italic' : ''}`}
+      className={`${className} cursor-text hover:ring-2 hover:ring-brand/30 rounded px-1 -mx-1 transition-all ${!localValue ? 'text-zinc-500 italic' : ''}`}
       onClick={() => setEditing(true)}
     >
       {localValue || placeholder}
@@ -353,38 +353,38 @@ const BlockWrapper = ({ children, onDelete, onMoveUp, onMoveDown, showControls =
   return (
     <div 
       ref={wrapperRef}
-      className={`relative group ${selected ? 'ring-1 ring-indigo-500/30 rounded-lg' : ''}`}
+      className={`relative group ${selected ? 'ring-1 ring-brand/30 rounded-lg' : ''}`}
       onClick={() => setSelected(true)}
     >
       {/* Controls - visible on hover OR when selected */}
       {showControls && (
-        <div className={`absolute -left-14 top-0 flex flex-col gap-1 bg-slate-800/90 rounded-lg p-1 shadow-lg transition-all ${
+        <div className={`absolute -left-14 top-0 flex flex-col gap-1 bg-zinc-100 dark:bg-zinc-800/90 rounded-lg p-1 shadow-lg transition-all ${
           selected ? 'opacity-100 visible' : 'opacity-0 invisible group-hover:opacity-100 group-hover:visible'
         }`}>
           <button 
             onClick={(e) => { e.stopPropagation(); onMoveUp(); }}
-            className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700 rounded transition-colors"
+            className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:bg-slate-700 rounded transition-colors"
             title="Move up"
           >
             <ChevronUp className="w-4 h-4" />
           </button>
           <button 
-            className="p-1.5 text-slate-400 hover:text-white cursor-grab rounded"
+            className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white cursor-grab rounded"
             title="Drag to reorder"
           >
             <GripVertical className="w-4 h-4" />
           </button>
           <button 
             onClick={(e) => { e.stopPropagation(); onMoveDown(); }}
-            className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700 rounded transition-colors"
+            className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:bg-slate-700 rounded transition-colors"
             title="Move down"
           >
             <ChevronDown className="w-4 h-4" />
           </button>
-          <div className="border-t border-slate-700 my-1" />
+          <div className="border-t border-zinc-200 dark:border-zinc-800 my-1" />
           <button 
             onClick={(e) => { e.stopPropagation(); onDelete(); }}
-            className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-500/20 rounded transition-colors"
+            className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-red-400 hover:bg-red-500/20 rounded transition-colors"
             title="Delete block"
           >
             <Trash2 className="w-4 h-4" />
@@ -408,14 +408,14 @@ const HeadingBlock = ({ block, onChange, onDelete, onMoveUp, onMoveDown }) => {
     <BlockWrapper onDelete={onDelete} onMoveUp={onMoveUp} onMoveDown={onMoveDown}>
       <div className="flex items-start gap-3 mb-6">
         {block.icon && (
-          <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 bg-brand rounded-lg flex items-center justify-center flex-shrink-0">
             <span className="text-lg">{block.icon}</span>
           </div>
         )}
         <EditableText
           value={block.content}
           onChange={(content) => onChange({ ...block, content })}
-          className={`${sizes[block.level] || sizes.h1} text-white flex-1`}
+          className={`${sizes[block.level] || sizes.h1} text-zinc-950 dark:text-white flex-1`}
           placeholder="Heading text..."
           as={block.level || 'h1'}
         />
@@ -431,7 +431,7 @@ const ParagraphBlock = ({ block, onChange, onDelete, onMoveUp, onMoveDown }) => 
       <EditableText
         value={block.content}
         onChange={(content) => onChange({ ...block, content })}
-        className="text-slate-300 text-base leading-relaxed mb-4"
+        className="text-zinc-700 dark:text-zinc-300 text-base leading-relaxed mb-4"
         placeholder="Start typing..."
         multiline
       />
@@ -452,12 +452,12 @@ const CalloutBlock = ({ block, onChange, onDelete, onMoveUp, onMoveDown }) => {
         <div className="absolute top-2 right-2">
           <button 
             onClick={() => setShowTypeSelector(!showTypeSelector)}
-            className="p-1 text-slate-500 hover:text-white rounded"
+            className="p-1 text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white rounded"
           >
             <Settings className="w-4 h-4" />
           </button>
           {showTypeSelector && (
-            <div className="absolute right-0 top-8 bg-slate-800 border border-slate-700 rounded-lg shadow-xl p-2 z-10">
+            <div className="absolute right-0 top-8 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-xl p-2 z-10">
               {Object.keys(CALLOUT_TYPES).map(t => {
                 const TypeIcon = CALLOUT_TYPES[t].icon;
                 return (
@@ -492,7 +492,7 @@ const CalloutBlock = ({ block, onChange, onDelete, onMoveUp, onMoveDown }) => {
             <EditableText
               value={block.content}
               onChange={(content) => onChange({ ...block, content })}
-              className="text-slate-300 text-sm"
+              className="text-zinc-700 dark:text-zinc-300 text-sm"
               placeholder="Callout content..."
               multiline
             />
@@ -530,7 +530,7 @@ const CardItem = ({ card, onChange }) => {
     : ICON_CATEGORIES[activeCategory] || [];
 
   return (
-    <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-5 hover:border-slate-600 transition-colors">
+    <div className="bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 rounded-xl p-5 hover:border-slate-600 transition-colors">
       {/* Icon */}
       <div className="relative mb-4" ref={iconPickerRef}>
         <button
@@ -538,21 +538,21 @@ const CardItem = ({ card, onChange }) => {
           className="w-12 h-12 bg-slate-700/50 rounded-lg flex items-center justify-center hover:bg-slate-700 transition-colors"
           title="Click to change icon"
         >
-          <IconComponent className="w-6 h-6 text-slate-400" />
+          <IconComponent className="w-6 h-6 text-zinc-600 dark:text-zinc-400" />
         </button>
         
         {showIconSelector && (
-          <div className="absolute left-0 top-14 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-20 w-80">
+          <div className="absolute left-0 top-14 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl z-20 w-80">
             {/* Search */}
-            <div className="p-3 border-b border-slate-700">
+            <div className="p-3 border-b border-zinc-200 dark:border-zinc-800">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
                 <input
                   type="text"
                   value={iconSearch}
                   onChange={(e) => setIconSearch(e.target.value)}
                   placeholder="Search icons..."
-                  className="w-full pl-9 pr-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm placeholder:text-slate-500 focus:outline-none focus:border-indigo-500"
+                  className="w-full pl-9 pr-3 py-2 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-950 dark:text-white text-sm placeholder:text-zinc-500 focus:outline-none focus:border-brand"
                   autoFocus
                 />
               </div>
@@ -560,15 +560,15 @@ const CardItem = ({ card, onChange }) => {
 
             {/* Categories (only show when not searching) */}
             {!iconSearch.trim() && (
-              <div className="p-2 border-b border-slate-700 flex flex-wrap gap-1">
+              <div className="p-2 border-b border-zinc-200 dark:border-zinc-800 flex flex-wrap gap-1">
                 {Object.keys(ICON_CATEGORIES).map(category => (
                   <button
                     key={category}
                     onClick={() => setActiveCategory(category)}
                     className={`px-2 py-1 text-xs rounded-md transition-colors ${
                       activeCategory === category 
-                        ? 'bg-indigo-600 text-white' 
-                        : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                        ? 'bg-brand text-zinc-950 dark:text-white' 
+                        : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800'
                     }`}
                   >
                     {category}
@@ -592,26 +592,26 @@ const CardItem = ({ card, onChange }) => {
                         setIconSearch('');
                       }}
                       className={`p-2 rounded-lg hover:bg-slate-700 transition-colors group ${
-                        card.icon === iconName ? 'bg-indigo-600/20 ring-1 ring-indigo-500' : ''
+                        card.icon === iconName ? 'bg-brand/20 ring-1 ring-brand' : ''
                       }`}
                       title={iconName}
                     >
-                      <Icon className={`w-5 h-5 ${card.icon === iconName ? 'text-indigo-400' : 'text-slate-400 group-hover:text-white'}`} />
+                      <Icon className={`w-5 h-5 ${card.icon === iconName ? 'text-brand' : 'text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'}`} />
                     </button>
                   );
                 })}
               </div>
               {filteredIcons.length === 0 && (
-                <p className="text-slate-500 text-sm text-center py-4">No icons found</p>
+                <p className="text-zinc-500 text-sm text-center py-4">No icons found</p>
               )}
             </div>
 
             {/* Current selection */}
-            <div className="p-2 border-t border-slate-700 flex items-center justify-between">
-              <span className="text-xs text-slate-500">Selected: <span className="text-slate-300">{card.icon}</span></span>
+            <div className="p-2 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+              <span className="text-xs text-zinc-500">Selected: <span className="text-zinc-700 dark:text-zinc-300">{card.icon}</span></span>
               <button
                 onClick={() => setShowIconSelector(false)}
-                className="text-xs text-slate-400 hover:text-white"
+                className="text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white"
               >
                 Done
               </button>
@@ -624,7 +624,7 @@ const CardItem = ({ card, onChange }) => {
       <EditableText
         value={card.title}
         onChange={(title) => onChange({ ...card, title })}
-        className="font-semibold text-white text-lg mb-2"
+        className="font-semibold text-zinc-950 dark:text-white text-lg mb-2"
         placeholder="Card title..."
       />
 
@@ -632,7 +632,7 @@ const CardItem = ({ card, onChange }) => {
       <EditableText
         value={card.description}
         onChange={(description) => onChange({ ...card, description })}
-        className="text-slate-400 text-sm"
+        className="text-zinc-600 dark:text-zinc-400 text-sm"
         placeholder="Card description..."
         multiline
       />
@@ -683,7 +683,7 @@ const CardGroupBlock = ({ block, onChange, onDelete, onMoveUp, onMoveDown }) => 
                   onClick={() => removeCard(index)}
                   className="absolute -top-2 -right-2 p-1 bg-red-500 rounded-full opacity-0 group-hover/card:opacity-100 transition-opacity"
                 >
-                  <Trash2 className="w-3 h-3 text-white" />
+                  <Trash2 className="w-3 h-3 text-zinc-950 dark:text-white" />
                 </button>
               )}
             </div>
@@ -691,7 +691,7 @@ const CardGroupBlock = ({ block, onChange, onDelete, onMoveUp, onMoveDown }) => 
         </div>
         <button
           onClick={addCard}
-          className="mt-3 flex items-center gap-2 px-3 py-2 text-sm text-slate-400 hover:text-white border border-dashed border-slate-700 hover:border-slate-600 rounded-lg transition-colors"
+          className="mt-3 flex items-center gap-2 px-3 py-2 text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white border border-dashed border-zinc-200 dark:border-zinc-800 hover:border-slate-600 rounded-lg transition-colors"
         >
           <Plus className="w-4 h-4" />
           Add Card
@@ -707,37 +707,37 @@ const CodeBlock = ({ block, onChange, onDelete, onMoveUp, onMoveDown }) => {
 
   return (
     <BlockWrapper onDelete={onDelete} onMoveUp={onMoveUp} onMoveDown={onMoveDown}>
-      <div className="mb-6 rounded-xl overflow-hidden border border-slate-700/50">
+      <div className="mb-6 rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-2 bg-slate-800/80 border-b border-slate-700/50">
+        <div className="flex items-center justify-between px-4 py-2 bg-zinc-100 dark:bg-zinc-800/80 border-b border-zinc-200 dark:border-zinc-800">
           <div className="flex items-center gap-2">
-            <Code className="w-4 h-4 text-slate-400" />
+            <Code className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
             <input
               type="text"
               value={block.language || 'javascript'}
               onChange={(e) => onChange({ ...block, language: e.target.value })}
-              className="bg-transparent text-slate-400 text-sm w-24 outline-none"
+              className="bg-transparent text-zinc-600 dark:text-zinc-400 text-sm w-24 outline-none"
               placeholder="language"
             />
           </div>
-          <button className="text-xs text-slate-400 hover:text-white flex items-center gap-1">
+          <button className="text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white flex items-center gap-1">
             Copy
           </button>
         </div>
         {/* Code */}
-        <div className="bg-slate-900 p-4">
+        <div className="bg-white dark:bg-zinc-900 p-4">
           {editing ? (
             <textarea
               value={block.content}
               onChange={(e) => onChange({ ...block, content: e.target.value })}
               onBlur={() => setEditing(false)}
-              className="w-full bg-transparent text-slate-300 font-mono text-sm outline-none resize-none"
+              className="w-full bg-transparent text-zinc-700 dark:text-zinc-300 font-mono text-sm outline-none resize-none"
               rows={5}
               autoFocus
             />
           ) : (
             <pre 
-              className="text-slate-300 font-mono text-sm cursor-text hover:bg-slate-800/50 rounded p-1 -m-1"
+              className="text-zinc-700 dark:text-zinc-300 font-mono text-sm cursor-text hover:bg-zinc-100 dark:hover:bg-zinc-800/50 rounded p-1 -m-1"
               onClick={() => setEditing(true)}
             >
               {block.content || 'Click to add code...'}
@@ -786,7 +786,7 @@ const StepsBlock = ({ block, onChange, onDelete, onMoveUp, onMoveDown }) => {
           {steps.map((step, index) => (
             <div key={step.id || index} className="flex gap-4 relative group/step">
               {/* Step number */}
-              <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white font-semibold text-sm z-10 flex-shrink-0">
+              <div className="w-8 h-8 rounded-full bg-brand flex items-center justify-center text-zinc-950 dark:text-white font-semibold text-sm z-10 flex-shrink-0">
                 {index + 1}
               </div>
               
@@ -795,13 +795,13 @@ const StepsBlock = ({ block, onChange, onDelete, onMoveUp, onMoveDown }) => {
                 <EditableText
                   value={step.title}
                   onChange={(title) => updateStep(index, { ...step, title })}
-                  className="font-semibold text-white mb-1"
+                  className="font-semibold text-zinc-950 dark:text-white mb-1"
                   placeholder="Step title..."
                 />
                 <EditableText
                   value={step.content}
                   onChange={(content) => updateStep(index, { ...step, content })}
-                  className="text-slate-400 text-sm"
+                  className="text-zinc-600 dark:text-zinc-400 text-sm"
                   placeholder="Step description..."
                   multiline
                 />
@@ -811,7 +811,7 @@ const StepsBlock = ({ block, onChange, onDelete, onMoveUp, onMoveDown }) => {
               {steps.length > 1 && (
                 <button
                   onClick={() => removeStep(index)}
-                  className="absolute -right-2 top-0 p-1 text-slate-500 hover:text-red-400 opacity-0 group-hover/step:opacity-100 transition-opacity"
+                  className="absolute -right-2 top-0 p-1 text-zinc-500 hover:text-red-400 opacity-0 group-hover/step:opacity-100 transition-opacity"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -822,7 +822,7 @@ const StepsBlock = ({ block, onChange, onDelete, onMoveUp, onMoveDown }) => {
 
         <button
           onClick={addStep}
-          className="mt-4 ml-12 flex items-center gap-2 px-3 py-2 text-sm text-slate-400 hover:text-white border border-dashed border-slate-700 hover:border-slate-600 rounded-lg transition-colors"
+          className="mt-4 ml-12 flex items-center gap-2 px-3 py-2 text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white border border-dashed border-zinc-200 dark:border-zinc-800 hover:border-slate-600 rounded-lg transition-colors"
         >
           <Plus className="w-4 h-4" />
           Add Step
@@ -849,14 +849,14 @@ const AddBlockMenu = ({ onAdd, position }) => {
     <div className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full py-2 flex items-center justify-center gap-2 text-slate-500 hover:text-white border border-dashed border-slate-700/50 hover:border-slate-600 rounded-lg transition-colors opacity-0 hover:opacity-100"
+        className="w-full py-2 flex items-center justify-center gap-2 text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white border border-dashed border-zinc-200 dark:border-zinc-800 hover:border-slate-600 rounded-lg transition-colors opacity-0 hover:opacity-100"
       >
         <Plus className="w-4 h-4" />
         <span className="text-sm">Add block</span>
       </button>
 
       {open && (
-        <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-2 z-20 min-w-[200px]">
+        <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl p-2 z-20 min-w-[200px]">
           {blockTypes.map(({ type, icon: Icon, label, default: defaultBlock }) => (
             <button
               key={type}
@@ -864,9 +864,9 @@ const AddBlockMenu = ({ onAdd, position }) => {
                 onAdd(position, { ...defaultBlock, id: Date.now().toString() });
                 setOpen(false);
               }}
-              className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
+              className="w-full flex items-center gap-3 px-3 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:bg-slate-700 rounded-lg transition-colors"
             >
-              <Icon className="w-4 h-4 text-slate-400" />
+              <Icon className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
               {label}
             </button>
           ))}
@@ -954,7 +954,7 @@ export const LiveEditor = ({ content, onChange, className = '' }) => {
       <div className="max-w-3xl mx-auto px-12 py-8">
         {blocks.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-slate-500 mb-4">Start building your documentation</p>
+            <p className="text-zinc-500 mb-4">Start building your documentation</p>
             <AddBlockMenu onAdd={(_, block) => setBlocks([block])} position={-1} />
           </div>
         ) : (

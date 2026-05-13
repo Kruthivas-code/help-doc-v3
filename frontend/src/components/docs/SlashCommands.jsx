@@ -280,7 +280,7 @@ export const SlashCommandMenu = ({
   return (
     <div 
       ref={menuRef}
-      className="absolute z-50 w-80 max-h-80 overflow-y-auto bg-slate-900 border border-slate-700 rounded-lg shadow-2xl"
+      className="absolute z-50 w-80 max-h-80 overflow-y-auto bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-2xl"
       style={{ 
         left: position.x, 
         top: position.y,
@@ -289,8 +289,8 @@ export const SlashCommandMenu = ({
       <div className="p-2">
         {filteredCommands.map((category, catIndex) => (
           <div key={category.category}>
-            {catIndex > 0 && <div className="h-px bg-slate-800 my-2" />}
-            <div className="px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+            {catIndex > 0 && <div className="h-px bg-zinc-100 dark:bg-zinc-800 my-2" />}
+            <div className="px-2 py-1.5 text-xs font-semibold text-zinc-500 uppercase tracking-wider">
               {category.category}
             </div>
             {category.items.map((item) => {
@@ -303,18 +303,18 @@ export const SlashCommandMenu = ({
                   onClick={() => onSelect(item)}
                   className={`w-full flex items-center gap-3 px-2 py-2 rounded-md text-left transition-colors ${
                     selectedIndex === itemIndex 
-                      ? 'bg-indigo-600/20 text-white' 
-                      : 'text-slate-300 hover:bg-slate-800'
+                      ? 'bg-brand/20 text-zinc-950 dark:text-white' 
+                      : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
                   }`}
                 >
                   <div className={`w-8 h-8 rounded-md flex items-center justify-center ${
-                    selectedIndex === itemIndex ? 'bg-indigo-600/30' : 'bg-slate-800'
+                    selectedIndex === itemIndex ? 'bg-brand/30' : 'bg-zinc-100 dark:bg-zinc-800'
                   }`}>
                     <Icon className="w-4 h-4" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium">{item.label}</div>
-                    <div className="text-xs text-slate-500 truncate">{item.description}</div>
+                    <div className="text-xs text-zinc-500 truncate">{item.description}</div>
                   </div>
                 </button>
               );

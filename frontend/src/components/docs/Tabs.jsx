@@ -19,15 +19,15 @@ export const Tabs = ({ children, defaultTab = 0, className = '' }) => {
   return (
     <div className={`tabs-container my-6 ${className}`} data-testid="tabs">
       {/* Tab Headers */}
-      <div className="flex border-b border-slate-200 dark:border-slate-800 overflow-x-auto">
+      <div className="flex border-b border-zinc-200 dark:border-zinc-800 overflow-x-auto">
         {tabs.map((tab, index) => (
           <button
             key={index}
             onClick={() => setActiveTab(index)}
             className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors border-b-2 -mb-px ${
               activeTab === index
-                ? 'text-emerald-600 dark:text-indigo-400 border-emerald-600 dark:border-indigo-400'
-                : 'text-slate-500 dark:text-slate-400 border-transparent hover:text-slate-900 dark:hover:text-white hover:border-slate-300 dark:hover:border-slate-600'
+                ? 'text-emerald-600 dark:text-brand border-emerald-600 dark:border-indigo-400'
+                : 'text-zinc-500 dark:text-zinc-400 border-transparent hover:text-slate-900 dark:hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:border-zinc-300 dark:hover:border-slate-600'
             }`}
             data-testid={`tab-${index}`}
           >

@@ -98,17 +98,17 @@ export const SearchDialog = ({
   
   return (
     <div 
-      className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-start justify-center pt-[15vh]"
+      className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-start justify-center pt-[15vh]"
       onClick={onClose}
       data-testid="search-dialog"
     >
       <div 
-        className="w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-xl shadow-2xl overflow-hidden"
+        className="w-full max-w-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
         {/* Search Input */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-800">
-          <Search className="w-5 h-5 text-slate-500" />
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-zinc-200 dark:border-zinc-800">
+          <Search className="w-5 h-5 text-zinc-500" />
           <input
             ref={inputRef}
             type="text"
@@ -116,12 +116,12 @@ export const SearchDialog = ({
             onChange={e => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Search documentation..."
-            className="flex-1 bg-transparent text-white placeholder:text-slate-500 focus:outline-none text-base"
+            className="flex-1 bg-transparent text-zinc-950 dark:text-white placeholder:text-zinc-500 focus:outline-none text-base"
             data-testid="search-input"
           />
           <button 
             onClick={onClose}
-            className="p-1 text-slate-500 hover:text-white transition-colors"
+            className="p-1 text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -130,11 +130,11 @@ export const SearchDialog = ({
         {/* Results */}
         <div className="max-h-[60vh] overflow-y-auto">
           {query.length < 2 ? (
-            <div className="px-4 py-8 text-center text-slate-500">
+            <div className="px-4 py-8 text-center text-zinc-500">
               <p>Type at least 2 characters to search</p>
             </div>
           ) : !hasResults ? (
-            <div className="px-4 py-8 text-center text-slate-500">
+            <div className="px-4 py-8 text-center text-zinc-500">
               <p>No results found for "{query}"</p>
             </div>
           ) : (
@@ -143,7 +143,7 @@ export const SearchDialog = ({
               {results.documents.length > 0 && (
                 <div className="mb-2">
                   <div className="px-4 py-1">
-                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Pages</span>
+                    <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Pages</span>
                   </div>
                   {results.documents.map((doc, i) => {
                     const IconComponent = doc.icon ? getIcon(doc.icon) : FileText;
@@ -153,25 +153,25 @@ export const SearchDialog = ({
                         key={doc.id}
                         onClick={() => selectResult(i)}
                         className={`w-full px-4 py-3 flex items-start gap-3 text-left transition-colors ${
-                          isSelected ? 'bg-indigo-600/20' : 'hover:bg-slate-800/50'
+                          isSelected ? 'bg-brand/20' : 'hover:bg-zinc-100 dark:hover:bg-zinc-800/50'
                         }`}
                         data-testid={`search-result-${doc.id}`}
                       >
-                        <div className={`mt-0.5 ${isSelected ? 'text-indigo-400' : 'text-slate-500'}`}>
+                        <div className={`mt-0.5 ${isSelected ? 'text-brand' : 'text-zinc-500'}`}>
                           <IconComponent className="w-4 h-4" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className={`font-medium truncate ${isSelected ? 'text-white' : 'text-slate-300'}`}>
+                          <p className={`font-medium truncate ${isSelected ? 'text-zinc-950 dark:text-white' : 'text-zinc-700 dark:text-zinc-300'}`}>
                             {doc.title}
                           </p>
                           {doc.snippet && (
-                            <p className="text-sm text-slate-500 truncate mt-0.5">
+                            <p className="text-sm text-zinc-500 truncate mt-0.5">
                               {doc.snippet}
                             </p>
                           )}
                         </div>
                         {isSelected && (
-                          <ArrowRight className="w-4 h-4 text-indigo-400 mt-1" />
+                          <ArrowRight className="w-4 h-4 text-brand mt-1" />
                         )}
                       </button>
                     );
@@ -182,8 +182,8 @@ export const SearchDialog = ({
               {/* Heading Results */}
               {results.headings.length > 0 && (
                 <div>
-                  <div className="px-4 py-1 border-t border-slate-800">
-                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Sections</span>
+                  <div className="px-4 py-1 border-t border-zinc-200 dark:border-zinc-800">
+                    <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Sections</span>
                   </div>
                   {results.headings.map((heading, i) => {
                     const index = results.documents.length + i;
@@ -193,20 +193,20 @@ export const SearchDialog = ({
                         key={heading.id}
                         onClick={() => selectResult(index)}
                         className={`w-full px-4 py-2.5 flex items-center gap-3 text-left transition-colors ${
-                          isSelected ? 'bg-indigo-600/20' : 'hover:bg-slate-800/50'
+                          isSelected ? 'bg-brand/20' : 'hover:bg-zinc-100 dark:hover:bg-zinc-800/50'
                         }`}
                       >
-                        <Hash className={`w-4 h-4 ${isSelected ? 'text-indigo-400' : 'text-slate-600'}`} />
+                        <Hash className={`w-4 h-4 ${isSelected ? 'text-brand' : 'text-zinc-400 dark:text-zinc-600'}`} />
                         <div className="flex-1 min-w-0">
-                          <p className={`text-sm truncate ${isSelected ? 'text-white' : 'text-slate-400'}`}>
+                          <p className={`text-sm truncate ${isSelected ? 'text-zinc-950 dark:text-white' : 'text-zinc-600 dark:text-zinc-400'}`}>
                             {heading.text}
                           </p>
-                          <p className="text-xs text-slate-600 truncate">
+                          <p className="text-xs text-zinc-400 dark:text-zinc-600 truncate">
                             in {heading.docTitle}
                           </p>
                         </div>
                         {isSelected && (
-                          <ArrowRight className="w-4 h-4 text-indigo-400" />
+                          <ArrowRight className="w-4 h-4 text-brand" />
                         )}
                       </button>
                     );
@@ -218,19 +218,19 @@ export const SearchDialog = ({
         </div>
         
         {/* Footer */}
-        <div className="px-4 py-2 border-t border-slate-800 flex items-center justify-between text-xs text-slate-500">
+        <div className="px-4 py-2 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between text-xs text-zinc-500">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-slate-800 rounded">↑</kbd>
-              <kbd className="px-1.5 py-0.5 bg-slate-800 rounded">↓</kbd>
+              <kbd className="px-1.5 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded">↑</kbd>
+              <kbd className="px-1.5 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded">↓</kbd>
               <span className="ml-1">Navigate</span>
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-slate-800 rounded">↵</kbd>
+              <kbd className="px-1.5 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded">↵</kbd>
               <span className="ml-1">Select</span>
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-slate-800 rounded">esc</kbd>
+              <kbd className="px-1.5 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded">esc</kbd>
               <span className="ml-1">Close</span>
             </span>
           </div>
@@ -262,12 +262,12 @@ export const SearchTrigger = ({ onClick, className = '' }) => {
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-2 px-3 py-1.5 bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 rounded-lg text-slate-400 hover:text-white transition-colors ${className}`}
+      className={`flex items-center gap-2 px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white transition-colors ${className}`}
       data-testid="search-trigger"
     >
       <Search className="w-4 h-4" />
       <span className="text-sm">Search</span>
-      <kbd className="hidden sm:flex items-center gap-0.5 ml-2 px-1.5 py-0.5 bg-slate-900 rounded text-xs text-slate-500">
+      <kbd className="hidden sm:flex items-center gap-0.5 ml-2 px-1.5 py-0.5 bg-white dark:bg-zinc-900 rounded text-xs text-zinc-500">
         <Command className="w-3 h-3" />
         <span>K</span>
       </kbd>

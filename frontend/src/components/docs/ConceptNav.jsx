@@ -69,8 +69,8 @@ const NavItem = ({
         className={`
           w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left transition-colors
           ${isSelected 
-            ? 'bg-indigo-600/10 text-indigo-400' 
-            : 'text-slate-400 hover:bg-slate-900 hover:text-white'
+            ? 'bg-brand/10 text-brand' 
+            : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
           }
         `}
         style={{ paddingLeft: `${12 + level * 16}px` }}
@@ -131,9 +131,9 @@ const RelatedDocs = ({ currentId, graph, onSelect }) => {
   if (related.length === 0) return null;
   
   return (
-    <div className="mt-6 pt-4 border-t border-slate-800/50">
+    <div className="mt-6 pt-4 border-t border-zinc-200 dark:border-zinc-800">
       <div className="px-3 mb-2">
-        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+        <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider flex items-center gap-1">
           <Link2 className="w-3 h-3" />
           Related
         </span>
@@ -145,7 +145,7 @@ const RelatedDocs = ({ currentId, graph, onSelect }) => {
             <button
               key={node.id}
               onClick={() => onSelect(node)}
-              className="w-full flex items-center gap-2 px-3 py-1.5 text-slate-500 hover:text-white hover:bg-slate-900/50 rounded-lg transition-colors"
+              className="w-full flex items-center gap-2 px-3 py-1.5 text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-900/50 rounded-lg transition-colors"
             >
               <IconComponent className="w-3.5 h-3.5" />
               <span className="text-xs truncate">{node.title}</span>
@@ -198,8 +198,8 @@ export const ConceptNav = ({
   if (roots.length === 0) {
     return (
       <div className={`text-center py-8 ${className}`}>
-        <FileText className="w-8 h-8 text-slate-700 mx-auto mb-2" />
-        <p className="text-slate-500 text-sm">No documents</p>
+        <FileText className="w-8 h-8 text-zinc-700 mx-auto mb-2" />
+        <p className="text-zinc-500 text-sm">No documents</p>
       </div>
     );
   }

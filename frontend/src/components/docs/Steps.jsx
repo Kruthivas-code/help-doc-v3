@@ -43,15 +43,15 @@ export const Step = ({
       {/* Title row with number circle */}
       <div className="flex items-center gap-4 mb-2">
         {/* Number circle */}
-        <div className="w-8 h-8 rounded-full bg-indigo-500 dark:bg-indigo-600 flex items-center justify-center flex-shrink-0">
+        <div className="w-8 h-8 rounded-full bg-brand dark:bg-brand flex items-center justify-center flex-shrink-0">
           {IconComponent ? (
-            <IconComponent className="w-4 h-4 text-white" />
+            <IconComponent className="w-4 h-4 text-zinc-950 dark:text-white" />
           ) : (
-            <span className="text-sm font-semibold text-white">{stepNumber}</span>
+            <span className="text-sm font-semibold text-zinc-950 dark:text-white">{stepNumber}</span>
           )}
         </div>
         {/* Title */}
-        <h4 className="text-lg font-semibold !text-slate-900 dark:!text-white">{title}</h4>
+        <h4 className="text-lg font-semibold !text-zinc-950 dark:!text-white">{title}</h4>
       </div>
       
       {/* Content area with connecting line */}
@@ -59,12 +59,12 @@ export const Step = ({
         {/* Line column */}
         <div className="w-8 flex justify-center flex-shrink-0">
           {!isLast && (
-            <div className="w-0.5 h-full bg-indigo-500/30 dark:bg-indigo-400/30 min-h-[40px]" />
+            <div className="w-0.5 h-full bg-brand/20 dark:bg-indigo-400/30 min-h-[40px]" />
           )}
         </div>
         {/* Description */}
         <div className={`flex-1 ${isLast ? 'pb-0' : 'pb-6'}`}>
-          <div className="text-[15px] !text-slate-600 dark:!text-slate-400 leading-relaxed italic [&>p]:mb-3 [&>p:last-child]:mb-0">
+          <div className="text-[15px] !text-zinc-400 dark:text-zinc-600 dark:!text-zinc-600 dark:text-zinc-400 leading-relaxed italic [&>p]:mb-3 [&>p:last-child]:mb-0">
             {children}
           </div>
         </div>

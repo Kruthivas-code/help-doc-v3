@@ -248,11 +248,11 @@ export const IconPicker = ({
   }, [search, selectedCategory]);
 
   return (
-    <div className={`bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden ${className}`}>
+    <div className={`bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl overflow-hidden ${className}`}>
       {/* Search */}
-      <div className="p-3 border-b border-slate-800">
+      <div className="p-3 border-b border-zinc-200 dark:border-zinc-800">
         <div className="relative">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
           <input
             type="text"
             placeholder="Search icons..."
@@ -261,7 +261,7 @@ export const IconPicker = ({
               setSearch(e.target.value);
               setSelectedCategory(null);
             }}
-            className="w-full h-9 pl-9 pr-3 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500"
+            className="w-full h-9 pl-9 pr-3 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-950 dark:text-white placeholder:text-zinc-500 focus:outline-none focus:border-brand"
             autoFocus
           />
         </div>
@@ -269,11 +269,11 @@ export const IconPicker = ({
 
       {/* Categories */}
       {!search && (
-        <div className="flex gap-1 p-2 border-b border-slate-800 overflow-x-auto">
+        <div className="flex gap-1 p-2 border-b border-zinc-200 dark:border-zinc-800 overflow-x-auto">
           <button
             onClick={() => setSelectedCategory(null)}
             className={`px-3 py-1.5 text-xs font-medium rounded-md whitespace-nowrap transition-colors ${
-              !selectedCategory ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800'
+              !selectedCategory ? 'bg-brand text-zinc-950 dark:text-white' : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'
             }`}
           >
             All
@@ -283,7 +283,7 @@ export const IconPicker = ({
               key={cat.name}
               onClick={() => setSelectedCategory(cat.name)}
               className={`px-3 py-1.5 text-xs font-medium rounded-md whitespace-nowrap transition-colors ${
-                selectedCategory === cat.name ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800'
+                selectedCategory === cat.name ? 'bg-brand text-zinc-950 dark:text-white' : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'
               }`}
             >
               {cat.name}
@@ -307,8 +307,8 @@ export const IconPicker = ({
                 }}
                 className={`p-2.5 rounded-lg transition-colors ${
                   value === iconName 
-                    ? 'bg-indigo-600 text-white' 
-                    : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                    ? 'bg-brand text-zinc-950 dark:text-white' 
+                    : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
                 }`}
                 title={iconName}
               >
@@ -318,7 +318,7 @@ export const IconPicker = ({
           })}
         </div>
         {filteredIcons.length === 0 && (
-          <div className="text-center py-8 text-slate-500 text-sm">
+          <div className="text-center py-8 text-zinc-500 text-sm">
             No icons found
           </div>
         )}
@@ -326,14 +326,14 @@ export const IconPicker = ({
 
       {/* Selected */}
       {value && (
-        <div className="px-3 py-2 border-t border-slate-800 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm text-slate-400">
+        <div className="px-3 py-2 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
             <Icon name={value} size={16} />
             <span>{value}</span>
           </div>
           <button
             onClick={() => onChange(null)}
-            className="text-xs text-slate-500 hover:text-white"
+            className="text-xs text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white"
           >
             Clear
           </button>
@@ -358,10 +358,10 @@ export const IconButton = ({
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-10 h-10 rounded-lg border border-slate-700 flex items-center justify-center transition-colors ${
+        className={`w-10 h-10 rounded-lg border border-zinc-200 dark:border-zinc-800 flex items-center justify-center transition-colors ${
           value 
-            ? 'bg-slate-800 text-white' 
-            : 'bg-slate-900 text-slate-500 hover:text-white hover:border-slate-600'
+            ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-950 dark:text-white' 
+            : 'bg-white dark:bg-zinc-900 text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:border-slate-600'
         } ${className}`}
         title="Choose icon"
       >

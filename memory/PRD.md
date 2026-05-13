@@ -15,6 +15,15 @@ Build a Mintlify-class documentation platform for **Emergent's Documentation** w
 - GitHub OAuth integration for import/export
 - Manual version control with named snapshots
 
+## Design System (Feb 2026 — Full UX Overhaul)
+- **Typography**: Geist (headings, font-heading), Inter (body, font-sans), JetBrains Mono (code)
+- **Palette**: zinc neutrals + brand `#1588FC`; light-first with `html.dark` toggle
+- **Tokens**: HSL-based shadcn variables in `/app/frontend/src/index.css`; Tailwind extended in `tailwind.config.js`
+- **Signature device**: 10px / 0.3em uppercase eyebrow labels (`.eyebrow`) above every section heading
+- **Micro-interactions**: `.btn-press`, `.card-lift`, `.fade-up` (cubic-bezier 0.16,1,0.3,1)
+- **Theme**: `ThemeProvider` in `/app/frontend/src/contexts/ThemeContext.jsx`; `<ThemeToggle compact />` from `/app/frontend/src/components/ui/theme-toggle.jsx`
+- **Layout archetypes**: public docs use sticky translucent header + 240px left sidebar + 240px right TOC; admin uses sticky header + max-w-[1400px] gridded console
+
 ## Application Structure
 - **/** - Public documentation page (shows Emergent docs directly)
 - **/admin** - Admin login page

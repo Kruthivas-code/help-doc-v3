@@ -19,7 +19,7 @@ export const Accordion = ({ children, className = '' }) => {
   if (items.length === 0 && children) {
     return (
       <div 
-        className={`accordion my-6 border border-slate-200 dark:border-slate-800 rounded-lg divide-y divide-slate-200 dark:divide-slate-800 ${className}`}
+        className={`accordion my-6 border border-zinc-200 dark:border-zinc-800 rounded-lg divide-y divide-slate-200 dark:divide-slate-800 ${className}`}
         data-testid="accordion"
       >
         {children}
@@ -29,7 +29,7 @@ export const Accordion = ({ children, className = '' }) => {
 
   return (
     <div 
-      className={`accordion my-6 border border-slate-200 dark:border-slate-800 rounded-lg divide-y divide-slate-200 dark:divide-slate-800 ${className}`}
+      className={`accordion my-6 border border-zinc-200 dark:border-zinc-800 rounded-lg divide-y divide-slate-200 dark:divide-slate-800 ${className}`}
       data-testid="accordion"
     >
       {items}
@@ -49,12 +49,12 @@ export const AccordionItem = ({
     <div className={`accordion-item ${className}`} data-testid="accordion-item">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-4 py-3.5 flex items-center justify-between text-left hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors"
+        className="w-full px-4 py-3.5 flex items-center justify-between text-left hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors"
         data-testid="accordion-trigger"
       >
-        <span className="!text-slate-900 dark:!text-white font-medium">{title}</span>
+        <span className="!text-zinc-950 dark:!text-white font-medium">{title}</span>
         <ChevronDown 
-          className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
+          className={`w-4 h-4 text-zinc-600 dark:text-zinc-400 transition-transform duration-200 ${
             isOpen ? 'rotate-180' : ''
           }`} 
         />
@@ -66,7 +66,7 @@ export const AccordionItem = ({
         }`}
       >
         <div 
-          className="px-4 pb-4 prose prose-sm dark:prose-invert max-w-none [&_p]:!text-slate-600 dark:[&_p]:!text-slate-400 [&_code]:!text-emerald-600 dark:[&_code]:!text-emerald-400 [&_strong]:!text-slate-800 dark:[&_strong]:!text-slate-200 [&_a]:!text-indigo-600 dark:[&_a]:!text-indigo-400 [&_ul]:!text-slate-600 dark:[&_ul]:!text-slate-400 [&_ol]:!text-slate-600 dark:[&_ol]:!text-slate-400 [&_li]:!text-slate-600 dark:[&_li]:!text-slate-400"
+          className="px-4 pb-4 prose prose-sm dark:prose-invert max-w-none [&_p]:!text-zinc-400 dark:text-zinc-600 dark:[&_p]:!text-zinc-600 dark:text-zinc-400 [&_code]:!text-emerald-600 dark:[&_code]:!text-brand [&_strong]:!text-slate-800 dark:[&_strong]:!text-zinc-200 [&_a]:!text-indigo-600 dark:[&_a]:!text-brand [&_ul]:!text-zinc-400 dark:text-zinc-600 dark:[&_ul]:!text-zinc-600 dark:text-zinc-400 [&_ol]:!text-zinc-400 dark:text-zinc-600 dark:[&_ol]:!text-zinc-600 dark:text-zinc-400 [&_li]:!text-zinc-400 dark:text-zinc-600 dark:[&_li]:!text-zinc-600 dark:text-zinc-400"
           data-testid="accordion-content"
         >
           {children}

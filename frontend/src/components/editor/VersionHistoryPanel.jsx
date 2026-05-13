@@ -130,23 +130,23 @@ export const VersionHistoryPanel = ({ projectId, documentId, documentTitle, onCl
   };
 
   return (
-    <div className="h-full flex flex-col bg-slate-900" data-testid="version-history-panel">
+    <div className="h-full flex flex-col bg-white dark:bg-zinc-900" data-testid="version-history-panel">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-200 dark:border-zinc-800">
         <div className="flex items-center gap-2">
-          <History className="w-5 h-5 text-white" />
-          <h2 className="font-semibold text-white">Version History</h2>
+          <History className="w-5 h-5 text-zinc-950 dark:text-white" />
+          <h2 className="font-semibold text-zinc-950 dark:text-white">Version History</h2>
         </div>
-        <button onClick={onClose} className="p-1 hover:bg-slate-800 rounded">
-          <X className="w-5 h-5 text-slate-400" />
+        <button onClick={onClose} className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded">
+          <X className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
         </button>
       </div>
 
       {/* Document Info */}
-      <div className="px-4 py-3 border-b border-slate-800/50">
+      <div className="px-4 py-3 border-b border-zinc-200 dark:border-zinc-800">
         <div className="flex items-center gap-2 text-sm">
-          <FileText className="w-4 h-4 text-slate-400" />
-          <span className="text-slate-300 truncate">{documentTitle}</span>
+          <FileText className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
+          <span className="text-zinc-700 dark:text-zinc-300 truncate">{documentTitle}</span>
         </div>
       </div>
 
@@ -164,7 +164,7 @@ export const VersionHistoryPanel = ({ projectId, documentId, documentTitle, onCl
       )}
 
       {/* Create Version */}
-      <div className="px-4 py-3 border-b border-slate-800/50">
+      <div className="px-4 py-3 border-b border-zinc-200 dark:border-zinc-800">
         {showCreateForm ? (
           <div className="space-y-2">
             <input
@@ -172,7 +172,7 @@ export const VersionHistoryPanel = ({ projectId, documentId, documentTitle, onCl
               value={newVersionName}
               onChange={(e) => setNewVersionName(e.target.value)}
               placeholder="Version name (e.g., v1.0, Before refactor)"
-              className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm placeholder:text-slate-500 focus:outline-none focus:border-indigo-500"
+              className="w-full px-3 py-2 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-950 dark:text-white text-sm placeholder:text-zinc-500 focus:outline-none focus:border-brand"
               onKeyDown={(e) => e.key === 'Enter' && createVersion()}
               autoFocus
             />
@@ -180,7 +180,7 @@ export const VersionHistoryPanel = ({ projectId, documentId, documentTitle, onCl
               <button
                 onClick={createVersion}
                 disabled={creating}
-                className="flex-1 flex items-center justify-center gap-2 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm rounded-lg transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 px-3 py-1.5 bg-brand hover:bg-brand disabled:opacity-50 text-zinc-950 dark:text-white text-sm rounded-lg transition-colors"
               >
                 {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                 Save
@@ -190,7 +190,7 @@ export const VersionHistoryPanel = ({ projectId, documentId, documentTitle, onCl
                   setShowCreateForm(false);
                   setNewVersionName('');
                 }}
-                className="px-3 py-1.5 text-slate-400 hover:text-white text-sm"
+                className="px-3 py-1.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white text-sm"
               >
                 Cancel
               </button>
@@ -199,7 +199,7 @@ export const VersionHistoryPanel = ({ projectId, documentId, documentTitle, onCl
         ) : (
           <button
             onClick={() => setShowCreateForm(true)}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 border border-dashed border-slate-700 hover:border-slate-600 text-slate-400 hover:text-white rounded-lg transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 border border-dashed border-zinc-200 dark:border-zinc-800 hover:border-slate-600 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white rounded-lg transition-colors"
           >
             <Plus className="w-4 h-4" />
             Create Version Snapshot
@@ -211,13 +211,13 @@ export const VersionHistoryPanel = ({ projectId, documentId, documentTitle, onCl
       <div className="flex-1 overflow-auto">
         {loading ? (
           <div className="flex justify-center py-8">
-            <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+            <Loader2 className="w-6 h-6 animate-spin text-zinc-600 dark:text-zinc-400" />
           </div>
         ) : versions.length === 0 ? (
           <div className="px-4 py-8 text-center">
-            <History className="w-12 h-12 text-slate-700 mx-auto mb-3" />
-            <p className="text-slate-400 text-sm">No versions yet</p>
-            <p className="text-slate-500 text-xs mt-1">
+            <History className="w-12 h-12 text-zinc-700 mx-auto mb-3" />
+            <p className="text-zinc-600 dark:text-zinc-400 text-sm">No versions yet</p>
+            <p className="text-zinc-500 text-xs mt-1">
               Create a snapshot to save the current state
             </p>
           </div>
@@ -226,14 +226,14 @@ export const VersionHistoryPanel = ({ projectId, documentId, documentTitle, onCl
             {versions.map((version) => (
               <div
                 key={version.id}
-                className={`p-4 hover:bg-slate-800/30 transition-colors ${
-                  selectedVersion?.id === version.id ? 'bg-slate-800/50' : ''
+                className={`p-4 hover:bg-zinc-100 dark:hover:bg-zinc-800/30 transition-colors ${
+                  selectedVersion?.id === version.id ? 'bg-zinc-100 dark:bg-zinc-800/50' : ''
                 }`}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <h4 className="font-medium text-white truncate">
+                      <h4 className="font-medium text-zinc-950 dark:text-white truncate">
                         {version.version_name}
                       </h4>
                       {version.version_name.startsWith('Auto-backup') && (
@@ -242,7 +242,7 @@ export const VersionHistoryPanel = ({ projectId, documentId, documentTitle, onCl
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-2 mt-1 text-xs text-slate-500">
+                    <div className="flex items-center gap-2 mt-1 text-xs text-zinc-500">
                       <Clock className="w-3 h-3" />
                       <span title={formatDate(version.created_at)}>
                         {formatRelativeTime(version.created_at)}
@@ -253,7 +253,7 @@ export const VersionHistoryPanel = ({ projectId, documentId, documentTitle, onCl
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => previewVersion(version)}
-                      className="p-1.5 text-slate-500 hover:text-white hover:bg-slate-700 rounded transition-colors"
+                      className="p-1.5 text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:bg-slate-700 rounded transition-colors"
                       title="Preview"
                     >
                       <Eye className="w-4 h-4" />
@@ -261,7 +261,7 @@ export const VersionHistoryPanel = ({ projectId, documentId, documentTitle, onCl
                     <button
                       onClick={() => restoreVersion(version.id)}
                       disabled={restoring}
-                      className="p-1.5 text-slate-500 hover:text-green-400 hover:bg-green-500/20 rounded transition-colors"
+                      className="p-1.5 text-zinc-500 hover:text-green-400 hover:bg-green-500/20 rounded transition-colors"
                       title="Restore"
                     >
                       {restoring ? (
@@ -272,7 +272,7 @@ export const VersionHistoryPanel = ({ projectId, documentId, documentTitle, onCl
                     </button>
                     <button
                       onClick={() => deleteVersion(version.id)}
-                      className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-500/20 rounded transition-colors"
+                      className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-red-500/20 rounded transition-colors"
                       title="Delete"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -282,8 +282,8 @@ export const VersionHistoryPanel = ({ projectId, documentId, documentTitle, onCl
 
                 {/* Preview Content */}
                 {selectedVersion?.id === version.id && previewContent !== null && (
-                  <div className="mt-3 p-3 bg-slate-900 rounded-lg border border-slate-700 max-h-48 overflow-auto">
-                    <pre className="text-xs text-slate-400 whitespace-pre-wrap font-mono">
+                  <div className="mt-3 p-3 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 max-h-48 overflow-auto">
+                    <pre className="text-xs text-zinc-600 dark:text-zinc-400 whitespace-pre-wrap font-mono">
                       {previewContent.slice(0, 500)}
                       {previewContent.length > 500 && '...'}
                     </pre>
@@ -296,8 +296,8 @@ export const VersionHistoryPanel = ({ projectId, documentId, documentTitle, onCl
       </div>
 
       {/* Help */}
-      <div className="px-4 py-3 border-t border-slate-800 bg-slate-800/30">
-        <p className="text-xs text-slate-500">
+      <div className="px-4 py-3 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800/30">
+        <p className="text-xs text-zinc-500">
           💡 Tip: Creating versions before major changes helps you recover if something goes wrong
         </p>
       </div>

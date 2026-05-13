@@ -38,7 +38,7 @@ export const DeleteAccountButton = ({
     <a
       href="#"
       onClick={handleDeleteAccount}
-      className="text-slate-400 hover:text-white underline transition-colors cursor-pointer"
+      className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white underline transition-colors cursor-pointer"
     >
       {label}
     </a>

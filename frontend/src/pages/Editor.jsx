@@ -28,6 +28,7 @@ import { VersionHistoryPanel } from "@/components/editor/VersionHistoryPanel";
 import { LiveEditor } from "@/components/editor/LiveEditor";
 import { MintlifyAIHelper } from "@/components/editor/MintlifyAIHelper";
 import { ImagePickerModal } from "@/components/editor/ImagePickerModal";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 // Navigation Group Component for hierarchical document list
 const NavGroup = ({ 
@@ -58,16 +59,16 @@ const NavGroup = ({
           ...prev,
           [groupKey]: !prev[groupKey]
         }))}
-        className="w-full flex items-center gap-2 px-2 py-1.5 text-slate-400 hover:text-white transition-colors"
+        className="w-full flex items-center gap-2 px-2 py-1.5 text-slate-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white transition-colors"
       >
         {isExpanded ? (
           <ChevronDown className="w-3 h-3 flex-shrink-0" />
         ) : (
           <ChevronRight className="w-3 h-3 flex-shrink-0" />
         )}
-        <FolderOpen className="w-3.5 h-3.5 flex-shrink-0 text-slate-500" />
+        <FolderOpen className="w-3.5 h-3.5 flex-shrink-0 text-zinc-500" />
         <span className="text-xs font-medium truncate">{group.group || 'Unnamed Group'}</span>
-        <span className="text-[10px] text-slate-600 ml-auto">{pages.length}</span>
+        <span className="text-[10px] text-zinc-400 dark:text-zinc-600 ml-auto">{pages.length}</span>
       </button>
       
       {isExpanded && (
@@ -87,10 +88,10 @@ const NavGroup = ({
                 key={pageIndex}
                 className={`group flex items-center gap-1 rounded-lg transition-colors pr-1 ${
                   isActive 
-                    ? 'bg-slate-800 text-white' 
+                    ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-950 dark:text-white' 
                     : isMissing
-                      ? 'text-slate-600 hover:bg-slate-800/30'
-                      : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
+                      ? 'text-zinc-400 dark:text-zinc-600 hover:bg-zinc-100 dark:hover:bg-zinc-800/30'
+                      : 'text-slate-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
                 }`}
               >
                 <button
@@ -108,7 +109,7 @@ const NavGroup = ({
                 {doc && !isDeleting && (
                   <button
                     onClick={(e) => handleDeleteDocument(doc.id, e)}
-                    className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded transition-all flex-shrink-0"
+                    className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded transition-all flex-shrink-0"
                     title="Delete document"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -116,7 +117,7 @@ const NavGroup = ({
                 )}
                 {doc && isDeleting && (
                   <div className="p-1.5 flex-shrink-0">
-                    <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-500" />
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-500" />
                   </div>
                 )}
               </div>
@@ -444,21 +445,21 @@ const Editor = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]">
-        <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="w-5 h-5 border-2 border-brand border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex" data-testid="editor-page">
+    <div className="min-h-screen bg-background flex" data-testid="editor-page">
       {/* Left Sidebar - Mintlify Style */}
-      <aside className={`${sidebarCollapsed ? 'w-0' : 'w-72'} flex-shrink-0 border-r border-slate-800/50 bg-[#0f0f0f] flex flex-col transition-all overflow-hidden`}>
+      <aside className={`${sidebarCollapsed ? 'w-0' : 'w-72'} flex-shrink-0 border-r border-zinc-200 dark:border-zinc-800/50 bg-white dark:bg-zinc-950 flex flex-col transition-all overflow-hidden`}>
         {/* Sidebar Header */}
-        <div className="h-14 px-4 flex items-center justify-between border-b border-slate-800/50">
+        <div className="h-14 px-4 flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800/50">
           <button 
             onClick={() => navigate(`/admin/docs/${projectId}`)}
-            className="flex items-center gap-2 text-slate-300 hover:text-white transition-colors"
+            className="flex items-center gap-2 text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
             <span className="text-sm font-medium">Main Menu</span>
@@ -468,9 +469,9 @@ const Editor = () => {
         {/* Navigation Section */}
         <div className="flex-1 overflow-hidden flex flex-col">
           <div className="px-4 py-3 flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Navigation</span>
+            <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Navigation</span>
             <div className="flex items-center gap-1">
-              <button className="p-1 text-slate-500 hover:text-white rounded">
+              <button className="p-1 text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white rounded">
                 <Search className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -489,14 +490,14 @@ const Editor = () => {
                         ...prev,
                         [`tab-${tabIndex}`]: !prev[`tab-${tabIndex}`]
                       }))}
-                      className="w-full flex items-center gap-2 px-2 py-1.5 text-xs font-semibold text-indigo-400 uppercase tracking-wider hover:text-indigo-300"
+                      className="w-full flex items-center gap-2 px-2 py-1.5 text-xs font-semibold text-brand uppercase tracking-wider hover:text-brand-600"
                     >
                       {expandedSections[`tab-${tabIndex}`] !== false ? (
                         <ChevronDown className="w-3 h-3" />
                       ) : (
                         <ChevronRight className="w-3 h-3" />
                       )}
-                      <span className="px-1.5 py-0.5 bg-indigo-500/20 rounded text-[10px]">TAB</span>
+                      <span className="px-1.5 py-0.5 bg-brand/10 rounded text-[10px]">TAB</span>
                       <span className="truncate">{tab.label || tab.id}</span>
                     </button>
                     
@@ -547,8 +548,8 @@ const Editor = () => {
                       key={doc.id}
                       className={`group flex items-center gap-1 rounded-lg transition-colors ${
                         isActive 
-                          ? 'bg-slate-800 text-white' 
-                          : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
+                          ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-950 dark:text-white' 
+                          : 'text-slate-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
                       }`}
                     >
                       <button
@@ -561,7 +562,7 @@ const Editor = () => {
                       <button
                         onClick={(e) => handleDeleteDocument(doc.id, e)}
                         disabled={isDeleting}
-                        className="p-2 opacity-0 group-hover:opacity-100 text-slate-500 hover:text-red-400 transition-all"
+                        className="p-2 opacity-0 group-hover:opacity-100 text-zinc-500 hover:text-red-400 transition-all"
                         title="Delete document"
                       >
                         {isDeleting ? (
@@ -595,14 +596,14 @@ const Editor = () => {
                 if (unlinkedDocs.length === 0) return null;
                 
                 return (
-                  <div className="mt-4 pt-4 border-t border-slate-800/50">
+                  <div className="mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-800/50">
                     <div className="px-2 py-1.5 flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <div className="text-xs font-semibold text-amber-500/70 uppercase tracking-wider flex items-center gap-2">
                           <FolderOpen className="w-3 h-3" />
                           Unlinked Documents
                         </div>
-                        <span className="text-[10px] text-slate-600">({unlinkedDocs.length})</span>
+                        <span className="text-[10px] text-zinc-400 dark:text-zinc-600">({unlinkedDocs.length})</span>
                       </div>
                       {unlinkedDocs.length > 1 && (
                         <button
@@ -626,7 +627,7 @@ const Editor = () => {
                         </button>
                       )}
                     </div>
-                    <p className="px-2 text-[10px] text-slate-600 mb-2">
+                    <p className="px-2 text-[10px] text-zinc-400 dark:text-zinc-600 mb-2">
                       {missingPages.length > 0 
                         ? `Click "Link" to map to ${missingPages.length} missing page${missingPages.length > 1 ? 's' : ''}`
                         : 'No missing pages in navigation'}
@@ -640,8 +641,8 @@ const Editor = () => {
                           key={doc.id}
                           className={`group flex items-center gap-1 rounded-lg transition-colors ml-2 pr-1 ${
                             isActive 
-                              ? 'bg-slate-800 text-white' 
-                              : 'text-slate-500 hover:bg-slate-800/50 hover:text-white'
+                              ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-950 dark:text-white' 
+                              : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
                           }`}
                         >
                           <button
@@ -657,7 +658,7 @@ const Editor = () => {
                                 setDocToLink(doc);
                                 setLinkModalOpen(true);
                               }}
-                              className="px-2 py-1 text-[10px] bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30 rounded transition-colors flex-shrink-0"
+                              className="px-2 py-1 text-[10px] bg-brand/10 text-brand hover:bg-brand/20 rounded transition-colors flex-shrink-0"
                               title="Link to a navigation page"
                             >
                               Link
@@ -666,7 +667,7 @@ const Editor = () => {
                           {!isDeleting && (
                             <button
                               onClick={(e) => handleDeleteDocument(doc.id, e)}
-                              className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded transition-all flex-shrink-0"
+                              className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded transition-all flex-shrink-0"
                               title="Delete document"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -674,7 +675,7 @@ const Editor = () => {
                           )}
                           {isDeleting && (
                             <div className="p-1.5 flex-shrink-0">
-                              <Loader2 className="w-3.5 h-3.5 animate-spin text-slate-500" />
+                              <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-500" />
                             </div>
                           )}
                         </div>
@@ -692,7 +693,7 @@ const Editor = () => {
                   setIcon(null);
                   navigate(`/admin/editor/${projectId}`);
                 }}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-500 hover:text-white hover:bg-slate-800/50 transition-colors"
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800/50 transition-colors"
               >
                 <Plus className="w-4 h-4" />
                 <span className="text-sm">Add new</span>
@@ -702,17 +703,17 @@ const Editor = () => {
         </div>
 
         {/* Settings Section */}
-        <div className="border-t border-slate-800/50">
+        <div className="border-t border-zinc-200 dark:border-zinc-800/50">
           <div className="px-4 py-3">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Settings</span>
+            <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Settings</span>
           </div>
           <nav className="px-2 pb-2 space-y-0.5">
             <button 
               onClick={() => setActivePanel(activePanel === 'config' ? null : 'config')}
               className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
                 activePanel === 'config' 
-                  ? 'bg-indigo-600/10 text-indigo-400' 
-                  : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
+                  ? 'bg-brand/10 text-brand' 
+                  : 'text-slate-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
               }`}
             >
               <Settings className="w-4 h-4" />
@@ -722,8 +723,8 @@ const Editor = () => {
               onClick={() => setActivePanel(activePanel === 'media' ? null : 'media')}
               className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
                 activePanel === 'media' 
-                  ? 'bg-indigo-600/10 text-indigo-400' 
-                  : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
+                  ? 'bg-brand/10 text-brand' 
+                  : 'text-slate-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
               }`}
             >
               <ImageIcon className="w-4 h-4" />
@@ -733,8 +734,8 @@ const Editor = () => {
               onClick={() => setActivePanel(activePanel === 'github' ? null : 'github')}
               className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
                 activePanel === 'github' 
-                  ? 'bg-indigo-600/10 text-indigo-400' 
-                  : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
+                  ? 'bg-brand/10 text-brand' 
+                  : 'text-slate-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
               }`}
             >
               <Github className="w-4 h-4" />
@@ -745,8 +746,8 @@ const Editor = () => {
                 onClick={() => setActivePanel(activePanel === 'history' ? null : 'history')}
                 className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
                   activePanel === 'history' 
-                    ? 'bg-indigo-600/10 text-indigo-400' 
-                    : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
+                    ? 'bg-brand/10 text-brand' 
+                    : 'text-slate-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
                 }`}
               >
                 <History className="w-4 h-4" />
@@ -755,52 +756,17 @@ const Editor = () => {
             )}
           </nav>
           
-          {/* Theme Toggle - Actually functional */}
-          <div className="px-4 py-3 border-t border-slate-800/50 flex items-center gap-2">
-            <button 
-              onClick={() => {
-                setTheme('system');
-                document.documentElement.removeAttribute('data-theme');
-                const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                document.documentElement.classList.toggle('dark', isDark);
-                localStorage.setItem('theme', 'system');
-              }}
-              className={`p-2 rounded-lg transition-colors ${theme === 'system' ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-white'}`}
-              title="System theme"
-            >
-              <Monitor className="w-4 h-4" />
-            </button>
-            <button 
-              onClick={() => {
-                setTheme('light');
-                document.documentElement.setAttribute('data-theme', 'light');
-                document.documentElement.classList.remove('dark');
-                localStorage.setItem('theme', 'light');
-              }}
-              className={`p-2 rounded-lg transition-colors ${theme === 'light' ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-white'}`}
-              title="Light theme"
-            >
-              <Sun className="w-4 h-4" />
-            </button>
-            <button 
-              onClick={() => {
-                setTheme('dark');
-                document.documentElement.setAttribute('data-theme', 'dark');
-                document.documentElement.classList.add('dark');
-                localStorage.setItem('theme', 'dark');
-              }}
-              className={`p-2 rounded-lg transition-colors ${theme === 'dark' ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-white'}`}
-              title="Dark theme"
-            >
-              <Moon className="w-4 h-4" />
-            </button>
+          {/* Theme toggle (new design system) */}
+          <div className="px-4 py-3 border-t border-zinc-200 dark:border-zinc-800/50 flex items-center justify-between">
+            <span className="eyebrow text-zinc-500">Theme</span>
+            <ThemeToggle compact />
           </div>
         </div>
       </aside>
 
       {/* Settings Panels */}
       {activePanel && (
-        <aside className="w-96 bg-slate-900 border-r border-slate-800/50 flex-shrink-0">
+        <aside className="w-96 bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800/50 flex-shrink-0">
           <div className="h-full relative">
             {activePanel === 'config' && (
               <ConfigurationsPanel projectId={projectId} onClose={() => setActivePanel(null)} />
@@ -830,10 +796,10 @@ const Editor = () => {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Bar */}
-        <header className="h-14 px-4 flex items-center justify-between border-b border-slate-800/50 bg-[#0a0a0a]">
+        <header className="h-14 px-4 flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800/50 bg-background">
           <div className="flex items-center gap-4">
             {/* Document Title */}
-            <span className="text-white font-medium truncate max-w-[200px]">
+            <span className="text-zinc-950 dark:text-white font-medium truncate max-w-[200px]">
               {title || 'Untitled'}
             </span>
             
@@ -844,7 +810,7 @@ const Editor = () => {
                 <span>Saving...</span>
               </div>
             ) : lastSaved ? (
-              <div className="flex items-center gap-2 text-emerald-400 text-sm">
+              <div className="flex items-center gap-2 text-brand text-sm">
                 <Check className="w-4 h-4" />
                 <span>Saved</span>
               </div>
@@ -853,11 +819,11 @@ const Editor = () => {
 
           <div className="flex items-center gap-2">
             {/* View Mode Toggle - Markdown / Split / Visual / Preview */}
-            <div className="flex items-center bg-slate-800/50 rounded-lg p-0.5">
+            <div className="flex items-center bg-zinc-100 dark:bg-zinc-800/50 rounded-lg p-0.5">
               <button
                 onClick={() => setViewMode('markdown')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                  viewMode === 'markdown' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-white'
+                  viewMode === 'markdown' ? 'bg-slate-700 text-zinc-950 dark:text-white' : 'text-slate-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
                 }`}
                 title="Markdown Editor"
                 data-testid="view-mode-markdown"
@@ -868,7 +834,7 @@ const Editor = () => {
               <button
                 onClick={() => setViewMode('split')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                  viewMode === 'split' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-white'
+                  viewMode === 'split' ? 'bg-slate-700 text-zinc-950 dark:text-white' : 'text-slate-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
                 }`}
                 title="Split View"
                 data-testid="view-mode-split"
@@ -878,7 +844,7 @@ const Editor = () => {
               <button
                 onClick={() => setViewMode('visual')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                  viewMode === 'visual' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-white'
+                  viewMode === 'visual' ? 'bg-slate-700 text-zinc-950 dark:text-white' : 'text-slate-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
                 }`}
                 title="Visual Editor"
                 data-testid="view-mode-visual"
@@ -889,7 +855,7 @@ const Editor = () => {
               <button
                 onClick={() => setViewMode('preview')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                  viewMode === 'preview' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-white'
+                  viewMode === 'preview' ? 'bg-slate-700 text-zinc-950 dark:text-white' : 'text-slate-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
                 }`}
                 title="Device Preview"
                 data-testid="view-mode-preview"
@@ -901,11 +867,11 @@ const Editor = () => {
 
             {/* Device Toggle - Only shown in Preview mode */}
             {viewMode === 'preview' && (
-              <div className="flex items-center bg-slate-800/50 rounded-lg p-0.5 ml-2">
+              <div className="flex items-center bg-zinc-100 dark:bg-zinc-800/50 rounded-lg p-0.5 ml-2">
                 <button
                   onClick={() => setPreviewDevice('desktop')}
                   className={`p-2 rounded-md transition-colors ${
-                    previewDevice === 'desktop' ? 'bg-[#188455] text-white' : 'text-slate-400 hover:text-white'
+                    previewDevice === 'desktop' ? 'bg-[#188455] text-zinc-950 dark:text-white' : 'text-slate-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
                   }`}
                   title="Desktop (1280px)"
                   data-testid="device-desktop"
@@ -915,7 +881,7 @@ const Editor = () => {
                 <button
                   onClick={() => setPreviewDevice('tablet')}
                   className={`p-2 rounded-md transition-colors ${
-                    previewDevice === 'tablet' ? 'bg-[#188455] text-white' : 'text-slate-400 hover:text-white'
+                    previewDevice === 'tablet' ? 'bg-[#188455] text-zinc-950 dark:text-white' : 'text-slate-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
                   }`}
                   title="Tablet (768px)"
                   data-testid="device-tablet"
@@ -925,7 +891,7 @@ const Editor = () => {
                 <button
                   onClick={() => setPreviewDevice('mobile')}
                   className={`p-2 rounded-md transition-colors ${
-                    previewDevice === 'mobile' ? 'bg-[#188455] text-white' : 'text-slate-400 hover:text-white'
+                    previewDevice === 'mobile' ? 'bg-[#188455] text-zinc-950 dark:text-white' : 'text-slate-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
                   }`}
                   title="Mobile (375px)"
                   data-testid="device-mobile"
@@ -950,7 +916,7 @@ const Editor = () => {
                   setImagePickerMode('image');
                   setImagePickerOpen(true);
                 }}
-                className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 text-slate-300 hover:text-white text-sm rounded-lg hover:bg-slate-700 transition-colors"
+                className="flex items-center gap-2 px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white text-sm rounded-lg hover:bg-slate-700 transition-colors"
                 data-testid="image-picker-btn"
               >
                 <ImageIcon className="w-4 h-4" />
@@ -965,7 +931,7 @@ const Editor = () => {
                 await navigator.clipboard.writeText(url);
                 alert('Link copied!');
               }}
-              className="flex items-center gap-2 px-3 py-1.5 text-slate-300 hover:text-white text-sm rounded-lg hover:bg-slate-800 transition-colors"
+              className="flex items-center gap-2 px-3 py-1.5 text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white text-sm rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
             >
               <Share2 className="w-4 h-4" />
               <span>Copy Link</span>
@@ -975,7 +941,7 @@ const Editor = () => {
             <button
               onClick={handleSave}
               disabled={saving}
-              className="flex items-center gap-2 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg transition-colors"
+              className="flex items-center gap-2 px-4 py-1.5 bg-brand hover:bg-brand-600 disabled:opacity-50 text-zinc-950 dark:text-white text-sm font-medium rounded-lg transition-colors"
               data-testid="save-button"
             >
               {saving ? (
@@ -992,7 +958,7 @@ const Editor = () => {
         <div className="flex-1 flex overflow-hidden">
           {/* Markdown Editor Panel */}
           {(viewMode === 'markdown' || viewMode === 'split') && (
-            <div className={`${viewMode === 'split' ? 'w-1/2 border-r border-slate-800/50' : 'flex-1'} flex flex-col overflow-hidden`}>
+            <div className={`${viewMode === 'split' ? 'w-1/2 border-r border-zinc-200 dark:border-zinc-800/50' : 'flex-1'} flex flex-col overflow-hidden`}>
               {/* Title Bar */}
               <div className="px-8 pt-8 pb-4">
                 <div className="flex items-start gap-4">
@@ -1003,11 +969,11 @@ const Editor = () => {
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
                       placeholder="Untitled"
-                      className="w-full text-3xl font-bold text-white bg-transparent placeholder:text-slate-600 focus:outline-none"
+                      className="w-full text-3xl font-bold text-zinc-950 dark:text-white bg-transparent placeholder:text-zinc-400 dark:text-zinc-600 focus:outline-none"
                       data-testid="doc-title-input"
                     />
-                    <p className="text-sm text-slate-500 mt-1">
-                      Type <kbd className="px-1.5 py-0.5 bg-slate-800 rounded text-xs text-slate-400">/</kbd> for commands
+                    <p className="text-sm text-zinc-500 mt-1">
+                      Type <kbd className="px-1.5 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded text-xs text-slate-400">/</kbd> for commands
                     </p>
                   </div>
                 </div>
@@ -1021,7 +987,7 @@ const Editor = () => {
                   onChange={handleContentChange}
                   onKeyDown={slashCommands.handleKeyDown}
                   placeholder="Start writing your documentation..."
-                  className="w-full h-full px-8 py-4 bg-transparent text-slate-300 placeholder:text-slate-600 text-base leading-relaxed resize-none focus:outline-none"
+                  className="w-full h-full px-8 py-4 bg-transparent text-zinc-700 dark:text-zinc-300 placeholder:text-zinc-400 dark:text-zinc-600 text-base leading-relaxed resize-none focus:outline-none"
                   style={{ fontFamily: 'inherit' }}
                   data-testid="content-editor"
                 />
@@ -1040,7 +1006,7 @@ const Editor = () => {
 
           {/* Visual Editor Panel - Live WYSIWYG editing */}
           {viewMode === 'visual' && (
-            <div className="flex-1 overflow-auto bg-[#0a0a0a]">
+            <div className="flex-1 overflow-auto bg-background">
               <LiveEditor
                 content={content}
                 onChange={setContent}
@@ -1050,7 +1016,7 @@ const Editor = () => {
 
           {/* Device Preview Panel - Desktop/Tablet/Mobile simulation */}
           {viewMode === 'preview' && (
-            <div className="flex-1 bg-slate-950 flex items-center justify-center p-8 overflow-auto">
+            <div className="flex-1 bg-background flex items-center justify-center p-8 overflow-auto">
               <DeviceFrame device={previewDevice}>
                 <div className="h-full overflow-auto bg-[#020617]">
                   {/* Grid Pattern Background */}
@@ -1060,12 +1026,12 @@ const Editor = () => {
                   <div className="sticky top-0 z-10 bg-[#020617]/80 backdrop-blur-xl border-b border-white/5 px-4 h-14 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div className="w-6 h-6 rounded-md bg-[#188455] flex items-center justify-center">
-                        <FileText className="w-3 h-3 text-white" />
+                        <FileText className="w-3 h-3 text-zinc-950 dark:text-white" />
                       </div>
-                      <span className="font-semibold text-white text-sm">{project?.name || 'Docs'}</span>
+                      <span className="font-semibold text-zinc-950 dark:text-white text-sm">{project?.name || 'Docs'}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Search className="w-4 h-4 text-slate-500" />
+                      <Search className="w-4 h-4 text-zinc-500" />
                     </div>
                   </div>
                   
@@ -1078,7 +1044,7 @@ const Editor = () => {
                           <IconComponent className={previewDevice === 'mobile' ? 'w-4 h-4' : 'w-5 h-5'} />
                         </div>
                       )}
-                      <h1 className={`font-bold text-white ${
+                      <h1 className={`font-bold text-zinc-950 dark:text-white ${
                         previewDevice === 'mobile' ? 'text-xl' : previewDevice === 'tablet' ? 'text-2xl' : 'text-3xl'
                       }`}>
                         {title || 'Untitled'}
@@ -1099,17 +1065,17 @@ const Editor = () => {
 
           {/* Split View Preview Panel */}
           {viewMode === 'split' && (
-            <div className="w-1/2 overflow-auto bg-[#0a0a0a]">
+            <div className="w-1/2 overflow-auto bg-background">
               <div className="max-w-3xl mx-auto px-8 py-8">
                 {/* Preview Header */}
                 <div className="flex items-center gap-3 mb-6">
                   {IconComponent && (
-                    <div className="w-10 h-10 rounded-lg bg-indigo-600/20 flex items-center justify-center text-indigo-400">
+                    <div className="w-10 h-10 rounded-lg bg-brand/20 flex items-center justify-center text-brand">
                       <IconComponent className="w-5 h-5" />
                     </div>
                   )}
                   <div>
-                    <h1 className="text-3xl font-bold text-white">{title || 'Untitled'}</h1>
+                    <h1 className="text-3xl font-bold text-zinc-950 dark:text-white">{title || 'Untitled'}</h1>
                   </div>
                 </div>
                 
@@ -1151,9 +1117,9 @@ const Editor = () => {
 
       {/* Link Document Modal */}
       <Dialog open={linkModalOpen} onOpenChange={setLinkModalOpen}>
-        <DialogContent className="bg-slate-900 border-slate-700 max-w-md">
+        <DialogContent className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700 max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-white">Link Document</DialogTitle>
+            <DialogTitle className="text-zinc-950 dark:text-white">Link Document</DialogTitle>
             <DialogDescription className="text-slate-400">
               {docToLink 
                 ? `Select a missing page to link "${docToLink.title}" to.`
@@ -1164,18 +1130,18 @@ const Editor = () => {
           {docToLink && (
             <div className="space-y-3" data-testid="link-modal-content">
               {/* Document being linked */}
-              <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-700">
-                <p className="text-xs text-slate-500 mb-1">Document to link:</p>
+              <div className="p-3 bg-zinc-100 dark:bg-zinc-800/50 rounded-lg border border-zinc-200 dark:border-zinc-700">
+                <p className="text-xs text-zinc-500 mb-1">Document to link:</p>
                 <div className="flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-indigo-400" />
-                  <span className="text-white font-medium">{docToLink.title}</span>
+                  <FileText className="w-4 h-4 text-brand" />
+                  <span className="text-zinc-950 dark:text-white font-medium">{docToLink.title}</span>
                 </div>
-                <p className="text-xs text-slate-500 mt-1 font-mono">slug: {docToLink.slug}</p>
+                <p className="text-xs text-zinc-500 mt-1 font-mono">slug: {docToLink.slug}</p>
               </div>
               
               {/* Missing pages list */}
               <div>
-                <p className="text-xs text-slate-500 mb-2">Link to navigation page:</p>
+                <p className="text-xs text-zinc-500 mb-2">Link to navigation page:</p>
                 <ScrollArea className="h-[200px] pr-2">
                   <div className="space-y-1">
                     {getMissingPages().length > 0 ? (
@@ -1184,28 +1150,28 @@ const Editor = () => {
                           key={index}
                           onClick={() => handleLinkDocument(missing)}
                           disabled={linking}
-                          className="w-full p-2 text-left rounded-lg border border-slate-700 hover:border-indigo-500 hover:bg-indigo-500/10 transition-colors disabled:opacity-50"
+                          className="w-full p-2 text-left rounded-lg border border-zinc-200 dark:border-zinc-700 hover:border-brand hover:bg-brand-600/10 transition-colors disabled:opacity-50"
                           data-testid={`missing-page-${index}`}
                         >
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="text-sm text-white">{missing.title}</p>
-                              <p className="text-xs text-slate-500">
+                              <p className="text-sm text-zinc-950 dark:text-white">{missing.title}</p>
+                              <p className="text-xs text-zinc-500">
                                 <span className="text-red-400/70">missing:</span>{' '}
                                 <span className="font-mono">{missing.slug}</span>
                               </p>
-                              <p className="text-[10px] text-slate-600">in &quot;{missing.groupName}&quot;</p>
+                              <p className="text-[10px] text-zinc-400 dark:text-zinc-600">in &quot;{missing.groupName}&quot;</p>
                             </div>
                             {linking ? (
-                              <Loader2 className="w-4 h-4 animate-spin text-indigo-400" />
+                              <Loader2 className="w-4 h-4 animate-spin text-brand" />
                             ) : (
-                              <ChevronRight className="w-4 h-4 text-slate-500" />
+                              <ChevronRight className="w-4 h-4 text-zinc-500" />
                             )}
                           </div>
                         </button>
                       ))
                     ) : (
-                      <div className="p-4 text-center text-slate-500 text-sm">
+                      <div className="p-4 text-center text-zinc-500 text-sm">
                         No missing pages in navigation config.
                         <br />
                         <span className="text-xs">Add pages in the Configurations panel first.</span>
@@ -1259,7 +1225,7 @@ const DeviceFrame = ({ device, children }) => {
       
       {/* Device Frame */}
       <div 
-        className={`relative bg-slate-800 ${config.bezel} shadow-2xl overflow-hidden transition-all duration-300`}
+        className={`relative bg-zinc-100 dark:bg-zinc-800 ${config.bezel} shadow-2xl overflow-hidden transition-all duration-300`}
         style={{
           width: `min(${config.width}px, 100%)`,
           height: device === 'desktop' ? '70vh' : `min(${config.height}px, 80vh)`,
@@ -1268,7 +1234,7 @@ const DeviceFrame = ({ device, children }) => {
       >
         {/* Screen Notch for Mobile */}
         {device === 'mobile' && (
-          <div className="absolute top-3 left-1/2 -translate-x-1/2 w-24 h-6 bg-slate-900 rounded-full z-20" />
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 w-24 h-6 bg-white dark:bg-zinc-900 rounded-full z-20" />
         )}
         
         {/* Screen */}

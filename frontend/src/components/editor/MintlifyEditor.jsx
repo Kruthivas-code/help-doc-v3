@@ -25,7 +25,7 @@ const ToolBtn = ({ onClick, active, disabled, children, title }) => (
     disabled={disabled}
     title={title}
     className={`p-1.5 rounded transition-colors ${
-      active ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-white hover:bg-slate-800'
+      active ? 'bg-brand text-zinc-950 dark:text-white' : 'text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800'
     } ${disabled ? 'opacity-30 cursor-not-allowed' : ''}`}
   >
     {children}
@@ -64,24 +64,24 @@ const ImageDialog = ({ isOpen, onClose, onInsert, projectId }) => {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center" onClick={onClose}>
-      <div className="bg-slate-900 border border-slate-700 rounded-xl w-full max-w-md p-5" onClick={e => e.stopPropagation()}>
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl w-full max-w-md p-5" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-white">Insert Image</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button>
+          <h3 className="font-semibold text-zinc-950 dark:text-white">Insert Image</h3>
+          <button onClick={onClose} className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white"><X className="w-5 h-5" /></button>
         </div>
         <div className="flex gap-2 mb-4">
-          <button onClick={() => setTab('url')} className={`px-3 py-1.5 rounded text-sm ${tab === 'url' ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400'}`}>URL</button>
-          <button onClick={() => setTab('upload')} className={`px-3 py-1.5 rounded text-sm ${tab === 'upload' ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400'}`}>Upload</button>
+          <button onClick={() => setTab('url')} className={`px-3 py-1.5 rounded text-sm ${tab === 'url' ? 'bg-brand text-zinc-950 dark:text-white' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400'}`}>URL</button>
+          <button onClick={() => setTab('upload')} className={`px-3 py-1.5 rounded text-sm ${tab === 'upload' ? 'bg-brand text-zinc-950 dark:text-white' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400'}`}>Upload</button>
         </div>
         {tab === 'url' ? (
           <div className="space-y-3">
-            <input type="text" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://..." className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm" />
-            <button onClick={() => { if(url) { onInsert(url); onClose(); }}} disabled={!url} className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg text-sm font-medium">Insert</button>
+            <input type="text" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://..." className="w-full px-3 py-2 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-950 dark:text-white text-sm" />
+            <button onClick={() => { if(url) { onInsert(url); onClose(); }}} disabled={!url} className="w-full py-2 bg-brand hover:bg-brand disabled:opacity-50 text-zinc-950 dark:text-white rounded-lg text-sm font-medium">Insert</button>
           </div>
         ) : (
-          <div onClick={() => fileInputRef.current?.click()} className="border-2 border-dashed border-slate-700 rounded-lg p-6 text-center cursor-pointer hover:border-indigo-500">
-            {uploading ? <Loader2 className="w-6 h-6 text-indigo-400 mx-auto animate-spin" /> : (
-              <><Upload className="w-6 h-6 text-slate-500 mx-auto mb-2" /><p className="text-slate-400 text-sm">Click to upload</p></>
+          <div onClick={() => fileInputRef.current?.click()} className="border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-lg p-6 text-center cursor-pointer hover:border-brand">
+            {uploading ? <Loader2 className="w-6 h-6 text-brand mx-auto animate-spin" /> : (
+              <><Upload className="w-6 h-6 text-zinc-500 mx-auto mb-2" /><p className="text-zinc-600 dark:text-zinc-400 text-sm">Click to upload</p></>
             )}
             <input ref={fileInputRef} type="file" accept="image/*" onChange={handleUpload} className="hidden" />
           </div>
@@ -97,13 +97,13 @@ const YoutubeDialog = ({ isOpen, onClose, onInsert }) => {
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center" onClick={onClose}>
-      <div className="bg-slate-900 border border-slate-700 rounded-xl w-full max-w-md p-5" onClick={e => e.stopPropagation()}>
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl w-full max-w-md p-5" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-white">Embed YouTube</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button>
+          <h3 className="font-semibold text-zinc-950 dark:text-white">Embed YouTube</h3>
+          <button onClick={onClose} className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white"><X className="w-5 h-5" /></button>
         </div>
-        <input type="text" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://youtube.com/watch?v=..." className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm mb-3" />
-        <button onClick={() => { if(url) { onInsert(url); onClose(); }}} disabled={!url} className="w-full py-2 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white rounded-lg text-sm font-medium">Embed</button>
+        <input type="text" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://youtube.com/watch?v=..." className="w-full px-3 py-2 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-950 dark:text-white text-sm mb-3" />
+        <button onClick={() => { if(url) { onInsert(url); onClose(); }}} disabled={!url} className="w-full py-2 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-zinc-950 dark:text-white rounded-lg text-sm font-medium">Embed</button>
       </div>
     </div>
   );
@@ -123,9 +123,9 @@ const CalloutMenu = ({ editor, onClose }) => {
   };
   
   return (
-    <div className="absolute top-full left-0 mt-1 bg-slate-900 border border-slate-700 rounded-lg shadow-xl p-1 z-50">
+    <div className="absolute top-full left-0 mt-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-xl p-1 z-50">
       {callouts.map(c => (
-        <button key={c.type} onClick={() => insertCallout(c.type)} className="flex items-center gap-2 w-full px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-800 rounded">
+        <button key={c.type} onClick={() => insertCallout(c.type)} className="flex items-center gap-2 w-full px-3 py-1.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded">
           <c.icon className="w-4 h-4" />{c.label}
         </button>
       ))}
@@ -153,7 +153,7 @@ export const MintlifyEditor = ({
     extensions: [
       StarterKit,
       Image.configure({ HTMLAttributes: { class: 'rounded-lg max-w-full my-4' } }),
-      Link.configure({ openOnClick: false, HTMLAttributes: { class: 'text-indigo-400 underline' } }),
+      Link.configure({ openOnClick: false, HTMLAttributes: { class: 'text-brand underline' } }),
       Placeholder.configure({ placeholder: 'Start writing your documentation...' }),
       Youtube.configure({ HTMLAttributes: { class: 'rounded-lg w-full aspect-video my-4' } }),
     ],
@@ -180,7 +180,7 @@ export const MintlifyEditor = ({
     if (url && editor) editor.commands.setYoutubeVideo({ src: url });
   }, [editor]);
 
-  if (!editor) return <div className="flex items-center justify-center h-64"><Loader2 className="w-6 h-6 text-indigo-400 animate-spin" /></div>;
+  if (!editor) return <div className="flex items-center justify-center h-64"><Loader2 className="w-6 h-6 text-brand animate-spin" /></div>;
 
   // Device preview widths
   const previewWidth = { desktop: '100%', tablet: '768px', mobile: '375px' }[devicePreview];
@@ -188,7 +188,7 @@ export const MintlifyEditor = ({
   return (
     <div className={`mintlify-editor flex flex-col h-full ${className}`}>
       {/* Compact Toolbar */}
-      <div className="flex items-center justify-between px-4 py-2 border-b border-slate-800 bg-[#0a0a0f]">
+      <div className="flex items-center justify-between px-4 py-2 border-b border-zinc-200 dark:border-zinc-800 bg-[#0a0a0f]">
         <div className="flex items-center gap-0.5">
           {/* Text formatting */}
           <ToolBtn onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive('bold')} title="Bold">
@@ -258,24 +258,24 @@ export const MintlifyEditor = ({
         </div>
         
         {/* Device Preview Toggle */}
-        <div className="flex items-center gap-0.5 bg-slate-800/50 rounded-lg p-0.5">
+        <div className="flex items-center gap-0.5 bg-zinc-100 dark:bg-zinc-800/50 rounded-lg p-0.5">
           <button
             onClick={() => setDevicePreview('desktop')}
-            className={`p-1.5 rounded ${devicePreview === 'desktop' ? 'bg-slate-700 text-white' : 'text-slate-500 hover:text-white'}`}
+            className={`p-1.5 rounded ${devicePreview === 'desktop' ? 'bg-slate-700 text-zinc-950 dark:text-white' : 'text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'}`}
             title="Desktop view"
           >
             <Monitor className="w-4 h-4" />
           </button>
           <button
             onClick={() => setDevicePreview('tablet')}
-            className={`p-1.5 rounded ${devicePreview === 'tablet' ? 'bg-slate-700 text-white' : 'text-slate-500 hover:text-white'}`}
+            className={`p-1.5 rounded ${devicePreview === 'tablet' ? 'bg-slate-700 text-zinc-950 dark:text-white' : 'text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'}`}
             title="Tablet view"
           >
             <Tablet className="w-4 h-4" />
           </button>
           <button
             onClick={() => setDevicePreview('mobile')}
-            className={`p-1.5 rounded ${devicePreview === 'mobile' ? 'bg-slate-700 text-white' : 'text-slate-500 hover:text-white'}`}
+            className={`p-1.5 rounded ${devicePreview === 'mobile' ? 'bg-slate-700 text-zinc-950 dark:text-white' : 'text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'}`}
             title="Mobile view"
           >
             <Smartphone className="w-4 h-4" />
@@ -286,7 +286,7 @@ export const MintlifyEditor = ({
       {/* Editor Content with Device Frame */}
       <div className="flex-1 overflow-auto bg-[#0f0f15] flex justify-center py-8">
         <div 
-          className={`bg-[#0a0a0f] transition-all duration-300 ${devicePreview !== 'desktop' ? 'border border-slate-700 rounded-xl shadow-2xl' : ''}`}
+          className={`bg-[#0a0a0f] transition-all duration-300 ${devicePreview !== 'desktop' ? 'border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl' : ''}`}
           style={{ width: previewWidth, maxWidth: '100%' }}
         >
           {/* Title */}
@@ -296,7 +296,7 @@ export const MintlifyEditor = ({
               value={title || ''}
               onChange={(e) => onTitleChange?.(e.target.value)}
               placeholder="Page title"
-              className="w-full text-3xl font-bold text-white bg-transparent placeholder:text-slate-600 focus:outline-none mb-6"
+              className="w-full text-3xl font-bold text-zinc-950 dark:text-white bg-transparent placeholder:text-zinc-400 dark:text-zinc-600 focus:outline-none mb-6"
             />
           </div>
           

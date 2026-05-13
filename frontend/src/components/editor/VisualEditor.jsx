@@ -26,8 +26,8 @@ const ToolbarButton = ({ onClick, active, disabled, children, title }) => (
     title={title}
     className={`p-2 rounded-lg transition-colors ${
       active 
-        ? 'bg-indigo-600 text-white' 
-        : 'text-slate-400 hover:text-white hover:bg-slate-800'
+        ? 'bg-brand text-zinc-950 dark:text-white' 
+        : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800'
     } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
   >
     {children}
@@ -78,10 +78,10 @@ const ImageUploadDialog = ({ isOpen, onClose, onInsert, projectId }) => {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center" onClick={onClose}>
-      <div className="bg-slate-900 border border-slate-800 rounded-xl w-full max-w-md p-6" onClick={e => e.stopPropagation()}>
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl w-full max-w-md p-6" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-white">Insert Image</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-white">
+          <h3 className="text-lg font-semibold text-zinc-950 dark:text-white">Insert Image</h3>
+          <button onClick={onClose} className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -91,7 +91,7 @@ const ImageUploadDialog = ({ isOpen, onClose, onInsert, projectId }) => {
           <button
             onClick={() => setTab('url')}
             className={`px-4 py-2 rounded-lg text-sm font-medium ${
-              tab === 'url' ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400'
+              tab === 'url' ? 'bg-brand text-zinc-950 dark:text-white' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400'
             }`}
           >
             URL
@@ -99,7 +99,7 @@ const ImageUploadDialog = ({ isOpen, onClose, onInsert, projectId }) => {
           <button
             onClick={() => setTab('upload')}
             className={`px-4 py-2 rounded-lg text-sm font-medium ${
-              tab === 'upload' ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-400'
+              tab === 'upload' ? 'bg-brand text-zinc-950 dark:text-white' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400'
             }`}
           >
             Upload
@@ -113,12 +113,12 @@ const ImageUploadDialog = ({ isOpen, onClose, onInsert, projectId }) => {
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder="https://example.com/image.png"
-              className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder:text-slate-500"
+              className="w-full px-4 py-3 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-950 dark:text-white placeholder:text-zinc-500"
             />
             <button
               onClick={handleUrlInsert}
               disabled={!url.trim()}
-              className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg font-medium"
+              className="w-full py-3 bg-brand hover:bg-brand disabled:opacity-50 text-zinc-950 dark:text-white rounded-lg font-medium"
             >
               Insert Image
             </button>
@@ -127,15 +127,15 @@ const ImageUploadDialog = ({ isOpen, onClose, onInsert, projectId }) => {
           <div className="space-y-4">
             <div
               onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-slate-700 rounded-lg p-8 text-center cursor-pointer hover:border-indigo-500 transition-colors"
+              className="border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-lg p-8 text-center cursor-pointer hover:border-brand transition-colors"
             >
               {uploading ? (
-                <Loader2 className="w-8 h-8 text-indigo-400 mx-auto animate-spin" />
+                <Loader2 className="w-8 h-8 text-brand mx-auto animate-spin" />
               ) : (
                 <>
-                  <Upload className="w-8 h-8 text-slate-500 mx-auto mb-2" />
-                  <p className="text-slate-400">Click to upload or drag and drop</p>
-                  <p className="text-slate-500 text-sm mt-1">PNG, JPG, GIF up to 10MB</p>
+                  <Upload className="w-8 h-8 text-zinc-500 mx-auto mb-2" />
+                  <p className="text-zinc-600 dark:text-zinc-400">Click to upload or drag and drop</p>
+                  <p className="text-zinc-500 text-sm mt-1">PNG, JPG, GIF up to 10MB</p>
                 </>
               )}
             </div>
@@ -168,10 +168,10 @@ const YoutubeDialog = ({ isOpen, onClose, onInsert }) => {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center" onClick={onClose}>
-      <div className="bg-slate-900 border border-slate-800 rounded-xl w-full max-w-md p-6" onClick={e => e.stopPropagation()}>
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl w-full max-w-md p-6" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-white">Embed YouTube Video</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-white">
+          <h3 className="text-lg font-semibold text-zinc-950 dark:text-white">Embed YouTube Video</h3>
+          <button onClick={onClose} className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -181,12 +181,12 @@ const YoutubeDialog = ({ isOpen, onClose, onInsert }) => {
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="https://www.youtube.com/watch?v=..."
-            className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder:text-slate-500"
+            className="w-full px-4 py-3 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-950 dark:text-white placeholder:text-zinc-500"
           />
           <button
             onClick={handleInsert}
             disabled={!url.trim()}
-            className="w-full py-3 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white rounded-lg font-medium"
+            className="w-full py-3 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-zinc-950 dark:text-white rounded-lg font-medium"
           >
             Embed Video
           </button>
@@ -213,10 +213,10 @@ const LinkDialog = ({ isOpen, onClose, onInsert, initialUrl = '' }) => {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center" onClick={onClose}>
-      <div className="bg-slate-900 border border-slate-800 rounded-xl w-full max-w-md p-6" onClick={e => e.stopPropagation()}>
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl w-full max-w-md p-6" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-white">Insert Link</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-white">
+          <h3 className="text-lg font-semibold text-zinc-950 dark:text-white">Insert Link</h3>
+          <button onClick={onClose} className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -226,18 +226,18 @@ const LinkDialog = ({ isOpen, onClose, onInsert, initialUrl = '' }) => {
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="https://example.com"
-            className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder:text-slate-500"
+            className="w-full px-4 py-3 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-950 dark:text-white placeholder:text-zinc-500"
           />
           <div className="flex gap-2">
             <button
               onClick={() => { onInsert(''); onClose(); }}
-              className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-medium"
+              className="flex-1 py-3 bg-zinc-100 dark:bg-zinc-800 hover:bg-slate-700 text-zinc-950 dark:text-white rounded-lg font-medium"
             >
               Remove Link
             </button>
             <button
               onClick={handleInsert}
-              className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium"
+              className="flex-1 py-3 bg-brand hover:bg-brand text-zinc-950 dark:text-white rounded-lg font-medium"
             >
               Save Link
             </button>
@@ -299,19 +299,19 @@ const ComponentPalette = ({ editor }) => {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="p-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500"
+        className="p-2 rounded-lg bg-brand text-zinc-950 dark:text-white hover:bg-brand"
         title="Add block"
       >
         <Plus className="w-4 h-4" />
       </button>
       
       {isOpen && (
-        <div className="absolute top-full left-0 mt-2 w-48 bg-slate-900 border border-slate-800 rounded-xl shadow-xl overflow-hidden z-50">
+        <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl overflow-hidden z-50">
           {components.map((comp) => (
             <button
               key={comp.name}
               onClick={() => { comp.action(); setIsOpen(false); }}
-              className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-slate-300 hover:bg-slate-800 hover:text-white"
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white"
             >
               <comp.icon className="w-4 h-4" />
               <span className="text-sm">{comp.name}</span>
@@ -347,7 +347,7 @@ export const VisualEditor = ({
       Link.configure({
         openOnClick: false,
         HTMLAttributes: {
-          class: 'text-indigo-400 underline',
+          class: 'text-brand underline',
         },
       }),
       Placeholder.configure({
@@ -404,15 +404,15 @@ export const VisualEditor = ({
   if (!editor) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-6 h-6 text-indigo-400 animate-spin" />
+        <Loader2 className="w-6 h-6 text-brand animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className={`visual-editor bg-[#0a0a0f] rounded-xl border border-slate-800 ${className}`}>
+    <div className={`visual-editor bg-[#0a0a0f] rounded-xl border border-zinc-200 dark:border-zinc-800 ${className}`}>
       {/* Toolbar */}
-      <div className="flex items-center gap-1 p-2 border-b border-slate-800 flex-wrap">
+      <div className="flex items-center gap-1 p-2 border-b border-zinc-200 dark:border-zinc-800 flex-wrap">
         {/* Add Block */}
         <ComponentPalette editor={editor} />
         

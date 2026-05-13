@@ -3,6 +3,7 @@ import "@/App.css";
 import { BrowserRouter, Routes, Route, useNavigate, useLocation, Navigate } from "react-router-dom";
 import axios from "axios";
 import { HelmetProvider } from 'react-helmet-async';
+import { ThemeProvider } from "@/contexts/ThemeContext";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
@@ -237,13 +238,15 @@ function AuthProvider({ children }) {
 function App() {
   return (
     <HelmetProvider>
-      <div className="App min-h-screen bg-slate-950">
-        <BrowserRouter>
-          <AuthProvider>
-            <AppRouter />
-          </AuthProvider>
-        </BrowserRouter>
-      </div>
+      <ThemeProvider defaultTheme="light">
+        <div className="App min-h-screen bg-background text-foreground">
+          <BrowserRouter>
+            <AuthProvider>
+              <AppRouter />
+            </AuthProvider>
+          </BrowserRouter>
+        </div>
+      </ThemeProvider>
     </HelmetProvider>
   );
 }

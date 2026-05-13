@@ -16,8 +16,8 @@ const TabButton = ({ active, onClick, children, icon: Icon }) => (
     onClick={onClick}
     className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
       active 
-        ? 'bg-emerald-600 text-white' 
-        : 'text-slate-400 hover:text-white hover:bg-white/5'
+        ? 'bg-emerald-600 text-zinc-950 dark:text-white' 
+        : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:bg-white/5'
     }`}
   >
     {Icon && <Icon className="w-4 h-4" />}
@@ -42,16 +42,16 @@ const ImageCard = ({ image, selected, onSelect }) => (
       loading="lazy"
     />
     {selected && (
-      <div className="absolute inset-0 bg-emerald-500/20 flex items-center justify-center">
+      <div className="absolute inset-0 bg-brand/20 flex items-center justify-center">
         <div className="bg-emerald-500 rounded-full p-1">
-          <Check className="w-4 h-4 text-white" />
+          <Check className="w-4 h-4 text-zinc-950 dark:text-white" />
         </div>
       </div>
     )}
     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
-      <p className="text-xs text-white truncate">{image.alt}</p>
+      <p className="text-xs text-zinc-950 dark:text-white truncate">{image.alt}</p>
       {image.author && (
-        <p className="text-xs text-slate-400 truncate">by {image.author}</p>
+        <p className="text-xs text-zinc-600 dark:text-zinc-400 truncate">by {image.author}</p>
       )}
     </div>
   </button>
@@ -120,19 +120,19 @@ const GifSearch = ({ onSelect, selectedImage }) => {
       {/* Search Input */}
       <div className="flex gap-2">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && searchGifs()}
             placeholder="Search GIFs..."
-            className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+            className="w-full pl-10 pr-4 py-2 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-950 dark:text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
           />
         </div>
         <button
           onClick={searchGifs}
-          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-colors"
+          className="px-4 py-2 bg-emerald-600 hover:bg-brand-600 text-zinc-950 dark:text-white rounded-lg transition-colors"
         >
           Search
         </button>
@@ -141,7 +141,7 @@ const GifSearch = ({ onSelect, selectedImage }) => {
       {/* GIF Results */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 text-emerald-400 animate-spin" />
+          <Loader2 className="w-8 h-8 text-brand animate-spin" />
         </div>
       ) : (
         <div className="grid grid-cols-3 gap-3 max-h-[400px] overflow-y-auto">
@@ -157,10 +157,10 @@ const GifSearch = ({ onSelect, selectedImage }) => {
       )}
 
       {!loading && displayGifs.length === 0 && query && (
-        <p className="text-center text-slate-500 py-8">No GIFs found for "{query}"</p>
+        <p className="text-center text-zinc-500 py-8">No GIFs found for "{query}"</p>
       )}
 
-      <p className="text-xs text-slate-500 text-center">Powered by GIPHY</p>
+      <p className="text-xs text-zinc-500 text-center">Powered by GIPHY</p>
     </div>
   );
 };
@@ -201,19 +201,19 @@ const StockImageSearch = ({ onSelect, selectedImage }) => {
       {/* Search Input */}
       <div className="flex gap-2">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             placeholder="Search stock images..."
-            className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+            className="w-full pl-10 pr-4 py-2 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-950 dark:text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
           />
         </div>
         <button
           onClick={handleSearch}
-          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-colors"
+          className="px-4 py-2 bg-emerald-600 hover:bg-brand-600 text-zinc-950 dark:text-white rounded-lg transition-colors"
         >
           Search
         </button>
@@ -229,7 +229,7 @@ const StockImageSearch = ({ onSelect, selectedImage }) => {
                 setQuery(suggestion);
                 searchImages(suggestion, 1);
               }}
-              className="px-3 py-1 text-sm bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-full transition-colors"
+              className="px-3 py-1 text-sm bg-zinc-100 dark:bg-zinc-800 hover:bg-slate-700 text-zinc-700 dark:text-zinc-300 rounded-full transition-colors"
             >
               {suggestion}
             </button>
@@ -240,7 +240,7 @@ const StockImageSearch = ({ onSelect, selectedImage }) => {
       {/* Image Results */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 text-emerald-400 animate-spin" />
+          <Loader2 className="w-8 h-8 text-brand animate-spin" />
         </div>
       ) : (
         <>
@@ -261,19 +261,19 @@ const StockImageSearch = ({ onSelect, selectedImage }) => {
               <button
                 onClick={() => searchImages(query, page - 1)}
                 disabled={page <= 1}
-                className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <ChevronLeft className="w-4 h-4 text-white" />
+                <ChevronLeft className="w-4 h-4 text-zinc-950 dark:text-white" />
               </button>
-              <span className="text-sm text-slate-400">
+              <span className="text-sm text-zinc-600 dark:text-zinc-400">
                 Page {page} of {totalPages}
               </span>
               <button
                 onClick={() => searchImages(query, page + 1)}
                 disabled={page >= totalPages}
-                className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <ChevronRight className="w-4 h-4 text-white" />
+                <ChevronRight className="w-4 h-4 text-zinc-950 dark:text-white" />
               </button>
             </div>
           )}
@@ -281,7 +281,7 @@ const StockImageSearch = ({ onSelect, selectedImage }) => {
       )}
 
       {!loading && images.length === 0 && query && (
-        <p className="text-center text-slate-500 py-8">No images found for "{query}"</p>
+        <p className="text-center text-zinc-500 py-8">No images found for "{query}"</p>
       )}
     </div>
   );
@@ -366,20 +366,20 @@ const UploadTab = ({ onSelect, projectId }) => {
     <div className="space-y-6">
       {/* File Upload */}
       <div>
-        <h4 className="text-sm font-medium text-white mb-3">Upload from device</h4>
+        <h4 className="text-sm font-medium text-zinc-950 dark:text-white mb-3">Upload from device</h4>
         <div
           onClick={() => fileInputRef.current?.click()}
-          className="border-2 border-dashed border-slate-700 hover:border-emerald-500 rounded-xl p-8 text-center cursor-pointer transition-colors"
+          className="border-2 border-dashed border-zinc-200 dark:border-zinc-800 hover:border-emerald-500 rounded-xl p-8 text-center cursor-pointer transition-colors"
         >
           {uploading ? (
-            <Loader2 className="w-10 h-10 text-emerald-400 animate-spin mx-auto mb-3" />
+            <Loader2 className="w-10 h-10 text-brand animate-spin mx-auto mb-3" />
           ) : (
-            <Upload className="w-10 h-10 text-slate-500 mx-auto mb-3" />
+            <Upload className="w-10 h-10 text-zinc-500 mx-auto mb-3" />
           )}
-          <p className="text-white font-medium">
+          <p className="text-zinc-950 dark:text-white font-medium">
             {uploading ? 'Uploading...' : 'Click to upload'}
           </p>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-zinc-500 mt-1">
             PNG, JPG, GIF, WebP up to 10MB
           </p>
         </div>
@@ -394,22 +394,22 @@ const UploadTab = ({ onSelect, projectId }) => {
 
       {/* URL Input */}
       <div>
-        <h4 className="text-sm font-medium text-white mb-3">Or paste image URL</h4>
+        <h4 className="text-sm font-medium text-zinc-950 dark:text-white mb-3">Or paste image URL</h4>
         <div className="flex gap-2">
           <div className="relative flex-1">
-            <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+            <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
             <input
               type="url"
               value={urlInput}
               onChange={(e) => setUrlInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleUrlSubmit()}
               placeholder="https://example.com/image.png"
-              className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+              className="w-full pl-10 pr-4 py-2 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-950 dark:text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
             />
           </div>
           <button
             onClick={handleUrlSubmit}
-            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-colors"
+            className="px-4 py-2 bg-emerald-600 hover:bg-brand-600 text-zinc-950 dark:text-white rounded-lg transition-colors"
           >
             Add
           </button>
@@ -419,7 +419,7 @@ const UploadTab = ({ onSelect, projectId }) => {
       {/* Preview */}
       {uploadedImage && (
         <div>
-          <h4 className="text-sm font-medium text-white mb-3">Preview</h4>
+          <h4 className="text-sm font-medium text-zinc-950 dark:text-white mb-3">Preview</h4>
           <div className="relative rounded-lg overflow-hidden border border-emerald-500">
             <img 
               src={uploadedImage.url} 
@@ -427,7 +427,7 @@ const UploadTab = ({ onSelect, projectId }) => {
               className="w-full h-48 object-cover"
             />
             <div className="absolute top-2 right-2 bg-emerald-500 rounded-full p-1">
-              <Check className="w-4 h-4 text-white" />
+              <Check className="w-4 h-4 text-zinc-950 dark:text-white" />
             </div>
           </div>
         </div>
@@ -468,32 +468,32 @@ export const ImagePickerModal = ({ isOpen, onClose, onInsert, projectId, mode = 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden">
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-800">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-emerald-500/10 rounded-lg">
-              <Image className="w-5 h-5 text-emerald-400" />
+            <div className="p-2 bg-brand/10 rounded-lg">
+              <Image className="w-5 h-5 text-brand" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white">
+              <h2 className="text-lg font-semibold text-zinc-950 dark:text-white">
                 {mode === 'gif' ? 'Insert GIF' : 'Insert Image'}
               </h2>
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
                 Search stock images, GIFs, or upload your own
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-white/5 transition-colors"
+            className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white rounded-lg hover:bg-white/5 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 px-6 py-3 border-b border-slate-700 bg-slate-800/50">
+        <div className="flex gap-2 px-6 py-3 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800/50">
           <TabButton 
             active={activeTab === 'stock'} 
             onClick={() => setActiveTab('stock')}
@@ -540,11 +540,11 @@ export const ImagePickerModal = ({ isOpen, onClose, onInsert, projectId, mode = 
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-slate-700 bg-slate-800/50">
-          <div className="text-sm text-slate-400">
+        <div className="flex items-center justify-between px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800/50">
+          <div className="text-sm text-zinc-600 dark:text-zinc-400">
             {selectedImage ? (
               <span className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-emerald-400" />
+                <Check className="w-4 h-4 text-brand" />
                 Image selected
               </span>
             ) : (
@@ -554,14 +554,14 @@ export const ImagePickerModal = ({ isOpen, onClose, onInsert, projectId, mode = 
           <div className="flex gap-3">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-slate-400 hover:text-white transition-colors"
+              className="px-4 py-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleInsert}
               disabled={!selectedImage}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
+              className="px-4 py-2 bg-emerald-600 hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed text-zinc-950 dark:text-white font-medium rounded-lg transition-colors"
             >
               Insert Image
             </button>

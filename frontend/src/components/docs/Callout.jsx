@@ -18,7 +18,7 @@ const CALLOUT_STYLES = {
     border: 'border-slate-500/20',
     icon: Info,
     iconBg: 'bg-slate-500/10',
-    iconColor: 'text-slate-400',
+    iconColor: 'text-zinc-600 dark:text-zinc-400',
   },
   warning: {
     bg: 'bg-amber-500/5',
@@ -38,8 +38,8 @@ const CALLOUT_STYLES = {
     bg: 'bg-emerald-500/5',
     border: 'border-emerald-500/20',
     icon: Lightbulb,
-    iconBg: 'bg-emerald-500/10',
-    iconColor: 'text-emerald-400',
+    iconBg: 'bg-brand/10',
+    iconColor: 'text-brand',
   },
   error: {
     bg: 'bg-red-500/5',
@@ -59,8 +59,8 @@ const CALLOUT_STYLES = {
     bg: 'bg-emerald-500/5',
     border: 'border-emerald-500/20',
     icon: CheckCircle,
-    iconBg: 'bg-emerald-500/10',
-    iconColor: 'text-emerald-400',
+    iconBg: 'bg-brand/10',
+    iconColor: 'text-brand',
   },
 };
 
@@ -84,11 +84,11 @@ export const Callout = ({
         </div>
         <div className="flex-1 min-w-0 pt-1">
           {title && (
-            <h5 className="font-semibold text-white mb-1 text-[15px]">
+            <h5 className="font-semibold text-zinc-950 dark:text-white mb-1 text-[15px]">
               {title}
             </h5>
           )}
-          <div className="text-slate-400 text-[15px] leading-relaxed [&>p]:m-0 [&>p:not(:last-child)]:mb-2">
+          <div className="text-zinc-600 dark:text-zinc-400 text-[15px] leading-relaxed [&>p]:m-0 [&>p:not(:last-child)]:mb-2">
             {children}
           </div>
         </div>

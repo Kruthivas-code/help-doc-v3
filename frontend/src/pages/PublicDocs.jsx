@@ -1,999 +1,728 @@
 /**
- * PublicDocs - Emergent Documentation Site
- * Layout matching Mintlify/Emergent reference:
- * - Top Navigation: Logo + Section Tabs + Support + CTA
- * - Left Sidebar: Search + Pages within selected tab + Theme toggle at bottom
- * - Main Content: Breadcrumb + Title + Copy button + Content
- * - Right Sidebar: In-page TOC (anchors)
+ * PublicDocs — Emergent Documentation Site (redesign)
+ *
+ * Layout
+ *   ┌─────────────────────────────────────────────────────────────┐
+ *   │  Sticky top header — logo · search · theme · CTA           │
+ *   ├──────────┬────────────────────────────────────────┬─────────┤
+ *   │ Sidebar  │  Article (max-w-3xl)                   │  TOC    │
+ *   │ (sticky) │   eyebrow + h1 + copy                  │ (sticky)│
+ *   │          │   prose content                        │         │
+ *   │          │   prev/next                            │         │
+ *   └──────────┴────────────────────────────────────────┴─────────┘
  */
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { Helmet } from 'react-helmet-async';
-import { 
-  Search, Menu, X, ChevronRight, ChevronDown,
-  ExternalLink, FileText, Book, Copy, Check,
-  ArrowLeft, ArrowRight, Sparkles
+import {
+    Search, Menu, X, ChevronDown, ChevronRight,
+    Copy, Check, ArrowLeft, ArrowRight, Sparkles, Book,
 } from 'lucide-react';
 import { DocContent } from '@/components/docs/DocContent';
-import { getIcon } from '@/components/docs/IconPicker';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { useTheme } from '@/contexts/ThemeContext';
 import { search, initializeSearch } from '@/lib/search';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-// Theme configurations
-const THEMES = {
-  dark: {
-    bg: 'bg-[#0a0a0a]',
-    navBg: 'bg-[#0a0a0a]',
-    sidebarBg: 'bg-[#0a0a0a]',
-    text: 'text-white',
-    textMuted: 'text-slate-400',
-    textSecondary: 'text-slate-500',
-    border: 'border-white/10',
-    hover: 'hover:bg-white/5',
-    activeBg: 'bg-white/10',
-    activeText: 'text-white',
-    inputBg: 'bg-white/5 border border-white/10'
-  },
-  light: {
-    bg: 'bg-white',
-    navBg: 'bg-white',
-    sidebarBg: 'bg-slate-50',
-    text: 'text-slate-900',
-    textMuted: 'text-slate-600',
-    textSecondary: 'text-slate-500',
-    border: 'border-slate-200',
-    hover: 'hover:bg-slate-100',
-    activeBg: 'bg-slate-100',
-    activeText: 'text-slate-900',
-    inputBg: 'bg-white border border-slate-200'
-  }
-};
+/* ============================================================
+   TOP HEADER — sticky, backdrop-blur, full-width
+   ============================================================ */
+const TopHeader = ({ config, project, onSearchOpen, onMobileMenuToggle, mobileMenuOpen }) => {
+    const { isDark } = useTheme();
+    const navbar = config?.navbar || {};
+    const links = navbar.links || [{ label: 'Support', href: '#' }];
+    const primaryCta = navbar.primary || { label: 'Try Emergent', href: 'https://app.emergent.sh' };
+    const logoSrc = isDark ? (config?.logo_dark_url || config?.logo_light_url) : (config?.logo_light_url || config?.logo_dark_url);
 
-// ============= TOP NAVIGATION =============
-const TopNavigation = ({ 
-  config, 
-  project, 
-  theme,
-  darkMode,
-  mobileMenuOpen,
-  onMobileMenuToggle
-}) => {
-  const navbar = config?.navbar || {};
-  const links = navbar.links || [{ label: 'Support', href: '#' }];
-  const primaryCta = navbar.primary || { label: 'Try Emergent', href: '#' };
+    return (
+        <header className="fixed top-0 left-0 right-0 z-40 border-b border-zinc-200 dark:border-zinc-800 bg-white/85 dark:bg-zinc-950/85 backdrop-blur-md">
+            <div className="h-14 px-4 sm:px-6 lg:px-10 flex items-center gap-4">
+                {/* Mobile menu */}
+                <button
+                    type="button"
+                    onClick={onMobileMenuToggle}
+                    className="btn-press lg:hidden -ml-2 inline-flex h-9 w-9 items-center justify-center rounded-md text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                    aria-label="Toggle menu"
+                    data-testid="mobile-nav-toggle"
+                >
+                    {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                </button>
 
-  return (
-    <header className={`fixed top-0 left-0 right-0 z-50 ${theme.navBg} border-b ${theme.border}`}>
-      <div className="h-14 px-4 sm:px-6 flex items-center">
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 flex-shrink-0 mr-4 lg:mr-8" data-testid="logo-link">
-          {config?.logo_dark_url ? (
-            <img 
-              src={darkMode ? config.logo_dark_url : (config.logo_light_url || config.logo_dark_url)} 
-              alt={project?.name} 
-              className="h-6"
-            />
-          ) : (
-            <span className={`font-semibold text-lg ${theme.text}`}>
-              {config?.site_title || project?.name || 'emergent'}
-            </span>
-          )}
-        </Link>
+                <Link to="/" className="flex items-center gap-2 flex-shrink-0" data-testid="logo-link">
+                    {logoSrc ? (
+                        <img src={logoSrc} alt={project?.name || 'Logo'} className="h-6 w-auto" />
+                    ) : (
+                        <span className="font-heading text-base font-black tracking-tight text-zinc-950 dark:text-white">
+                            {config?.site_title || project?.name || 'emergent'}
+                        </span>
+                    )}
+                </Link>
 
-        {/* Right: Support Link + CTA Button + Mobile Menu */}
-        <div className="flex items-center gap-3 sm:gap-4 ml-auto">
-          {links.map((link, i) => (
-            <a
-              key={i}
-              href={link.href}
-              className={`hidden sm:block text-sm font-medium ${theme.textMuted} hover:${theme.text} transition-colors`}
-            >
-              {link.label}
-            </a>
-          ))}
-          
-          <a
-            href={primaryCta.href}
-            className="flex items-center gap-1.5 px-3 sm:px-4 py-2 bg-[#188455] hover:bg-[#157149] text-white text-sm font-medium rounded-lg transition-colors"
-            data-testid="cta-button"
-          >
-            <span className="hidden sm:inline">{primaryCta.label}</span>
-            <span className="sm:hidden">Build Now</span>
-            <ArrowRight className="w-4 h-4" />
-          </a>
+                {/* Search trigger — wide on desktop, icon on mobile */}
+                <button
+                    type="button"
+                    onClick={onSearchOpen}
+                    className="btn-press hidden md:flex flex-1 max-w-md mx-auto items-center gap-3 px-3 h-9 rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 text-sm hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors"
+                    data-testid="header-search"
+                >
+                    <Search className="h-3.5 w-3.5" />
+                    <span className="flex-1 text-left">Search documentation</span>
+                    <kbd className="px-1.5 py-0.5 text-[10px] font-mono rounded bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-500">⌘K</kbd>
+                </button>
 
-          {/* Mobile Menu Button - visible on small screens */}
-          <button
-            className={`lg:hidden p-2 rounded-lg ${theme.hover} ${theme.text} transition-colors`}
-            onClick={onMobileMenuToggle}
-            aria-label="Toggle navigation menu"
-            data-testid="mobile-nav-toggle"
-          >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
-        </div>
-      </div>
-    </header>
-  );
-};
+                <div className="ml-auto md:ml-0 flex items-center gap-2 sm:gap-3">
+                    <button
+                        type="button"
+                        onClick={onSearchOpen}
+                        className="btn-press md:hidden inline-flex h-9 w-9 items-center justify-center rounded-md text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                        aria-label="Search"
+                    >
+                        <Search className="h-4 w-4" />
+                    </button>
 
-// ============= LEFT SIDEBAR =============
-const LeftSidebar = ({ 
-  tabs,
-  documents,
-  selectedDocSlug,
-  onDocSelect,
-  theme,
-  darkMode,
-  onSearchOpen,
-  mobileOpen,
-  onMobileClose
-}) => {
-  // Track which groups are collapsed
-  const [collapsedGroups, setCollapsedGroups] = useState({});
-
-  const toggleGroup = (groupId) => {
-    setCollapsedGroups(prev => ({
-      ...prev,
-      [groupId]: !prev[groupId]
-    }));
-  };
-
-  return (
-    <>
-      {/* Mobile Overlay */}
-      {mobileOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden" 
-          onClick={onMobileClose}
-        />
-      )}
-      
-      <aside className={`
-        fixed top-14 bottom-0 left-0 z-40
-        w-72 lg:w-64 ${theme.sidebarBg} border-r ${theme.border}
-        transform transition-transform duration-300 lg:translate-x-0
-        ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-        flex flex-col
-      `}>
-        {/* Search */}
-        <div className="p-4">
-          <button
-            onClick={onSearchOpen}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 ${theme.inputBg} rounded-lg text-sm ${theme.textMuted} transition-colors`}
-            data-testid="sidebar-search"
-          >
-            <Search className="w-4 h-4" />
-            <span className="flex-1 text-left">Search...</span>
-            <kbd className={`px-1.5 py-0.5 text-xs rounded ${darkMode ? 'bg-white/10 text-slate-400' : 'bg-slate-200 text-slate-500'}`}>⌘K</kbd>
-          </button>
-        </div>
-
-        {/* All Tabs as Sections */}
-        <nav className="flex-1 overflow-y-auto px-3 pb-4">
-          {tabs.map((tab, tabIndex) => {
-            const groups = tab.groups || [];
-
-            return (
-              <div key={tab.id} className="mb-6">
-                {/* Tab/Section Title - Simple Text, No Collapse */}
-                <h2 className={`px-3 py-2 text-sm font-bold ${theme.text} tracking-wide text-left`}>
-                  {tab.label}
-                </h2>
-
-                {/* Groups within this tab/section */}
-                {groups.map((group, groupIndex) => {
-                  const groupId = `${tab.id}-${groupIndex}`;
-                  const isCollapsed = collapsedGroups[groupId];
-                  const hasPages = group.pages && group.pages.length > 0;
-
-                  return (
-                    <div key={groupIndex} className="mt-2">
-                      {/* Group Header - Collapsible if it has a name */}
-                      {group.group && (
-                        <button
-                          onClick={() => toggleGroup(groupId)}
-                          className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${theme.textMuted} hover:${theme.text}`}
-                          data-testid={`group-${groupId}`}
+                    {links.map((link, i) => (
+                        <a
+                            key={i}
+                            href={link.href}
+                            className="hidden sm:inline-block text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white transition-colors"
                         >
-                          <span className="uppercase tracking-wider">{group.group}</span>
-                          {hasPages && (
-                            <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isCollapsed ? '-rotate-90' : ''}`} />
-                          )}
-                        </button>
-                      )}
-                      
-                      {/* Group Pages */}
-                      {!isCollapsed && hasPages && (
-                        <div className="space-y-0.5 mt-1">
-                          {group.pages.map((page, pageIndex) => {
-                            const pageSlug = typeof page === 'string' ? page : page.page;
-                            // Case-insensitive document lookup
-                            const matchingDoc = documents.find(d => d.slug?.toLowerCase() === pageSlug?.toLowerCase());
-                            const pageTitle = typeof page === 'string' 
-                              ? matchingDoc?.title || page
-                              : page.title || page.page;
-                            const isActive = pageSlug?.toLowerCase() === selectedDocSlug?.toLowerCase();
-                            const isMissing = !matchingDoc;
+                            {link.label}
+                        </a>
+                    ))}
 
-                            return (
-                              <button
-                                key={pageIndex}
-                                onClick={() => !isMissing && onDocSelect(pageSlug)}
-                                disabled={isMissing}
-                                className={`
-                                  w-full flex items-center px-3 py-2 rounded-lg text-sm transition-all text-left
-                                  ${isActive 
-                                    ? 'bg-[#188455]/10 text-[#188455] border-l-2 border-[#188455] font-medium' 
-                                    : isMissing
-                                      ? 'text-slate-600 cursor-not-allowed opacity-50'
-                                      : `${theme.textMuted} ${theme.hover}`
-                                  }
-                                `}
-                                data-testid={`page-${pageSlug}`}
-                              >
-                                <span className="truncate flex-1">{pageTitle}</span>
-                                {isMissing && <span className="text-xs text-red-500 ml-2">(missing)</span>}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      )}
+                    <ThemeToggle compact />
 
-                      {/* Nested Groups */}
-                      {!isCollapsed && group.groups?.map((nestedGroup, nestedIndex) => {
-                        const nestedGroupId = `${groupId}-${nestedIndex}`;
-                        const isNestedCollapsed = collapsedGroups[nestedGroupId];
-                        const hasNestedPages = nestedGroup.pages && nestedGroup.pages.length > 0;
-
-                        return (
-                          <div key={nestedIndex} className="mt-2 ml-4">
-                            {/* Nested Group Header */}
-                            {nestedGroup.group && (
-                              <button
-                                onClick={() => toggleGroup(nestedGroupId)}
-                                className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${theme.textMuted} hover:${theme.text}`}
-                              >
-                                <span>{nestedGroup.group}</span>
-                                {hasNestedPages && (
-                                  <ChevronDown className={`w-3 h-3 transition-transform ${isNestedCollapsed ? '-rotate-90' : ''}`} />
-                                )}
-                              </button>
-                            )}
-                            
-                            {/* Nested Group Pages */}
-                            {!isNestedCollapsed && hasNestedPages && (
-                              <div className="space-y-0.5 mt-1">
-                                {nestedGroup.pages.map((page, pageIndex) => {
-                                  const pageSlug = typeof page === 'string' ? page : page.page;
-                                  const matchingDoc = documents.find(d => d.slug?.toLowerCase() === pageSlug?.toLowerCase());
-                                  const pageTitle = typeof page === 'string' 
-                                    ? matchingDoc?.title || page
-                                    : page.title || page.page;
-                                  const isActive = pageSlug?.toLowerCase() === selectedDocSlug?.toLowerCase();
-                                  const isMissing = !matchingDoc;
-
-                                  return (
-                                    <button
-                                      key={pageIndex}
-                                      onClick={() => !isMissing && onDocSelect(pageSlug)}
-                                      disabled={isMissing}
-                                      className={`
-                                        w-full flex items-center px-3 py-1.5 rounded-lg text-xs transition-all text-left
-                                        ${isActive 
-                                          ? 'bg-[#188455]/10 text-[#188455] border-l-2 border-[#188455] font-medium' 
-                                          : isMissing
-                                            ? 'text-slate-600 cursor-not-allowed opacity-50'
-                                            : `${theme.textMuted} ${theme.hover}`
-                                        }
-                                      `}
-                                    >
-                                      <span className="truncate flex-1">{pageTitle}</span>
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })}
-        </nav>
-      </aside>
-    </>
-  );
-};
-
-// ============= RIGHT SIDEBAR (TOC) =============
-const RightSidebar = ({ headings, theme }) => {
-  const [activeId, setActiveId] = useState('');
-  const [validHeadings, setValidHeadings] = useState([]);
-
-  // Filter to only headings that actually exist in the DOM
-  useEffect(() => {
-    const existingHeadings = headings.filter(heading => {
-      const el = document.getElementById(heading.id);
-      return el !== null;
-    });
-    setValidHeadings(existingHeadings);
-  }, [headings]);
-
-  useEffect(() => {
-    if (validHeadings.length === 0) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveId(entry.target.id);
-          }
-        });
-      },
-      { rootMargin: '-80px 0px -80% 0px' }
+                    <a
+                        href={primaryCta.href}
+                        className="btn-press inline-flex h-9 items-center gap-1.5 px-3 sm:px-4 rounded-md bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 text-sm font-bold hover:opacity-90"
+                        data-testid="cta-button"
+                    >
+                        <span className="hidden sm:inline">{primaryCta.label}</span>
+                        <span className="sm:hidden">Try</span>
+                        <ArrowRight className="h-3.5 w-3.5" />
+                    </a>
+                </div>
+            </div>
+        </header>
     );
-
-    validHeadings.forEach((heading) => {
-      const el = document.getElementById(heading.id);
-      if (el) observer.observe(el);
-    });
-
-    return () => observer.disconnect();
-  }, [validHeadings]);
-
-  if (validHeadings.length === 0) return null;
-
-  return (
-    <aside className="hidden xl:block fixed top-14 right-0 bottom-0 w-56 overflow-y-auto z-10 border-l border-slate-800/50">
-      <div className="p-4">
-        <h4 className={`text-xs font-semibold ${theme.text} mb-3 uppercase tracking-wider`}>
-          On this page
-        </h4>
-        <nav className="space-y-0.5">
-          {validHeadings.map((heading) => (
-            <a
-              key={heading.id}
-              href={`#${heading.id}`}
-              className={`block py-1 text-[13px] leading-snug transition-colors break-words ${
-                activeId === heading.id
-                  ? `${theme.text} font-medium`
-                  : `${theme.textMuted} hover:${theme.text}`
-              }`}
-              style={{ paddingLeft: `${(heading.level - 2) * 8}px` }}
-            >
-              {heading.text}
-            </a>
-          ))}
-        </nav>
-      </div>
-    </aside>
-  );
 };
 
-// ============= SEARCH DIALOG =============
-const SearchDialog = ({ open, onClose, documents, onSelect, theme, darkMode, config }) => {
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState({ documents: [], headings: [] });
-  const inputRef = useRef(null);
+/* ============================================================
+   LEFT SIDEBAR — sticky scroll, tab → groups → pages
+   ============================================================ */
+const SidebarLink = ({ active, missing, onClick, children, testId, depth = 0 }) => {
+    const pad = depth === 0 ? 'px-3' : 'px-3 ml-2';
+    if (missing) {
+        return (
+            <span className={`flex items-center ${pad} py-1.5 text-[13px] text-zinc-400 dark:text-zinc-600 cursor-not-allowed`}>
+                <span className="truncate flex-1">{children}</span>
+                <span className="text-[10px] text-rose-500 ml-2">missing</span>
+            </span>
+        );
+    }
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            data-testid={testId}
+            className={`btn-press w-full flex items-center ${pad} py-1.5 rounded-md text-[13px] text-left transition-colors ${
+                active
+                    ? 'bg-brand/10 text-brand font-semibold'
+                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-900'
+            }`}
+        >
+            <span className="truncate flex-1">{children}</span>
+        </button>
+    );
+};
 
-  // Get navigation config for breadcrumbs
-  const tabs = config?.navigation?.tabs || [];
+const GroupSection = ({ group, groupId, documents, activeSlug, onDocSelect, defaultOpen = true, depth = 0 }) => {
+    const [open, setOpen] = useState(defaultOpen);
+    const hasPages = group.pages?.length > 0;
+    const hasSubgroups = group.groups?.length > 0;
 
-  // Helper to find breadcrumb path for a document slug
-  const getBreadcrumb = (slug) => {
-    for (const tab of tabs) {
-      for (const group of (tab.groups || [])) {
-        const pages = group.pages || [];
-        for (const page of pages) {
-          const pageSlug = typeof page === 'string' ? page : page.page;
-          if (pageSlug?.toLowerCase() === slug?.toLowerCase()) {
-            return `${tab.label} > ${group.group}`;
-          }
+    return (
+        <div className="mt-3">
+            {group.group && (
+                <button
+                    type="button"
+                    onClick={() => setOpen(o => !o)}
+                    className="btn-press w-full flex items-center justify-between px-3 py-1.5 rounded-md text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
+                    data-testid={`group-${groupId}`}
+                >
+                    <span>{group.group}</span>
+                    {(hasPages || hasSubgroups) && (
+                        <ChevronDown className={`h-3 w-3 transition-transform ${open ? '' : '-rotate-90'}`} />
+                    )}
+                </button>
+            )}
+            {open && (
+                <div className="mt-1 space-y-0.5">
+                    {hasPages && group.pages.map((page, idx) => {
+                        const slug = typeof page === 'string' ? page : page.page;
+                        const doc = documents.find(d => d.slug?.toLowerCase() === slug?.toLowerCase());
+                        const title = typeof page === 'string' ? (doc?.title || page) : (page.title || doc?.title || page.page);
+                        const active = slug?.toLowerCase() === activeSlug?.toLowerCase();
+                        return (
+                            <SidebarLink
+                                key={`${groupId}-p-${idx}`}
+                                active={active}
+                                missing={!doc}
+                                onClick={() => onDocSelect(slug)}
+                                testId={`page-${slug}`}
+                                depth={depth}
+                            >
+                                {title}
+                            </SidebarLink>
+                        );
+                    })}
+                    {hasSubgroups && group.groups.map((sub, idx) => (
+                        <GroupSection
+                            key={`${groupId}-g-${idx}`}
+                            group={sub}
+                            groupId={`${groupId}-${idx}`}
+                            documents={documents}
+                            activeSlug={activeSlug}
+                            onDocSelect={onDocSelect}
+                            defaultOpen={defaultOpen}
+                            depth={depth + 1}
+                        />
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
+
+const LeftSidebar = ({ tabs, documents, activeSlug, onDocSelect, mobileOpen, onMobileClose }) => {
+    return (
+        <>
+            {mobileOpen && (
+                <div
+                    className="fixed inset-0 bg-zinc-950/50 backdrop-blur-sm z-30 lg:hidden"
+                    onClick={onMobileClose}
+                />
+            )}
+            <aside
+                className={`
+                    fixed top-14 bottom-0 left-0 z-40 w-72 lg:w-60
+                    bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800
+                    overflow-y-auto
+                    transform transition-transform duration-300 ease-out
+                    ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+                `}
+                data-testid="left-sidebar"
+            >
+                <nav className="px-3 py-6">
+                    {tabs.map((tab, ti) => (
+                        <div key={tab.id || ti} className="mb-6 last:mb-0">
+                            <p className="px-3 mb-1 eyebrow text-zinc-500 dark:text-zinc-500">
+                                {tab.label}
+                            </p>
+                            {(tab.groups || []).map((g, gi) => (
+                                <GroupSection
+                                    key={gi}
+                                    group={g}
+                                    groupId={`${tab.id}-${gi}`}
+                                    documents={documents}
+                                    activeSlug={activeSlug}
+                                    onDocSelect={(slug) => { onDocSelect(slug); onMobileClose(); }}
+                                />
+                            ))}
+                        </div>
+                    ))}
+                </nav>
+            </aside>
+        </>
+    );
+};
+
+/* ============================================================
+   RIGHT TOC SIDEBAR — auto-highlight active heading
+   ============================================================ */
+const RightTOC = ({ headings }) => {
+    const [activeId, setActiveId] = useState('');
+    const [valid, setValid] = useState([]);
+
+    useEffect(() => {
+        const present = headings.filter(h => document.getElementById(h.id));
+        setValid(present);
+    }, [headings]);
+
+    useEffect(() => {
+        if (valid.length === 0) return;
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) setActiveId(entry.target.id);
+                });
+            },
+            { rootMargin: '-80px 0px -80% 0px' }
+        );
+        valid.forEach(h => {
+            const el = document.getElementById(h.id);
+            if (el) observer.observe(el);
+        });
+        return () => observer.disconnect();
+    }, [valid]);
+
+    if (valid.length === 0) return null;
+
+    return (
+        <aside className="hidden xl:block fixed top-14 right-0 bottom-0 w-60 overflow-y-auto z-10 px-6 py-8">
+            <p className="eyebrow text-zinc-500 mb-4">On this page</p>
+            <nav className="space-y-1">
+                {valid.map(h => (
+                    <a
+                        key={h.id}
+                        href={`#${h.id}`}
+                        className={`block py-1 text-[12.5px] leading-snug transition-colors break-words border-l-2 -ml-3 pl-3 ${
+                            activeId === h.id
+                                ? 'border-brand text-zinc-950 dark:text-white font-medium'
+                                : 'border-transparent text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'
+                        }`}
+                        style={{ paddingLeft: `${12 + (h.level - 2) * 8}px` }}
+                    >
+                        {h.text}
+                    </a>
+                ))}
+            </nav>
+        </aside>
+    );
+};
+
+/* ============================================================
+   SEARCH DIALOG
+   ============================================================ */
+const SearchDialog = ({ open, onClose, onSelect, config }) => {
+    const [query, setQuery] = useState('');
+    const [results, setResults] = useState({ documents: [], headings: [] });
+    const inputRef = useRef(null);
+    const tabs = config?.navigation?.tabs || [];
+
+    const getBreadcrumb = (slug) => {
+        for (const tab of tabs) {
+            for (const g of (tab.groups || [])) {
+                for (const p of (g.pages || [])) {
+                    const ps = typeof p === 'string' ? p : p.page;
+                    if (ps?.toLowerCase() === slug?.toLowerCase()) return `${tab.label} › ${g.group || ''}`;
+                }
+            }
         }
-      }
-    }
-    return null;
-  };
-
-  useEffect(() => {
-    if (open) {
-      setQuery('');
-      setResults({ documents: [], headings: [] });
-      setTimeout(() => inputRef.current?.focus(), 100);
-    }
-  }, [open]);
-
-  useEffect(() => {
-    if (query.length >= 2) {
-      const searchResults = search(query);
-      setResults(searchResults);
-    } else {
-      setResults({ documents: [], headings: [] });
-    }
-  }, [query]);
-
-  useEffect(() => {
-    const handler = (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        if (!open) onClose();
-      }
-      if (e.key === 'Escape' && open) onClose();
+        return null;
     };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, [open, onClose]);
 
-  if (!open) return null;
+    useEffect(() => {
+        if (open) {
+            setQuery('');
+            setResults({ documents: [], headings: [] });
+            setTimeout(() => inputRef.current?.focus(), 50);
+        }
+    }, [open]);
 
-  const hasResults = results.documents?.length > 0 || results.headings?.length > 0;
+    useEffect(() => {
+        if (query.length >= 2) setResults(search(query));
+        else setResults({ documents: [], headings: [] });
+    }, [query]);
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[10vh]">
-      <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
-      <div className={`relative w-full max-w-2xl mx-4 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden`}>
-        {/* Search Input */}
-        <div className="flex items-center gap-3 px-4 py-4 border-b border-slate-700">
-          <Search className="w-5 h-5 text-slate-400" />
-          <input
-            ref={inputRef}
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search documentation..."
-            className="flex-1 bg-transparent text-white text-lg placeholder:text-slate-500 outline-none"
-            data-testid="search-input"
-          />
-          <kbd className="px-2 py-1 text-xs text-slate-400 bg-slate-800 rounded border border-slate-700">ESC</kbd>
+    useEffect(() => {
+        const handler = (e) => {
+            if (e.key === 'Escape' && open) onClose();
+        };
+        document.addEventListener('keydown', handler);
+        return () => document.removeEventListener('keydown', handler);
+    }, [open, onClose]);
+
+    if (!open) return null;
+    const hasResults = (results.documents?.length || 0) + (results.headings?.length || 0) > 0;
+
+    return (
+        <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[8vh] px-4">
+            <div className="fixed inset-0 bg-zinc-950/60 backdrop-blur-sm" onClick={onClose} />
+            <div className="relative w-full max-w-2xl rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-2xl">
+                <div className="flex items-center gap-3 px-4 py-3 border-b border-zinc-200 dark:border-zinc-800">
+                    <Search className="h-4 w-4 text-zinc-400" />
+                    <input
+                        ref={inputRef}
+                        type="text"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        placeholder="Search documentation..."
+                        className="flex-1 bg-transparent text-sm sm:text-base placeholder:text-zinc-400 outline-none text-zinc-950 dark:text-white"
+                        data-testid="search-input"
+                    />
+                    <kbd className="px-2 py-0.5 text-[10px] font-mono rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-500 border border-zinc-200 dark:border-zinc-700">ESC</kbd>
+                </div>
+                <div className="max-h-[60vh] overflow-auto">
+                    {hasResults ? (
+                        <div className="p-2">
+                            {results.documents?.map((r, i) => {
+                                const bc = getBreadcrumb(r.slug);
+                                return (
+                                    <button
+                                        key={`d-${i}`}
+                                        type="button"
+                                        onClick={() => { onSelect(r.slug); onClose(); }}
+                                        className="btn-press w-full text-left px-3 py-2.5 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-900 group"
+                                    >
+                                        {bc && <div className="text-[11px] text-zinc-500 mb-0.5">{bc}</div>}
+                                        <div className="text-sm font-semibold text-zinc-950 dark:text-white group-hover:text-brand">
+                                            {r.title}
+                                        </div>
+                                        {r.snippet && (
+                                            <div className="text-xs text-zinc-500 mt-0.5 line-clamp-2">
+                                                {r.snippet}
+                                            </div>
+                                        )}
+                                    </button>
+                                );
+                            })}
+                            {results.headings?.map((r, i) => {
+                                const bc = getBreadcrumb(r.slug);
+                                return (
+                                    <button
+                                        key={`h-${i}`}
+                                        type="button"
+                                        onClick={() => {
+                                            onSelect(r.slug);
+                                            onClose();
+                                            setTimeout(() => {
+                                                const el = document.getElementById(r.anchor);
+                                                if (el) el.scrollIntoView({ behavior: 'smooth' });
+                                            }, 200);
+                                        }}
+                                        className="btn-press w-full text-left px-3 py-2 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-900 group"
+                                    >
+                                        {bc && <div className="text-[11px] text-zinc-500 mb-0.5">{bc} › {r.docTitle}</div>}
+                                        <div className="flex items-center gap-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 group-hover:text-brand">
+                                            <span className="text-zinc-400">{'#'.repeat(r.level || 1)}</span>
+                                            <span>{r.text}</span>
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    ) : query.length >= 2 ? (
+                        <div className="px-4 py-12 text-center">
+                            <div className="text-sm text-zinc-600 dark:text-zinc-400">No results for "{query}"</div>
+                        </div>
+                    ) : (
+                        <div className="px-4 py-12 text-center">
+                            <div className="text-sm text-zinc-500">Type at least 2 characters to search</div>
+                        </div>
+                    )}
+                </div>
+            </div>
         </div>
-        
-        {/* Results */}
-        <div className="max-h-[60vh] overflow-auto">
-          {hasResults ? (
-            <div className="p-2">
-              {/* Document Results */}
-              {results.documents?.map((result, i) => {
-                const breadcrumb = getBreadcrumb(result.slug);
-                return (
-                  <button
-                    key={`doc-${i}`}
-                    onClick={() => { onSelect(result.slug); onClose(); }}
-                    className="w-full text-left px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors group"
-                  >
-                    {breadcrumb && (
-                      <div className="text-xs text-slate-500 mb-1">{breadcrumb}</div>
-                    )}
-                    <div className="flex items-center gap-2">
-                      <span className="text-slate-500 text-sm">#</span>
-                      <span className="font-medium text-white group-hover:text-emerald-400 transition-colors">
-                        {result.title}
-                      </span>
-                    </div>
-                    {result.snippet && (
-                      <div className="text-sm text-slate-400 mt-1 line-clamp-2 pl-5">
-                        {result.snippet}
-                      </div>
-                    )}
-                  </button>
-                );
-              })}
-
-              {/* Heading Results */}
-              {results.headings?.map((result, i) => {
-                const breadcrumb = getBreadcrumb(result.slug);
-                return (
-                  <button
-                    key={`heading-${i}`}
-                    onClick={() => { 
-                      onSelect(result.slug); 
-                      onClose();
-                      // Scroll to heading after navigation
-                      setTimeout(() => {
-                        const el = document.getElementById(result.anchor);
-                        if (el) el.scrollIntoView({ behavior: 'smooth' });
-                      }, 300);
-                    }}
-                    className="w-full text-left px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors group"
-                  >
-                    {breadcrumb && (
-                      <div className="text-xs text-slate-500 mb-1">{breadcrumb} {' > '} {result.docTitle}</div>
-                    )}
-                    <div className="flex items-center gap-2">
-                      <span className="text-slate-500 text-sm">{'#'.repeat(result.level || 1)}</span>
-                      <span className="font-medium text-white group-hover:text-emerald-400 transition-colors">
-                        {result.text}
-                      </span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          ) : query.length >= 2 ? (
-            <div className="px-4 py-12 text-center">
-              <div className="text-slate-400 mb-2">No results found for "{query}"</div>
-              <div className="text-sm text-slate-500">Try different keywords or check your spelling</div>
-            </div>
-          ) : (
-            <div className="px-4 py-12 text-center">
-              <div className="text-slate-400 mb-2">Search documentation</div>
-              <div className="text-sm text-slate-500">Type at least 2 characters to search</div>
-            </div>
-          )}
-        </div>
-
-        {/* Footer with AI option */}
-        {query.length >= 2 && (
-          <div className="border-t border-slate-700 px-4 py-3">
-            <button 
-              className="flex items-center gap-2 text-sm text-slate-400 hover:text-emerald-400 transition-colors"
-              onClick={() => {/* TODO: AI assistant */}}
-            >
-              <Sparkles className="w-4 h-4" />
-              <span>Ask AI assistant about "{query}"</span>
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+    );
 };
 
-// ============= COPY BUTTON =============
-const CopyButton = ({ text, theme }) => {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  return (
-    <button
-      onClick={handleCopy}
-      className={`flex items-center gap-2 px-3 py-1.5 ${theme.inputBg} rounded-lg text-sm ${theme.textMuted} hover:${theme.text} transition-colors`}
-      data-testid="copy-page-btn"
-    >
-      {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-      <span>{copied ? 'Copied!' : 'Copy page'}</span>
-      <ChevronDown className="w-3 h-3" />
-    </button>
-  );
+/* ============================================================
+   COPY-PAGE PILL
+   ============================================================ */
+const CopyButton = ({ text }) => {
+    const [copied, setCopied] = useState(false);
+    const handle = async () => {
+        try { await navigator.clipboard.writeText(text); } catch (e) {}
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+    return (
+        <button
+            type="button"
+            onClick={handle}
+            className="btn-press inline-flex items-center gap-2 h-9 px-3 rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 text-xs font-medium hover:border-zinc-300 dark:hover:border-zinc-700"
+            data-testid="copy-page-btn"
+        >
+            {copied ? <Check className="h-3.5 w-3.5 text-brand" /> : <Copy className="h-3.5 w-3.5" />}
+            <span>{copied ? 'Copied' : 'Copy page'}</span>
+        </button>
+    );
 };
 
-// ============= MAIN COMPONENT =============
+/* ============================================================
+   MAIN
+   ============================================================ */
 const PublicDocs = () => {
-  const { docSlug } = useParams();
-  const navigate = useNavigate();
-  
-  const [project, setProject] = useState(null);
-  const [config, setConfig] = useState(null);
-  const [documents, setDocuments] = useState([]);
-  const [selectedDoc, setSelectedDoc] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [toc, setToc] = useState([]);
-  const [activeTab, setActiveTab] = useState('');
-  const [darkMode] = useState(true); // Dark mode only - light mode disabled
-  const [isNavigating, setIsNavigating] = useState(false); // Prevent flicker during navigation
+    const { docSlug } = useParams();
+    const navigate = useNavigate();
 
-  const theme = darkMode ? THEMES.dark : THEMES.light;
+    const [project, setProject] = useState(null);
+    const [config, setConfig] = useState(null);
+    const [documents, setDocuments] = useState([]);
+    const [selectedDoc, setSelectedDoc] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [searchOpen, setSearchOpen] = useState(false);
+    const [toc, setToc] = useState([]);
+    const [isNavigating, setIsNavigating] = useState(false);
 
-  // Build tabs from config navigation - support both old and new formats
-  // If no navigation config, auto-generate from documents
-  const tabs = useMemo(() => {
-    const rawTabs = config?.navigation?.tabs || [];
-    const autoGroups = documents.length > 0 ? [{
-      group: 'Documentation',
-      pages: documents.map(d => ({ page: d.slug, title: d.title }))
-    }] : [];
-    
-    return rawTabs.length > 0 
-      ? rawTabs.map(t => ({
-          id: t.id || t.tab || t.label,
-          label: t.label || t.tab || t.id,
-          icon: t.icon,
-          groups: t.groups || []
-        }))
-      : [{ 
-          id: 'docs', 
-          label: 'Documentation', 
-          groups: config?.navigation?.groups?.length > 0 
-            ? config.navigation.groups 
-            : autoGroups 
-        }];
-  }, [config?.navigation, documents]);
+    const tabs = useMemo(() => {
+        const rawTabs = config?.navigation?.tabs || [];
+        const autoGroups = documents.length > 0 ? [{
+            group: 'Documentation',
+            pages: documents.map(d => ({ page: d.slug, title: d.title }))
+        }] : [];
+        return rawTabs.length > 0
+            ? rawTabs.map(t => ({
+                id: t.id || t.tab || t.label,
+                label: t.label || t.tab || t.id,
+                groups: t.groups || [],
+            }))
+            : [{
+                id: 'docs',
+                label: 'Documentation',
+                groups: config?.navigation?.groups?.length > 0 ? config.navigation.groups : autoGroups,
+            }];
+    }, [config?.navigation, documents]);
 
-  // Apply dark mode class
-  useEffect(() => {
-    document.documentElement.classList.add('dark');
-  }, []);
-
-  // Fetch data
-  const fetchPublicData = useCallback(async () => {
-    try {
-      const res = await axios.get(`${API}/public/default-project`, { withCredentials: false });
-      setProject(res.data.project);
-      setConfig(res.data.config);
-      setDocuments(res.data.documents);
-      
-      // Set initial active tab
-      const navTabs = res.data.config?.navigation?.tabs;
-      if (navTabs?.length > 0) {
-        setActiveTab(navTabs[0].id);
-      }
-      
-      if (res.data.documents.length > 0) {
-        initializeSearch(res.data.documents);
-      }
-    } catch (error) {
-      console.error('Failed to fetch:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchPublicData();
-  }, [fetchPublicData]);
-
-  // Apply favicon
-  useEffect(() => {
-    if (config?.favicon_url) {
-      let link = document.querySelector("link[rel~='icon']");
-      if (!link) {
-        link = document.createElement('link');
-        link.rel = 'icon';
-        document.head.appendChild(link);
-      }
-      link.href = config.favicon_url;
-    }
-  }, [config?.favicon_url]);
-
-  // Helper to get first document from navigation config
-  const getFirstNavDocument = useCallback(() => {
-    if (!tabs || tabs.length === 0) return null;
-    for (const tab of tabs) {
-      for (const group of (tab.groups || [])) {
-        for (const page of (group.pages || [])) {
-          const slug = typeof page === 'string' ? page : page.page;
-          const doc = documents.find(d => d.slug?.toLowerCase() === slug?.toLowerCase());
-          if (doc) return doc;
+    const fetchPublic = useCallback(async () => {
+        try {
+            const res = await axios.get(`${API}/public/default-project`, { withCredentials: false });
+            setProject(res.data.project);
+            setConfig(res.data.config);
+            setDocuments(res.data.documents);
+            if (res.data.documents.length > 0) initializeSearch(res.data.documents);
+        } catch (e) {
+            console.error('Failed to fetch:', e);
+        } finally {
+            setLoading(false);
         }
-      }
-    }
-    return null;
-  }, [tabs, documents]);
+    }, []);
 
-  // Select document - only on initial load or when URL changes externally
-  useEffect(() => {
-    // Skip if we're in the middle of a programmatic navigation
-    if (isNavigating) return;
-    
-    if (documents.length > 0 && !selectedDoc) {
-      // Only set initial document if none is selected
-      if (docSlug) {
-        const doc = documents.find(d => d.slug?.toLowerCase() === docSlug?.toLowerCase());
-        if (doc) {
-          setSelectedDoc(doc);
-        } else {
-          const firstNavDoc = getFirstNavDocument();
-          setSelectedDoc(firstNavDoc || documents[0]);
+    useEffect(() => { fetchPublic(); }, [fetchPublic]);
+
+    useEffect(() => {
+        if (config?.favicon_url) {
+            let link = document.querySelector("link[rel~='icon']");
+            if (!link) {
+                link = document.createElement('link');
+                link.rel = 'icon';
+                document.head.appendChild(link);
+            }
+            link.href = config.favicon_url;
         }
-      } else {
-        const firstNavDoc = getFirstNavDocument();
-        setSelectedDoc(firstNavDoc || documents[0]);
-      }
-    } else if (documents.length > 0 && docSlug && selectedDoc?.slug?.toLowerCase() !== docSlug?.toLowerCase()) {
-      // URL changed externally (browser back/forward), sync the doc
-      const doc = documents.find(d => d.slug?.toLowerCase() === docSlug?.toLowerCase());
-      if (doc) {
-        setSelectedDoc(doc);
-      }
-    }
-  }, [documents, docSlug, selectedDoc, getFirstNavDocument, isNavigating]);
+    }, [config?.favicon_url]);
 
-  // Handle tab change - navigate to first document in that tab
-  const handleTabChange = useCallback((tabId) => {
-    if (isNavigating) return;
-    
-    setActiveTab(tabId);
-    
-    // Find first document in the new tab
-    const tab = tabs.find(t => t.id === tabId);
-    if (tab?.groups) {
-      for (const group of tab.groups) {
-        if (group.pages?.length > 0) {
-          const firstPage = group.pages[0];
-          const slug = typeof firstPage === 'string' ? firstPage : firstPage.page;
-          // Case-insensitive slug matching
-          const doc = documents.find(d => d.slug?.toLowerCase() === slug?.toLowerCase());
-          if (doc && doc.id !== selectedDoc?.id) {
+    const getFirstNavDoc = useCallback(() => {
+        for (const t of tabs) {
+            for (const g of (t.groups || [])) {
+                for (const p of (g.pages || [])) {
+                    const slug = typeof p === 'string' ? p : p.page;
+                    const doc = documents.find(d => d.slug?.toLowerCase() === slug?.toLowerCase());
+                    if (doc) return doc;
+                }
+            }
+        }
+        return null;
+    }, [tabs, documents]);
+
+    useEffect(() => {
+        if (isNavigating) return;
+        if (documents.length > 0 && !selectedDoc) {
+            if (docSlug) {
+                const doc = documents.find(d => d.slug?.toLowerCase() === docSlug?.toLowerCase());
+                setSelectedDoc(doc || getFirstNavDoc() || documents[0]);
+            } else {
+                setSelectedDoc(getFirstNavDoc() || documents[0]);
+            }
+        } else if (documents.length > 0 && docSlug && selectedDoc?.slug?.toLowerCase() !== docSlug?.toLowerCase()) {
+            const doc = documents.find(d => d.slug?.toLowerCase() === docSlug?.toLowerCase());
+            if (doc) setSelectedDoc(doc);
+        }
+    }, [documents, docSlug, selectedDoc, getFirstNavDoc, isNavigating]);
+
+    const handleDocSelect = useCallback((slug) => {
+        if (isNavigating) return;
+        const doc = documents.find(d => d.slug?.toLowerCase() === slug?.toLowerCase());
+        if (doc && doc.id !== selectedDoc?.id) {
             setIsNavigating(true);
             setSelectedDoc(doc);
             requestAnimationFrame(() => {
-              navigate(`/${doc.slug}`);
-              setTimeout(() => setIsNavigating(false), 100);
+                navigate(`/${slug}`);
+                setTimeout(() => setIsNavigating(false), 100);
+                window.scrollTo({ top: 0, behavior: 'instant' });
             });
-            return;
-          }
         }
-      }
-    }
-  }, [tabs, documents, navigate, selectedDoc, isNavigating]);
+    }, [documents, navigate, selectedDoc, isNavigating]);
 
-  const handleDocSelect = useCallback((slug) => {
-    // Prevent multiple rapid navigations
-    if (isNavigating) return;
-    
-    // Case-insensitive slug matching
-    const doc = documents.find(d => d.slug?.toLowerCase() === slug?.toLowerCase());
-    if (doc && doc.id !== selectedDoc?.id) {
-      setIsNavigating(true);
-      // Set doc first, then navigate - use requestAnimationFrame for smoother transition
-      setSelectedDoc(doc);
-      requestAnimationFrame(() => {
-        navigate(`/${slug}`, { replace: false });
-        // Reset navigation lock after a short delay
-        setTimeout(() => setIsNavigating(false), 100);
-      });
-    }
-  }, [documents, navigate, selectedDoc, isNavigating]);
+    useEffect(() => {
+        const handler = (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                setSearchOpen(o => !o);
+            }
+        };
+        document.addEventListener('keydown', handler);
+        return () => document.removeEventListener('keydown', handler);
+    }, []);
 
-  // Keyboard shortcut for search
-  useEffect(() => {
-    const handler = (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        setSearchOpen(prev => !prev);
-      }
-    };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, []);
+    // Breadcrumb for current doc
+    const breadcrumb = useMemo(() => {
+        if (!selectedDoc) return null;
+        for (const t of tabs) {
+            for (const g of (t.groups || [])) {
+                const found = (g.pages || []).some(p => (typeof p === 'string' ? p : p.page)?.toLowerCase() === selectedDoc.slug?.toLowerCase());
+                if (found) return { tab: t.label, group: g.group };
+            }
+        }
+        return null;
+    }, [selectedDoc, tabs]);
 
-  // Find current tab based on selected doc
-  useEffect(() => {
-    if (selectedDoc && tabs.length > 0) {
-      for (const tab of tabs) {
-        const found = tab.groups?.some(g => 
-          g.pages?.some(p => (typeof p === 'string' ? p : p.page) === selectedDoc.slug)
+    // Prev/next
+    const currentIndex = documents.findIndex(d => d.id === selectedDoc?.id);
+    const prevDoc = currentIndex > 0 ? documents[currentIndex - 1] : null;
+    const nextDoc = currentIndex >= 0 && currentIndex < documents.length - 1 ? documents[currentIndex + 1] : null;
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-background flex items-center justify-center">
+                <div className="animate-spin w-6 h-6 border-2 border-brand border-t-transparent rounded-full" />
+            </div>
         );
-        if (found) {
-          setActiveTab(tab.id);
-          break;
-        }
-      }
     }
-  }, [selectedDoc, tabs]);
 
-  // Get breadcrumb
-  const getBreadcrumb = () => {
-    const currentTab = tabs.find(t => t.id === activeTab);
-    if (!currentTab) return null;
-    
-    for (const group of currentTab.groups || []) {
-      const page = group.pages?.find(p => 
-        (typeof p === 'string' ? p : p.page) === selectedDoc?.slug
-      );
-      if (page) {
-        return group.group;
-      }
-    }
-    return currentTab.label;
-  };
+    const siteTitle = config?.site_title || project?.name || 'Documentation';
+    const pageTitle = selectedDoc ? `${selectedDoc.title} | ${siteTitle}` : siteTitle;
+    const pageDesc = selectedDoc
+        ? selectedDoc.content?.substring(0, 160).replace(/[#*>`]/g, '').trim() || config?.site_description
+        : config?.site_description || 'Documentation and guides';
+    const pageUrl = `${window.location.origin}${selectedDoc ? `/${selectedDoc.slug}` : ''}`;
 
-  // Prev/Next navigation
-  const currentIndex = documents.findIndex(d => d.id === selectedDoc?.id);
-  const prevDoc = currentIndex > 0 ? documents[currentIndex - 1] : null;
-  const nextDoc = currentIndex < documents.length - 1 ? documents[currentIndex + 1] : null;
-
-  if (loading) {
     return (
-      <div className={`min-h-screen ${theme.bg} flex items-center justify-center`}>
-        <div className="animate-spin w-8 h-8 border-2 border-[#188455] border-t-transparent rounded-full" />
-      </div>
+        <div className="min-h-screen bg-background text-foreground">
+            <Helmet>
+                <title>{pageTitle}</title>
+                <meta name="description" content={pageDesc} />
+                <meta property="og:type" content="article" />
+                <meta property="og:url" content={pageUrl} />
+                <meta property="og:title" content={pageTitle} />
+                <meta property="og:description" content={pageDesc} />
+                <meta property="og:site_name" content={siteTitle} />
+                {config?.logo_dark_url && <meta property="og:image" content={config.logo_dark_url} />}
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content={pageTitle} />
+                <meta name="twitter:description" content={pageDesc} />
+                <link rel="canonical" href={pageUrl} />
+                {selectedDoc && (
+                    <script type="application/ld+json">{JSON.stringify({
+                        "@context": "https://schema.org",
+                        "@type": "Article",
+                        "headline": selectedDoc.title,
+                        "description": pageDesc,
+                        "url": pageUrl,
+                        "datePublished": selectedDoc.created_at,
+                        "dateModified": selectedDoc.updated_at,
+                        "publisher": { "@type": "Organization", "name": siteTitle }
+                    })}</script>
+                )}
+            </Helmet>
+
+            <TopHeader
+                config={config}
+                project={project}
+                onSearchOpen={() => setSearchOpen(true)}
+                onMobileMenuToggle={() => setMobileMenuOpen(o => !o)}
+                mobileMenuOpen={mobileMenuOpen}
+            />
+
+            <SearchDialog
+                open={searchOpen}
+                onClose={() => setSearchOpen(false)}
+                onSelect={handleDocSelect}
+                config={config}
+            />
+
+            <LeftSidebar
+                tabs={tabs}
+                documents={documents}
+                activeSlug={selectedDoc?.slug}
+                onDocSelect={handleDocSelect}
+                mobileOpen={mobileMenuOpen}
+                onMobileClose={() => setMobileMenuOpen(false)}
+            />
+
+            <main className="lg:ml-60 xl:mr-60 min-h-screen pt-14">
+                {selectedDoc ? (
+                    <article
+                        key={selectedDoc.id}
+                        className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-10 py-10 lg:py-14 fade-up"
+                    >
+                        {/* Eyebrow breadcrumb */}
+                        {breadcrumb && (
+                            <p className="eyebrow text-zinc-500 mb-3">
+                                {breadcrumb.tab}{breadcrumb.group ? ` › ${breadcrumb.group}` : ''}
+                            </p>
+                        )}
+
+                        {/* Title row */}
+                        <div className="flex items-start justify-between gap-4 mb-8">
+                            <h1 className="h-display text-3xl sm:text-4xl lg:text-5xl text-zinc-950 dark:text-white text-balance">
+                                {selectedDoc.title}
+                            </h1>
+                            <div className="flex-shrink-0 mt-1">
+                                <CopyButton text={window.location.href} />
+                            </div>
+                        </div>
+
+                        {/* Body */}
+                        <div className="doc-content">
+                            <DocContent
+                                content={selectedDoc.content?.replace(
+                                    new RegExp(`^#\\s*${selectedDoc.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\n+`, 'i'),
+                                    ''
+                                ) || selectedDoc.content}
+                                onHeadings={setToc}
+                            />
+                        </div>
+
+                        {/* Prev / Next */}
+                        {(prevDoc || nextDoc) && (
+                            <div className="flex flex-col sm:flex-row justify-between gap-3 mt-16 pt-8 border-t border-zinc-200 dark:border-zinc-800">
+                                {prevDoc ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => handleDocSelect(prevDoc.slug)}
+                                        className="btn-press card-lift flex items-center gap-3 px-4 py-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-left"
+                                        data-testid="prev-doc-btn"
+                                    >
+                                        <ArrowLeft className="h-4 w-4 text-zinc-400" />
+                                        <div>
+                                            <span className="eyebrow text-zinc-500 block mb-0.5">Previous</span>
+                                            <span className="text-sm font-semibold text-zinc-950 dark:text-white">{prevDoc.title}</span>
+                                        </div>
+                                    </button>
+                                ) : <div />}
+                                {nextDoc && (
+                                    <button
+                                        type="button"
+                                        onClick={() => handleDocSelect(nextDoc.slug)}
+                                        className="btn-press card-lift flex items-center gap-3 px-4 py-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-right"
+                                        data-testid="next-doc-btn"
+                                    >
+                                        <div>
+                                            <span className="eyebrow text-zinc-500 block mb-0.5">Next</span>
+                                            <span className="text-sm font-semibold text-zinc-950 dark:text-white">{nextDoc.title}</span>
+                                        </div>
+                                        <ArrowRight className="h-4 w-4 text-zinc-400" />
+                                    </button>
+                                )}
+                            </div>
+                        )}
+                    </article>
+                ) : (
+                    <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center">
+                        <Book className="h-10 w-10 text-zinc-300 dark:text-zinc-700 mb-3" />
+                        <p className="text-sm text-zinc-500">Select a document from the sidebar to start reading.</p>
+                    </div>
+                )}
+            </main>
+
+            <RightTOC headings={toc} />
+        </div>
     );
-  }
-
-  // Prepare SEO data
-  const pageTitle = selectedDoc 
-    ? `${selectedDoc.title} | ${config?.site_title || project?.name || 'Documentation'}`
-    : config?.site_title || project?.name || 'Documentation';
-  
-  const pageDescription = selectedDoc
-    ? selectedDoc.content?.substring(0, 160).replace(/[#*>`]/g, '').trim() || config?.site_description
-    : config?.site_description || 'Documentation and guides';
-  
-  const pageUrl = `${window.location.origin}${selectedDoc ? `/${selectedDoc.slug}` : ''}`;
-  const siteTitle = config?.site_title || project?.name || 'Documentation';
-
-  return (
-    <div className={`min-h-screen ${theme.bg} relative`}>
-      {/* SEO Meta Tags */}
-      <Helmet>
-        {/* Primary Meta Tags */}
-        <title>{pageTitle}</title>
-        <meta name="title" content={pageTitle} />
-        <meta name="description" content={pageDescription} />
-        
-        {/* Open Graph / Facebook */}
-        <meta property="og:type" content="article" />
-        <meta property="og:url" content={pageUrl} />
-        <meta property="og:title" content={pageTitle} />
-        <meta property="og:description" content={pageDescription} />
-        <meta property="og:site_name" content={siteTitle} />
-        {config?.logo_dark_url && <meta property="og:image" content={config.logo_dark_url} />}
-        
-        {/* Twitter */}
-        <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content={pageUrl} />
-        <meta property="twitter:title" content={pageTitle} />
-        <meta property="twitter:description" content={pageDescription} />
-        {config?.logo_dark_url && <meta property="twitter:image" content={config.logo_dark_url} />}
-        
-        {/* Canonical URL */}
-        <link rel="canonical" href={pageUrl} />
-        
-        {/* Structured Data for SEO */}
-        {selectedDoc && (
-          <script type="application/ld+json">
-            {JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "Article",
-              "headline": selectedDoc.title,
-              "description": pageDescription,
-              "url": pageUrl,
-              "datePublished": selectedDoc.created_at,
-              "dateModified": selectedDoc.updated_at,
-              "author": {
-                "@type": "Organization",
-                "name": siteTitle
-              },
-              "publisher": {
-                "@type": "Organization",
-                "name": siteTitle,
-                "logo": config?.logo_dark_url ? {
-                  "@type": "ImageObject",
-                  "url": config.logo_dark_url
-                } : undefined
-              }
-            })}
-          </script>
-        )}
-      </Helmet>
-      
-      {/* Grid Pattern Background - lower z-index */}
-      <div className={`fixed inset-0 pointer-events-none z-0 ${darkMode ? 'bg-grid-pattern' : 'bg-grid-pattern-light'}`} />
-      
-      {/* Gradient Glow Effect - lower z-index */}
-      <div className="fixed inset-0 pointer-events-none z-0 bg-hero-glow" />
-      
-      {/* Top Navigation */}
-      <TopNavigation
-        config={config}
-        project={project}
-        theme={theme}
-        darkMode={darkMode}
-        mobileMenuOpen={mobileMenuOpen}
-        onMobileMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)}
-      />
-
-      {/* Search Dialog */}
-      <SearchDialog
-        open={searchOpen}
-        onClose={() => setSearchOpen(false)}
-        documents={documents}
-        onSelect={handleDocSelect}
-        theme={theme}
-        darkMode={darkMode}
-        config={config}
-      />
-
-      {/* Left Sidebar */}
-      <LeftSidebar
-        tabs={tabs}
-        documents={documents}
-        selectedDocSlug={selectedDoc?.slug}
-        onDocSelect={handleDocSelect}
-        theme={theme}
-        darkMode={darkMode}
-        onSearchOpen={() => setSearchOpen(true)}
-        mobileOpen={mobileMenuOpen}
-        onMobileClose={() => setMobileMenuOpen(false)}
-      />
-
-      {/* Main Content - higher z-index than grid */}
-      <main className="lg:ml-64 xl:mr-56 min-h-screen pt-14 relative z-10">
-        {selectedDoc ? (
-          <article 
-            key={selectedDoc.id} 
-            className="max-w-none xl:max-w-3xl mx-auto px-4 sm:px-6 py-10 animate-fadeIn"
-          >
-            {/* Breadcrumb */}
-            <div className={`text-sm ${theme.textMuted} mb-4`}>
-              {getBreadcrumb()}
-            </div>
-
-            {/* Title + Copy Button */}
-            <div className="flex items-start justify-between gap-4 mb-8">
-              <h1 className={`text-3xl sm:text-4xl font-bold ${theme.text} tracking-tight`}>
-                {selectedDoc.title}
-              </h1>
-              <CopyButton text={window.location.href} theme={theme} />
-            </div>
-
-            {/* Content */}
-            <div className={`prose ${darkMode ? 'prose-invert' : 'prose-slate'} max-w-none
-              prose-headings:font-semibold prose-headings:text-inherit
-              prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4
-              prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3
-              prose-p:leading-7 prose-p:break-words
-              prose-a:text-[#188455] prose-a:no-underline hover:prose-a:underline
-              prose-code:text-[#188455] prose-code:bg-[#188455]/10 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:break-words
-              prose-pre:bg-slate-900 prose-pre:border prose-pre:border-white/10 prose-pre:rounded-xl prose-pre:overflow-x-auto
-              ${darkMode 
-                ? '' 
-                : '[&_h1]:!text-slate-900 [&_h2]:!text-slate-900 [&_h3]:!text-slate-900 [&_h4]:!text-slate-900 [&_p]:!text-slate-700 [&_li]:!text-slate-700 [&_strong]:!text-slate-900 [&_td]:!text-slate-700 [&_th]:!text-slate-900 [&_blockquote]:!text-slate-600 [&_blockquote_p]:!text-slate-600 [&_blockquote_*]:!text-slate-600'
-              }
-            `}>
-              <DocContent 
-                content={selectedDoc.content?.replace(
-                  new RegExp(`^#\\s*${selectedDoc.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\n+`, 'i'),
-                  ''
-                ) || selectedDoc.content} 
-                onHeadings={setToc} 
-              />
-            </div>
-
-            {/* Prev/Next Navigation */}
-            <div className={`flex flex-col sm:flex-row justify-between gap-4 mt-16 pt-8 border-t ${theme.border}`}>
-              {prevDoc ? (
-                <button
-                  onClick={() => handleDocSelect(prevDoc.slug)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg border ${theme.border} ${theme.hover} transition-colors`}
-                  data-testid="prev-doc-btn"
-                >
-                  <ArrowLeft className="w-4 h-4 text-slate-500" />
-                  <div className="text-left">
-                    <span className="block text-xs text-slate-500">Previous</span>
-                    <span className={`text-sm font-medium ${theme.text}`}>{prevDoc.title}</span>
-                  </div>
-                </button>
-              ) : <div />}
-              {nextDoc && (
-                <button
-                  onClick={() => handleDocSelect(nextDoc.slug)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg border ${theme.border} ${theme.hover} transition-colors`}
-                  data-testid="next-doc-btn"
-                >
-                  <div className="text-right">
-                    <span className="block text-xs text-slate-500">Next</span>
-                    <span className={`text-sm font-medium ${theme.text}`}>{nextDoc.title}</span>
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-slate-500" />
-                </button>
-              )}
-            </div>
-          </article>
-        ) : (
-          <div className="flex items-center justify-center h-[60vh]">
-            <p className={theme.textMuted}>Select a document</p>
-          </div>
-        )}
-      </main>
-
-      {/* Right Sidebar (TOC) */}
-      <RightSidebar headings={toc} theme={theme} />
-    </div>
-  );
 };
 
 export default PublicDocs;

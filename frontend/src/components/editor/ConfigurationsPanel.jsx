@@ -32,21 +32,21 @@ import { CSS } from '@dnd-kit/utilities';
 const ColorPicker = ({ label, value, onChange, description }) => {
   return (
     <div className="space-y-1.5">
-      <label className="text-sm text-slate-400">{label}</label>
-      {description && <p className="text-xs text-slate-500">{description}</p>}
+      <label className="text-sm text-zinc-600 dark:text-zinc-400">{label}</label>
+      {description && <p className="text-xs text-zinc-500">{description}</p>}
       <div className="flex items-center gap-2">
         <input
           type="color"
           value={value || '#188455'}
           onChange={(e) => onChange(e.target.value)}
-          className="w-10 h-10 rounded-lg cursor-pointer bg-transparent border border-slate-700"
+          className="w-10 h-10 rounded-lg cursor-pointer bg-transparent border border-zinc-200 dark:border-zinc-800"
         />
         <input
           type="text"
           value={value || ''}
           onChange={(e) => onChange(e.target.value)}
           placeholder="#188455"
-          className="flex-1 px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-white text-sm font-mono"
+          className="flex-1 px-3 py-2 bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-950 dark:text-white text-sm font-mono"
         />
       </div>
     </div>
@@ -68,7 +68,7 @@ const ThemeCard = ({ theme, selected, onClick, accentColor }) => {
     <button
       onClick={() => onClick(theme)}
       className={`relative p-3 rounded-xl border-2 transition-all ${
-        selected ? 'border-[#188455] bg-[#188455]/10' : 'border-slate-700/50 hover:border-slate-600'
+        selected ? 'border-[#188455] bg-[#188455]/10' : 'border-zinc-200 dark:border-zinc-800 hover:border-slate-600'
       }`}
       data-testid={`theme-${theme}`}
     >
@@ -76,10 +76,10 @@ const ThemeCard = ({ theme, selected, onClick, accentColor }) => {
         <div className="w-6 h-6 rounded-md border border-white/10" style={{ backgroundColor: t.bg }} />
         <div className="w-6 h-6 rounded-md" style={{ backgroundColor: t.accent }} />
       </div>
-      <span className="text-sm text-slate-300">{t.name}</span>
+      <span className="text-sm text-zinc-700 dark:text-zinc-300">{t.name}</span>
       {selected && (
         <div className="absolute top-2 right-2 w-5 h-5 bg-[#188455] rounded-full flex items-center justify-center">
-          <Check className="w-3 h-3 text-white" />
+          <Check className="w-3 h-3 text-zinc-950 dark:text-white" />
         </div>
       )}
     </button>
@@ -95,7 +95,7 @@ const BackgroundPatternPicker = ({ value, onChange }) => {
   
   return (
     <div className="space-y-2">
-      <label className="text-sm text-slate-400">Background Pattern</label>
+      <label className="text-sm text-zinc-600 dark:text-zinc-400">Background Pattern</label>
       <div className="flex gap-2">
         {patterns.map(pattern => (
           <button
@@ -103,8 +103,8 @@ const BackgroundPatternPicker = ({ value, onChange }) => {
             onClick={() => onChange(pattern.id)}
             className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all ${
               value === pattern.id 
-                ? 'border-[#188455] bg-[#188455]/10 text-white' 
-                : 'border-slate-700 text-slate-400 hover:border-slate-600'
+                ? 'border-[#188455] bg-[#188455]/10 text-zinc-950 dark:text-white' 
+                : 'border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-slate-600'
             }`}
           >
             <pattern.icon className="w-4 h-4" />
@@ -144,8 +144,8 @@ const ImageUploader = ({ label, value, onChange, description, projectId }) => {
   
   return (
     <div className="space-y-2">
-      <label className="text-sm text-slate-400">{label}</label>
-      {description && <p className="text-xs text-slate-500">{description}</p>}
+      <label className="text-sm text-zinc-600 dark:text-zinc-400">{label}</label>
+      {description && <p className="text-xs text-zinc-500">{description}</p>}
       
       <div className="flex items-start gap-3">
         {value ? (
@@ -153,24 +153,24 @@ const ImageUploader = ({ label, value, onChange, description, projectId }) => {
             <img 
               src={value} 
               alt={label} 
-              className="h-12 w-auto max-w-[120px] object-contain bg-slate-800 rounded-lg p-2 border border-slate-700"
+              className="h-12 w-auto max-w-[120px] object-contain bg-zinc-100 dark:bg-zinc-800 rounded-lg p-2 border border-zinc-200 dark:border-zinc-800"
             />
             <button
               onClick={() => onChange('')}
               className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
             >
-              <X className="w-3 h-3 text-white" />
+              <X className="w-3 h-3 text-zinc-950 dark:text-white" />
             </button>
           </div>
         ) : (
           <div 
             onClick={() => fileInputRef.current?.click()}
-            className="h-12 w-24 border-2 border-dashed border-slate-700 rounded-lg flex items-center justify-center cursor-pointer hover:border-slate-600 transition-colors"
+            className="h-12 w-24 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-lg flex items-center justify-center cursor-pointer hover:border-slate-600 transition-colors"
           >
             {uploading ? (
-              <Loader2 className="w-5 h-5 animate-spin text-slate-500" />
+              <Loader2 className="w-5 h-5 animate-spin text-zinc-500" />
             ) : (
-              <Upload className="w-5 h-5 text-slate-500" />
+              <Upload className="w-5 h-5 text-zinc-500" />
             )}
           </div>
         )}
@@ -180,7 +180,7 @@ const ImageUploader = ({ label, value, onChange, description, projectId }) => {
           value={value || ''}
           onChange={(e) => onChange(e.target.value)}
           placeholder="https://... or upload"
-          className="flex-1 px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-white text-sm"
+          className="flex-1 px-3 py-2 bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-950 dark:text-white text-sm"
         />
       </div>
       
@@ -258,24 +258,24 @@ const NavGroupEditor = ({ group, index, onChange, onRemove, depth = 0, onCreateD
   
   return (
     <div 
-      className={`bg-slate-800/30 rounded-lg p-3 space-y-2 ${depth > 0 ? 'ml-4 border-l-2 border-slate-700' : ''}`} 
+      className={`bg-zinc-100 dark:bg-zinc-800/30 rounded-lg p-3 space-y-2 ${depth > 0 ? 'ml-4 border-l-2 border-zinc-200 dark:border-zinc-800' : ''}`} 
       data-testid={`nav-group-${depth}-${index}`}
     >
       <div className="flex items-center gap-2">
         <button onClick={() => setExpanded(!expanded)} className="p-0.5">
-          {expanded ? <ChevronDown className="w-4 h-4 text-slate-500" /> : <ChevronRight className="w-4 h-4 text-slate-500" />}
+          {expanded ? <ChevronDown className="w-4 h-4 text-zinc-500" /> : <ChevronRight className="w-4 h-4 text-zinc-500" />}
         </button>
-        <FolderTree className={`w-4 h-4 ${depth === 0 ? 'text-[#188455]' : depth === 1 ? 'text-blue-400' : 'text-emerald-400'}`} />
+        <FolderTree className={`w-4 h-4 ${depth === 0 ? 'text-[#188455]' : depth === 1 ? 'text-blue-400' : 'text-brand'}`} />
         <input
           type="text"
           value={group.group || ''}
           onChange={(e) => updateGroup('group', e.target.value)}
           placeholder={depth === 0 ? "Section name" : "Subgroup name"}
-          className="flex-1 px-2 py-1.5 bg-slate-800 border border-slate-700 rounded text-white text-sm placeholder:text-slate-500"
+          className="flex-1 px-2 py-1.5 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded text-zinc-950 dark:text-white text-sm placeholder:text-zinc-500"
         />
         <button
           onClick={() => onRemove(index)}
-          className="p-1.5 text-slate-500 hover:text-red-400 transition-colors"
+          className="p-1.5 text-zinc-500 hover:text-red-400 transition-colors"
           title="Remove group"
         >
           <Trash2 className="w-4 h-4" />
@@ -287,7 +287,7 @@ const NavGroupEditor = ({ group, index, onChange, onRemove, depth = 0, onCreateD
           {pages.map((page, pageIndex) => {
             const PageIcon = page.icon ? getIcon(page.icon) : null;
             return (
-              <div key={`page-${pageIndex}`} className="p-2 bg-slate-800/30 rounded-lg border border-slate-700/50">
+              <div key={`page-${pageIndex}`} className="p-2 bg-zinc-100 dark:bg-zinc-800/30 rounded-lg border border-zinc-200 dark:border-zinc-800">
                 <div className="flex items-center gap-2 mb-2">
                   {/* Icon Picker for Page */}
                   <IconButton
@@ -315,7 +315,7 @@ const NavGroupEditor = ({ group, index, onChange, onRemove, depth = 0, onCreateD
                     }}
                     onBlur={() => handleTitleBlur(pageIndex)}
                     placeholder="Page Title"
-                    className="flex-1 px-3 py-2 bg-slate-900 border border-slate-700 rounded text-white text-sm placeholder:text-slate-500"
+                    className="flex-1 px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded text-zinc-950 dark:text-white text-sm placeholder:text-zinc-500"
                   />
                   {creatingDoc === pageIndex ? (
                     <div className="p-2 flex-shrink-0">
@@ -324,7 +324,7 @@ const NavGroupEditor = ({ group, index, onChange, onRemove, depth = 0, onCreateD
                   ) : (
                     <button
                       onClick={() => removePage(pageIndex)}
-                      className="p-2 text-slate-500 hover:text-red-400 flex-shrink-0 transition-colors"
+                      className="p-2 text-zinc-500 hover:text-red-400 flex-shrink-0 transition-colors"
                       title="Remove page"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -332,7 +332,7 @@ const NavGroupEditor = ({ group, index, onChange, onRemove, depth = 0, onCreateD
                   )}
                 </div>
                 <div className="flex items-center gap-2 pl-10">
-                  <span className="text-xs text-slate-500">slug:</span>
+                  <span className="text-xs text-zinc-500">slug:</span>
                   <input
                     type="text"
                     value={page.page || ''}
@@ -345,8 +345,8 @@ const NavGroupEditor = ({ group, index, onChange, onRemove, depth = 0, onCreateD
                       updatePage(pageIndex, 'page', value);
                     }}
                     placeholder="page-slug (URL path)"
-                    className={`flex-1 px-2 py-1.5 bg-slate-900/50 border rounded text-slate-400 text-xs placeholder:text-slate-600 font-mono ${
-                      page.page?.startsWith('api') ? 'border-red-500/50' : 'border-slate-700/50'
+                    className={`flex-1 px-2 py-1.5 bg-white dark:bg-zinc-900 border rounded text-zinc-600 dark:text-zinc-400 text-xs placeholder:text-zinc-400 dark:text-zinc-600 font-mono ${
+                      page.page?.startsWith('api') ? 'border-red-500/50' : 'border-zinc-200 dark:border-zinc-800'
                     }`}
                   />
                   {page.page?.startsWith('api') && (
@@ -372,7 +372,7 @@ const NavGroupEditor = ({ group, index, onChange, onRemove, depth = 0, onCreateD
           <div className="flex items-center gap-3 pt-1">
             <button
               onClick={addPage}
-              className="flex items-center gap-1.5 px-2 py-1 text-xs text-slate-400 hover:text-white transition-colors"
+              className="flex items-center gap-1.5 px-2 py-1 text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white transition-colors"
             >
               <Plus className="w-3 h-3" />
               Add Page
@@ -420,7 +420,7 @@ const SortableTabItem = ({ tab, index, activeTabIndex, setActiveTabIndex, update
       className={`flex items-center gap-2 p-2 rounded-lg border transition-colors cursor-pointer ${
         activeTabIndex === index 
           ? 'border-[#188455] bg-[#188455]/10' 
-          : 'border-slate-700 hover:border-slate-600'
+          : 'border-zinc-200 dark:border-zinc-800 hover:border-slate-600'
       } ${isDragging ? 'shadow-lg' : ''}`}
       onClick={() => setActiveTabIndex(index)}
     >
@@ -428,7 +428,7 @@ const SortableTabItem = ({ tab, index, activeTabIndex, setActiveTabIndex, update
       <button
         {...attributes}
         {...listeners}
-        className="p-1 cursor-grab active:cursor-grabbing text-slate-500 hover:text-slate-300"
+        className="p-1 cursor-grab active:cursor-grabbing text-zinc-500 hover:text-zinc-700 dark:text-zinc-300"
         onClick={(e) => e.stopPropagation()}
       >
         <GripVertical className="w-4 h-4" />
@@ -449,7 +449,7 @@ const SortableTabItem = ({ tab, index, activeTabIndex, setActiveTabIndex, update
         value={tab.label || ''}
         onChange={(e) => updateTab(index, { label: e.target.value })}
         placeholder="Tab label"
-        className="flex-1 px-2 py-1.5 bg-slate-900 border border-slate-700 rounded text-white text-sm"
+        className="flex-1 px-2 py-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded text-zinc-950 dark:text-white text-sm"
         onClick={(e) => e.stopPropagation()}
       />
       
@@ -459,7 +459,7 @@ const SortableTabItem = ({ tab, index, activeTabIndex, setActiveTabIndex, update
           e.stopPropagation();
           removeTab(index);
         }}
-        className="p-1.5 text-slate-500 hover:text-red-400 transition-colors"
+        className="p-1.5 text-zinc-500 hover:text-red-400 transition-colors"
         disabled={tabsLength <= 1}
         title="Remove tab"
       >
@@ -565,7 +565,7 @@ const NavGroupEditorWithHandle = ({ group, index, onChange, onRemove, depth = 0,
 
   return (
     <div 
-      className={`bg-slate-800/30 rounded-lg p-3 space-y-2 ${depth > 0 ? 'ml-4 border-l-2 border-slate-700' : ''} ${isDragging ? 'shadow-lg ring-2 ring-[#188455]' : ''}`} 
+      className={`bg-zinc-100 dark:bg-zinc-800/30 rounded-lg p-3 space-y-2 ${depth > 0 ? 'ml-4 border-l-2 border-zinc-200 dark:border-zinc-800' : ''} ${isDragging ? 'shadow-lg ring-2 ring-[#188455]' : ''}`} 
       data-testid={`nav-group-${depth}-${index}`}
     >
       <div className="flex items-center gap-2">
@@ -573,25 +573,25 @@ const NavGroupEditorWithHandle = ({ group, index, onChange, onRemove, depth = 0,
         {depth === 0 && dragHandleProps && (
           <button
             {...dragHandleProps}
-            className="p-1 cursor-grab active:cursor-grabbing text-slate-500 hover:text-slate-300"
+            className="p-1 cursor-grab active:cursor-grabbing text-zinc-500 hover:text-zinc-700 dark:text-zinc-300"
           >
             <GripVertical className="w-4 h-4" />
           </button>
         )}
         <button onClick={() => setExpanded(!expanded)} className="p-0.5">
-          {expanded ? <ChevronDown className="w-4 h-4 text-slate-500" /> : <ChevronRight className="w-4 h-4 text-slate-500" />}
+          {expanded ? <ChevronDown className="w-4 h-4 text-zinc-500" /> : <ChevronRight className="w-4 h-4 text-zinc-500" />}
         </button>
-        <FolderTree className={`w-4 h-4 ${depth === 0 ? 'text-[#188455]' : depth === 1 ? 'text-blue-400' : 'text-emerald-400'}`} />
+        <FolderTree className={`w-4 h-4 ${depth === 0 ? 'text-[#188455]' : depth === 1 ? 'text-blue-400' : 'text-brand'}`} />
         <input
           type="text"
           value={group.group || ''}
           onChange={(e) => updateGroup('group', e.target.value)}
           placeholder={depth === 0 ? "Section name" : "Subgroup name"}
-          className="flex-1 px-2 py-1.5 bg-slate-800 border border-slate-700 rounded text-white text-sm placeholder:text-slate-500"
+          className="flex-1 px-2 py-1.5 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded text-zinc-950 dark:text-white text-sm placeholder:text-zinc-500"
         />
         <button
           onClick={() => onRemove(index)}
-          className="p-1.5 text-slate-500 hover:text-red-400 transition-colors"
+          className="p-1.5 text-zinc-500 hover:text-red-400 transition-colors"
           title="Remove group"
         >
           <Trash2 className="w-4 h-4" />
@@ -603,7 +603,7 @@ const NavGroupEditorWithHandle = ({ group, index, onChange, onRemove, depth = 0,
           {pages.map((page, pageIndex) => {
             const PageIcon = page.icon ? getIcon(page.icon) : null;
             return (
-              <div key={`page-${pageIndex}`} className="p-2 bg-slate-800/30 rounded-lg border border-slate-700/50">
+              <div key={`page-${pageIndex}`} className="p-2 bg-zinc-100 dark:bg-zinc-800/30 rounded-lg border border-zinc-200 dark:border-zinc-800">
                 <div className="flex items-center gap-2 mb-2">
                   <IconButton
                     value={page.icon}
@@ -630,21 +630,21 @@ const NavGroupEditorWithHandle = ({ group, index, onChange, onRemove, depth = 0,
                     }}
                     onBlur={() => handleTitleBlur(pageIndex)}
                     placeholder="Page title"
-                    className="flex-1 px-2 py-1.5 bg-slate-900 border border-slate-700 rounded text-white text-sm placeholder:text-slate-500"
+                    className="flex-1 px-2 py-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded text-zinc-950 dark:text-white text-sm placeholder:text-zinc-500"
                   />
                   {creatingDoc === pageIndex && (
-                    <Loader2 className="w-4 h-4 animate-spin text-slate-500" />
+                    <Loader2 className="w-4 h-4 animate-spin text-zinc-500" />
                   )}
                   <button
                     onClick={() => removePage(pageIndex)}
-                    className="p-1.5 text-slate-500 hover:text-red-400 transition-colors"
+                    className="p-1.5 text-zinc-500 hover:text-red-400 transition-colors"
                     title="Remove page"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
                 <div className="flex items-center gap-1.5 ml-10">
-                  <span className="text-xs text-slate-500">slug:</span>
+                  <span className="text-xs text-zinc-500">slug:</span>
                   <input
                     type="text"
                     value={page.page || ''}
@@ -657,8 +657,8 @@ const NavGroupEditorWithHandle = ({ group, index, onChange, onRemove, depth = 0,
                     }}
                     onBlur={() => handleTitleBlur(pageIndex)}
                     placeholder="page-slug"
-                    className={`flex-1 px-2 py-1 bg-slate-900/50 border rounded text-slate-400 text-xs font-mono ${
-                      page.page?.startsWith('api') ? 'border-red-500/50' : 'border-slate-700/50'
+                    className={`flex-1 px-2 py-1 bg-white dark:bg-zinc-900 border rounded text-zinc-600 dark:text-zinc-400 text-xs font-mono ${
+                      page.page?.startsWith('api') ? 'border-red-500/50' : 'border-zinc-200 dark:border-zinc-800'
                     }`}
                   />
                   {page.page?.startsWith('api') && (
@@ -684,7 +684,7 @@ const NavGroupEditorWithHandle = ({ group, index, onChange, onRemove, depth = 0,
           <div className="flex items-center gap-2">
             <button
               onClick={addPage}
-              className="flex items-center gap-1.5 px-2 py-1 text-xs text-slate-400 hover:text-white transition-colors"
+              className="flex items-center gap-1.5 px-2 py-1 text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white transition-colors"
             >
               <Plus className="w-3 h-3" />
               Add Page
@@ -838,11 +838,11 @@ const NavigationEditor = ({ navigation, onChange, onCreateDocument }) => {
   return (
     <div className="space-y-4" data-testid="navigation-editor">
       {/* Mode Toggle */}
-      <div className="flex items-center gap-2 bg-slate-800/50 rounded-lg p-0.5 w-fit">
+      <div className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800/50 rounded-lg p-0.5 w-fit">
         <button
           onClick={() => handleViewModeChange('visual')}
           className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-            viewMode === 'visual' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-white'
+            viewMode === 'visual' ? 'bg-slate-700 text-zinc-950 dark:text-white' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
           }`}
           data-testid="nav-visual-mode-btn"
         >
@@ -851,7 +851,7 @@ const NavigationEditor = ({ navigation, onChange, onCreateDocument }) => {
         <button
           onClick={() => handleViewModeChange('json')}
           className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-            viewMode === 'json' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-white'
+            viewMode === 'json' ? 'bg-slate-700 text-zinc-950 dark:text-white' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
           }`}
           data-testid="nav-json-mode-btn"
         >
@@ -862,16 +862,16 @@ const NavigationEditor = ({ navigation, onChange, onCreateDocument }) => {
       {viewMode === 'visual' ? (
         <div className="space-y-4">
           {/* Top Tabs Section */}
-          <div className="bg-slate-800/20 rounded-lg p-3">
+          <div className="bg-zinc-100 dark:bg-zinc-800/20 rounded-lg p-3">
             <div className="flex items-center justify-between mb-2">
-              <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+              <label className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
                 Top Navigation Tabs
               </label>
-              <span className="text-xs text-slate-600 flex items-center gap-1">
+              <span className="text-xs text-zinc-400 dark:text-zinc-600 flex items-center gap-1">
                 <GripVertical className="w-3 h-3" /> Drag to reorder
               </span>
             </div>
-            <p className="text-xs text-slate-500 mb-3">
+            <p className="text-xs text-zinc-500 mb-3">
               Each tab shows different content in the left sidebar. Users click tabs to switch sections.
             </p>
             
@@ -914,10 +914,10 @@ const NavigationEditor = ({ navigation, onChange, onCreateDocument }) => {
           {/* Groups for Active Tab */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+              <label className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
                 "{currentTab.label}" Sidebar Content
               </label>
-              <span className="text-xs text-slate-600 flex items-center gap-1">
+              <span className="text-xs text-zinc-400 dark:text-zinc-600 flex items-center gap-1">
                 <GripVertical className="w-3 h-3" /> Drag to reorder
               </span>
             </div>
@@ -949,7 +949,7 @@ const NavigationEditor = ({ navigation, onChange, onCreateDocument }) => {
               
             <button
               onClick={addGroup}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2 mt-2 border border-dashed border-slate-700 rounded-lg text-slate-400 hover:text-white hover:border-slate-600 transition-colors"
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 mt-2 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:border-slate-600 transition-colors"
               data-testid="add-nav-group-btn"
             >
               <Plus className="w-4 h-4" />
@@ -962,14 +962,14 @@ const NavigationEditor = ({ navigation, onChange, onCreateDocument }) => {
           <textarea
             value={localJson}
             onChange={(e) => handleJsonChange(e.target.value)}
-            className={`w-full h-80 px-3 py-2 bg-slate-900 border rounded-lg text-slate-300 font-mono text-xs resize-none ${
-              jsonError ? 'border-red-500' : 'border-slate-700'
+            className={`w-full h-80 px-3 py-2 bg-white dark:bg-zinc-900 border rounded-lg text-zinc-700 dark:text-zinc-300 font-mono text-xs resize-none ${
+              jsonError ? 'border-red-500' : 'border-zinc-200 dark:border-zinc-800'
             }`}
             spellCheck="false"
             data-testid="nav-json-textarea"
           />
           {jsonError && <p className="text-xs text-red-400">{jsonError}</p>}
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-zinc-500">
             Structure: {`{ "tabs": [{ "id": "...", "label": "Tab Name", "icon": "book", "groups": [...] }] }`}
           </p>
         </div>
@@ -1006,7 +1006,7 @@ const NavbarEditor = ({ navbar, onChange }) => {
   return (
     <div className="space-y-4">
       <div>
-        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">
+        <label className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider mb-2 block">
           Header Links
         </label>
         <div className="space-y-2">
@@ -1017,23 +1017,23 @@ const NavbarEditor = ({ navbar, onChange }) => {
                 value={link.label}
                 onChange={(e) => updateLink(index, 'label', e.target.value)}
                 placeholder="Label"
-                className="flex-1 px-2 py-1.5 bg-slate-800 border border-slate-700 rounded text-white text-sm placeholder:text-slate-500"
+                className="flex-1 px-2 py-1.5 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded text-zinc-950 dark:text-white text-sm placeholder:text-zinc-500"
               />
               <input
                 type="text"
                 value={link.href}
                 onChange={(e) => updateLink(index, 'href', e.target.value)}
                 placeholder="https://..."
-                className="flex-1 px-2 py-1.5 bg-slate-800 border border-slate-700 rounded text-white text-sm placeholder:text-slate-500"
+                className="flex-1 px-2 py-1.5 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded text-zinc-950 dark:text-white text-sm placeholder:text-zinc-500"
               />
-              <button onClick={() => removeLink(index)} className="p-1.5 text-slate-500 hover:text-red-400">
+              <button onClick={() => removeLink(index)} className="p-1.5 text-zinc-500 hover:text-red-400">
                 <Trash2 className="w-4 h-4" />
               </button>
             </div>
           ))}
           <button
             onClick={addLink}
-            className="flex items-center gap-1.5 px-2 py-1 text-xs text-slate-400 hover:text-white"
+            className="flex items-center gap-1.5 px-2 py-1 text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white"
           >
             <Plus className="w-3 h-3" />
             Add Link
@@ -1042,7 +1042,7 @@ const NavbarEditor = ({ navbar, onChange }) => {
       </div>
       
       <div>
-        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 block">
+        <label className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider mb-2 block">
           Primary CTA Button
         </label>
         <div className="flex items-center gap-2">
@@ -1051,14 +1051,14 @@ const NavbarEditor = ({ navbar, onChange }) => {
             value={primary.label || ''}
             onChange={(e) => updatePrimary('label', e.target.value)}
             placeholder="Get Started"
-            className="flex-1 px-2 py-1.5 bg-slate-800 border border-slate-700 rounded text-white text-sm placeholder:text-slate-500"
+            className="flex-1 px-2 py-1.5 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded text-zinc-950 dark:text-white text-sm placeholder:text-zinc-500"
           />
           <input
             type="text"
             value={primary.href || ''}
             onChange={(e) => updatePrimary('href', e.target.value)}
             placeholder="https://..."
-            className="flex-1 px-2 py-1.5 bg-slate-800 border border-slate-700 rounded text-white text-sm placeholder:text-slate-500"
+            className="flex-1 px-2 py-1.5 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded text-zinc-950 dark:text-white text-sm placeholder:text-zinc-500"
           />
         </div>
       </div>
@@ -1069,7 +1069,7 @@ const NavbarEditor = ({ navbar, onChange }) => {
 // Toggle Switch Component
 const ToggleSwitch = ({ label, checked, onChange }) => (
   <div className="flex items-center justify-between">
-    <span className="text-sm text-slate-400">{label}</span>
+    <span className="text-sm text-zinc-600 dark:text-zinc-400">{label}</span>
     <button
       onClick={() => onChange(!checked)}
       className={`w-10 h-6 rounded-full transition-colors ${checked ? 'bg-[#188455]' : 'bg-slate-700'}`}
@@ -1259,28 +1259,28 @@ export const ConfigurationsPanel = ({ projectId, onClose }) => {
   if (loading) {
     return (
       <div className="h-full flex items-center justify-center">
-        <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+        <Loader2 className="w-6 h-6 animate-spin text-zinc-600 dark:text-zinc-400" />
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col bg-slate-900">
+    <div className="h-full flex flex-col bg-white dark:bg-zinc-900">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800">
-        <h2 className="font-semibold text-white">Site Configuration</h2>
+      <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-200 dark:border-zinc-800">
+        <h2 className="font-semibold text-zinc-950 dark:text-white">Site Configuration</h2>
         <div className="flex items-center gap-2">
           <button
             onClick={saveConfig}
             disabled={saving}
-            className="flex items-center gap-2 px-3 py-1.5 bg-[#188455] hover:bg-[#157149] disabled:opacity-50 text-white text-sm rounded-lg transition-colors"
+            className="flex items-center gap-2 px-3 py-1.5 bg-[#188455] hover:bg-[#157149] disabled:opacity-50 text-zinc-950 dark:text-white text-sm rounded-lg transition-colors"
             data-testid="save-config-btn"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
             Save
           </button>
           {onClose && (
-            <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-white">
+            <button onClick={onClose} className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white">
               <X className="w-5 h-5" />
             </button>
           )}
@@ -1290,39 +1290,39 @@ export const ConfigurationsPanel = ({ projectId, onClose }) => {
       {/* Content */}
       <div className="flex-1 overflow-auto p-4 space-y-4">
         {sections.map(section => (
-          <section key={section.id} className="border border-slate-800 rounded-xl overflow-hidden">
+          <section key={section.id} className="border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden">
             <button
               onClick={() => setActiveSection(activeSection === section.id ? '' : section.id)}
-              className="w-full flex items-center justify-between px-4 py-3 bg-slate-800/30 hover:bg-slate-800/50 transition-colors"
+              className="w-full flex items-center justify-between px-4 py-3 bg-zinc-100 dark:bg-zinc-800/30 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 transition-colors"
             >
-              <span className="flex items-center gap-3 text-white font-medium">
-                <section.icon className="w-4 h-4 text-slate-400" />
+              <span className="flex items-center gap-3 text-zinc-950 dark:text-white font-medium">
+                <section.icon className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
                 {section.label}
               </span>
-              <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${activeSection === section.id ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-4 h-4 text-zinc-600 dark:text-zinc-400 transition-transform ${activeSection === section.id ? 'rotate-180' : ''}`} />
             </button>
             
             {activeSection === section.id && (
-              <div className="p-4 space-y-4 border-t border-slate-800">
+              <div className="p-4 space-y-4 border-t border-zinc-200 dark:border-zinc-800">
                 {section.id === 'details' && (
                   <>
                     <div>
-                      <label className="text-sm text-slate-400 mb-1 block">Site Title</label>
+                      <label className="text-sm text-zinc-600 dark:text-zinc-400 mb-1 block">Site Title</label>
                       <input
                         type="text"
                         value={config.site_title || ''}
                         onChange={(e) => updateConfig('site_title', e.target.value)}
-                        className="w-full px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-white text-sm"
+                        className="w-full px-3 py-2 bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-950 dark:text-white text-sm"
                         placeholder="Emergent Docs"
                         data-testid="site-title-input"
                       />
                     </div>
                     <div>
-                      <label className="text-sm text-slate-400 mb-1 block">Description</label>
+                      <label className="text-sm text-zinc-600 dark:text-zinc-400 mb-1 block">Description</label>
                       <textarea
                         value={config.site_description || ''}
                         onChange={(e) => updateConfig('site_description', e.target.value)}
-                        className="w-full px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-white text-sm resize-none"
+                        className="w-full px-3 py-2 bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-950 dark:text-white text-sm resize-none"
                         rows={3}
                         placeholder="Documentation for your platform"
                       />
@@ -1354,12 +1354,12 @@ export const ConfigurationsPanel = ({ projectId, onClose }) => {
                       projectId={projectId}
                     />
                     <div>
-                      <label className="text-sm text-slate-400 mb-1 block">Logo Link</label>
+                      <label className="text-sm text-zinc-600 dark:text-zinc-400 mb-1 block">Logo Link</label>
                       <input
                         type="text"
                         value={config.logo_link || '/'}
                         onChange={(e) => updateConfig('logo_link', e.target.value)}
-                        className="w-full px-3 py-2 bg-slate-800/50 border border-slate-700/50 rounded-lg text-white text-sm"
+                        className="w-full px-3 py-2 bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-950 dark:text-white text-sm"
                         placeholder="/"
                       />
                     </div>
@@ -1369,7 +1369,7 @@ export const ConfigurationsPanel = ({ projectId, onClose }) => {
                 {section.id === 'theme' && (
                   <>
                     <div>
-                      <label className="text-sm text-slate-400 mb-2 block">Theme Preset</label>
+                      <label className="text-sm text-zinc-600 dark:text-zinc-400 mb-2 block">Theme Preset</label>
                       <div className="grid grid-cols-2 gap-2">
                         {['default', 'mint', 'dark', 'light'].map(theme => (
                           <ThemeCard
@@ -1424,21 +1424,21 @@ export const ConfigurationsPanel = ({ projectId, onClose }) => {
 
                 {section.id === 'navigation' && (
                   <>
-                    <p className="text-xs text-slate-500 mb-3">
+                    <p className="text-xs text-zinc-500 mb-3">
                       Define the sidebar navigation structure. Supports up to 3 levels of nesting. Adding a page title will automatically create a blank document.
                     </p>
                     
                     {/* Sync All Pages Button */}
-                    <div className="mb-4 p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
+                    <div className="mb-4 p-3 bg-zinc-100 dark:bg-zinc-800/50 rounded-lg border border-zinc-200 dark:border-zinc-800">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm text-slate-300 font-medium">Sync Missing Pages</p>
-                          <p className="text-xs text-slate-500">Create blank documents for all pages in navigation that don't exist yet</p>
+                          <p className="text-sm text-zinc-700 dark:text-zinc-300 font-medium">Sync Missing Pages</p>
+                          <p className="text-xs text-zinc-500">Create blank documents for all pages in navigation that don't exist yet</p>
                         </div>
                         <button
                           onClick={syncAllPages}
                           disabled={syncing}
-                          className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs rounded-lg transition-colors"
+                          className="flex items-center gap-2 px-3 py-1.5 bg-brand hover:bg-brand disabled:opacity-50 text-zinc-950 dark:text-white text-xs rounded-lg transition-colors"
                           data-testid="sync-pages-btn"
                         >
                           {syncing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
@@ -1446,7 +1446,7 @@ export const ConfigurationsPanel = ({ projectId, onClose }) => {
                         </button>
                       </div>
                       {syncResult && (
-                        <div className={`mt-2 text-xs ${syncResult.error ? 'text-red-400' : 'text-emerald-400'}`}>
+                        <div className={`mt-2 text-xs ${syncResult.error ? 'text-red-400' : 'text-brand'}`}>
                           {syncResult.error 
                             ? syncResult.error 
                             : `✓ Created ${syncResult.created} new pages (${syncResult.skipped} already existed)`

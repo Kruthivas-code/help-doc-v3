@@ -41,7 +41,7 @@ const Tab = ({ tab, active, onClick }) => {
         href={tab.href}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-400 hover:text-white transition-colors"
+        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white transition-colors"
       >
         {tab.icon && <Icon className="w-4 h-4" />}
         <span>{tab.tab}</span>
@@ -55,8 +55,8 @@ const Tab = ({ tab, active, onClick }) => {
       onClick={onClick}
       className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
         active 
-          ? 'text-white border-indigo-500' 
-          : 'text-slate-400 hover:text-white border-transparent'
+          ? 'text-zinc-950 dark:text-white border-brand' 
+          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white border-transparent'
       }`}
     >
       {tab.icon && <Icon className="w-4 h-4" />}
@@ -83,7 +83,7 @@ const Anchor = ({ anchor, active, onClick, children }) => {
         href={anchor.href}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-400 hover:text-white transition-colors"
+        className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white transition-colors"
       >
         {anchor.icon && <Icon className="w-4 h-4" />}
         <span>{anchor.anchor}</span>
@@ -97,7 +97,7 @@ const Anchor = ({ anchor, active, onClick, children }) => {
       <button
         onClick={() => setExpanded(!expanded)}
         className={`w-full flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-lg ${
-          active ? 'text-white bg-slate-800/50' : 'text-slate-300 hover:text-white hover:bg-slate-800/30'
+          active ? 'text-zinc-950 dark:text-white bg-zinc-100 dark:bg-zinc-800/50' : 'text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800/30'
         }`}
       >
         {anchor.icon && <Icon className="w-4 h-4" />}
@@ -105,7 +105,7 @@ const Anchor = ({ anchor, active, onClick, children }) => {
         <ChevronDown className={`w-4 h-4 transition-transform ${expanded ? 'rotate-180' : ''}`} />
       </button>
       {expanded && (
-        <div className="mt-1 ml-2 pl-4 border-l border-slate-800">
+        <div className="mt-1 ml-2 pl-4 border-l border-zinc-200 dark:border-zinc-800">
           {children}
         </div>
       )}
@@ -123,7 +123,7 @@ const Group = ({ group, children }) => {
     <div className="mb-4">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wider hover:text-slate-300"
+        className="w-full flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-zinc-500 uppercase tracking-wider hover:text-zinc-700 dark:text-zinc-300"
       >
         <span className="flex-1 text-left">{group.group}</span>
         <ChevronRight className={`w-3 h-3 transition-transform ${expanded ? 'rotate-90' : ''}`} />
@@ -152,8 +152,8 @@ const PageLink = ({ page, basePath, selectedSlug, onClick }) => {
       onClick={() => onClick(slug)}
       className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg transition-colors ${
         isSelected 
-          ? 'bg-indigo-600/10 text-indigo-400' 
-          : 'text-slate-400 hover:text-white hover:bg-slate-800/30'
+          ? 'bg-brand/10 text-brand' 
+          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800/30'
       }`}
     >
       <Icon className="w-4 h-4 flex-shrink-0" />
@@ -172,14 +172,14 @@ const Dropdown = ({ dropdown, children }) => {
     <div className="mb-2">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/30 rounded-lg transition-colors"
+        className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800/30 rounded-lg transition-colors"
       >
         {expanded ? <FolderOpen className="w-4 h-4" /> : <Folder className="w-4 h-4" />}
         <span className="flex-1 text-left">{dropdown.dropdown}</span>
         <ChevronDown className={`w-4 h-4 transition-transform ${expanded ? 'rotate-180' : ''}`} />
       </button>
       {expanded && (
-        <div className="mt-1 ml-2 pl-4 border-l border-slate-800">
+        <div className="mt-1 ml-2 pl-4 border-l border-zinc-200 dark:border-zinc-800">
           {children}
         </div>
       )}
@@ -281,7 +281,7 @@ export const MintlifyNav = ({
     <nav className={`mintlify-nav ${className}`}>
       {/* Tabs (Top Bar) */}
       {navigation.tabs && navigation.tabs.length > 0 && (
-        <div className="flex items-center border-b border-slate-800 px-2 overflow-x-auto">
+        <div className="flex items-center border-b border-zinc-200 dark:border-zinc-800 px-2 overflow-x-auto">
           {navigation.tabs.map((tab, i) => (
             <Tab 
               key={i} 
@@ -319,14 +319,14 @@ export const MintlifyNav = ({
 
       {/* Global Anchors (always visible) */}
       {navigation.global?.anchors && (
-        <div className="mt-auto pt-4 px-3 border-t border-slate-800">
+        <div className="mt-auto pt-4 px-3 border-t border-zinc-200 dark:border-zinc-800">
           {navigation.global.anchors.map((anchor, i) => (
             <a
               key={i}
               href={anchor.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 px-3 py-2 text-sm text-slate-400 hover:text-white rounded-lg hover:bg-slate-800/30 transition-colors"
+              className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800/30 transition-colors"
             >
               <ExternalLink className="w-4 h-4" />
               <span>{anchor.anchor}</span>

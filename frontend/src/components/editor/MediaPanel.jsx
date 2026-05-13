@@ -12,9 +12,9 @@ import axios from 'axios';
 
 const FileIcon = ({ type }) => {
   switch (type) {
-    case 'image': return <Image className="w-4 h-4 text-emerald-400" />;
+    case 'image': return <Image className="w-4 h-4 text-brand" />;
     case 'video': return <Film className="w-4 h-4 text-purple-400" />;
-    default: return <FileText className="w-4 h-4 text-slate-400" />;
+    default: return <FileText className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />;
   }
 };
 
@@ -124,19 +124,19 @@ export const MediaPanel = ({ projectId, onClose }) => {
   return (
     <div className="h-full flex flex-col" data-testid="media-panel">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-slate-800/50 flex items-center justify-between">
-        <h3 className="font-semibold text-white">Images and Media</h3>
+      <div className="px-4 py-3 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+        <h3 className="font-semibold text-zinc-950 dark:text-white">Images and Media</h3>
         <div className="flex items-center gap-2">
           <button
             onClick={fetchAssets}
-            className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800"
+            className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800"
           >
             <RefreshCw className="w-4 h-4" />
           </button>
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
-            className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-sm font-medium rounded-lg flex items-center gap-2"
+            className="px-3 py-1.5 bg-brand hover:bg-brand disabled:opacity-50 text-zinc-950 dark:text-white text-sm font-medium rounded-lg flex items-center gap-2"
           >
             {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
             Add
@@ -154,8 +154,8 @@ export const MediaPanel = ({ projectId, onClose }) => {
 
       <div className="flex-1 flex overflow-hidden">
         {/* Folder List */}
-        <div className="w-48 border-r border-slate-800/50 overflow-auto p-2">
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-2 py-1 mb-2">
+        <div className="w-48 border-r border-zinc-200 dark:border-zinc-800 overflow-auto p-2">
+          <div className="text-xs font-semibold text-zinc-500 uppercase tracking-wider px-2 py-1 mb-2">
             Assets
           </div>
           {folders.map((folder) => (
@@ -164,8 +164,8 @@ export const MediaPanel = ({ projectId, onClose }) => {
               onClick={() => setSelectedFolder(folder.path)}
               className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left transition-colors ${
                 selectedFolder === folder.path
-                  ? 'bg-indigo-600/10 text-indigo-400'
-                  : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                  ? 'bg-brand/10 text-brand'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
               }`}
             >
               {selectedFolder === folder.path ? (
@@ -174,11 +174,11 @@ export const MediaPanel = ({ projectId, onClose }) => {
                 <Folder className="w-4 h-4" />
               )}
               <span className="text-sm flex-1 truncate">{folder.name}</span>
-              <span className="text-xs text-slate-500">{folder.count}</span>
+              <span className="text-xs text-zinc-500">{folder.count}</span>
             </button>
           ))}
           
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-2 py-1 mt-4 mb-2">
+          <div className="text-xs font-semibold text-zinc-500 uppercase tracking-wider px-2 py-1 mt-4 mb-2">
             Other Folders
           </div>
         </div>
@@ -188,15 +188,15 @@ export const MediaPanel = ({ projectId, onClose }) => {
           <div className="flex-1 overflow-auto p-2">
             {loading ? (
               <div className="flex items-center justify-center h-32">
-                <Loader2 className="w-6 h-6 text-slate-400 animate-spin" />
+                <Loader2 className="w-6 h-6 text-zinc-600 dark:text-zinc-400 animate-spin" />
               </div>
             ) : assets.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-32 text-center">
-                <Image className="w-8 h-8 text-slate-600 mb-2" />
-                <p className="text-slate-500 text-sm">No files in this folder</p>
+                <Image className="w-8 h-8 text-zinc-400 dark:text-zinc-600 mb-2" />
+                <p className="text-zinc-500 text-sm">No files in this folder</p>
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="mt-2 text-indigo-400 hover:text-indigo-300 text-sm"
+                  className="mt-2 text-brand hover:text-brand-600 text-sm"
                 >
                   Upload files
                 </button>
@@ -209,28 +209,28 @@ export const MediaPanel = ({ projectId, onClose }) => {
                     onClick={() => setSelectedAsset(asset)}
                     className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
                       selectedAsset?.id === asset.id
-                        ? 'bg-indigo-600/10 border border-indigo-500/30'
-                        : 'hover:bg-slate-800 border border-transparent'
+                        ? 'bg-brand/10 border border-brand/30'
+                        : 'hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-transparent'
                     }`}
                   >
                     {asset.file_type === 'image' && asset.url ? (
                       <img 
                         src={asset.url} 
                         alt={asset.name}
-                        className="w-10 h-10 rounded object-cover bg-slate-800"
+                        className="w-10 h-10 rounded object-cover bg-zinc-100 dark:bg-zinc-800"
                       />
                     ) : (
-                      <div className="w-10 h-10 rounded bg-slate-800 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
                         <FileIcon type={asset.file_type} />
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-white truncate">{asset.name}</p>
-                      <p className="text-xs text-slate-500">{formatSize(asset.size)}</p>
+                      <p className="text-sm text-zinc-950 dark:text-white truncate">{asset.name}</p>
+                      <p className="text-xs text-zinc-500">{formatSize(asset.size)}</p>
                     </div>
                     <button
                       onClick={(e) => { e.stopPropagation(); deleteAsset(asset); }}
-                      className="p-1.5 text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 hover:bg-slate-800 rounded"
+                      className="p-1.5 text-zinc-500 hover:text-red-400 opacity-0 group-hover:opacity-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -243,10 +243,10 @@ export const MediaPanel = ({ projectId, onClose }) => {
 
         {/* Preview Panel */}
         {selectedAsset && (
-          <div className="w-64 border-l border-slate-800/50 p-4 overflow-auto">
+          <div className="w-64 border-l border-zinc-200 dark:border-zinc-800 p-4 overflow-auto">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Preview</span>
-              <button onClick={() => setSelectedAsset(null)} className="text-slate-500 hover:text-white">
+              <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Preview</span>
+              <button onClick={() => setSelectedAsset(null)} className="text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -255,37 +255,37 @@ export const MediaPanel = ({ projectId, onClose }) => {
               <img 
                 src={selectedAsset.url} 
                 alt={selectedAsset.name}
-                className="w-full rounded-lg bg-slate-800 mb-4"
+                className="w-full rounded-lg bg-zinc-100 dark:bg-zinc-800 mb-4"
               />
             )}
             
             <div className="space-y-3">
               <div>
-                <span className="text-xs text-slate-500">Name</span>
-                <p className="text-sm text-white truncate">{selectedAsset.name}</p>
+                <span className="text-xs text-zinc-500">Name</span>
+                <p className="text-sm text-zinc-950 dark:text-white truncate">{selectedAsset.name}</p>
               </div>
               <div>
-                <span className="text-xs text-slate-500">Size</span>
-                <p className="text-sm text-white">{formatSize(selectedAsset.size)}</p>
+                <span className="text-xs text-zinc-500">Size</span>
+                <p className="text-sm text-zinc-950 dark:text-white">{formatSize(selectedAsset.size)}</p>
               </div>
               <div>
-                <span className="text-xs text-slate-500">Type</span>
-                <p className="text-sm text-white">{selectedAsset.mime_type}</p>
+                <span className="text-xs text-zinc-500">Type</span>
+                <p className="text-sm text-zinc-950 dark:text-white">{selectedAsset.mime_type}</p>
               </div>
               <div>
-                <span className="text-xs text-slate-500">URL</span>
+                <span className="text-xs text-zinc-500">URL</span>
                 <div className="flex items-center gap-2 mt-1">
                   <input
                     type="text"
                     value={selectedAsset.url}
                     readOnly
-                    className="flex-1 px-2 py-1.5 bg-slate-800/50 border border-slate-700/50 rounded text-xs text-slate-400 truncate"
+                    className="flex-1 px-2 py-1.5 bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 rounded text-xs text-zinc-600 dark:text-zinc-400 truncate"
                   />
                   <button
                     onClick={() => copyUrl(selectedAsset.url)}
-                    className="p-1.5 bg-slate-800 hover:bg-slate-700 rounded"
+                    className="p-1.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-slate-700 rounded"
                   >
-                    {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4 text-slate-400" />}
+                    {copied ? <Check className="w-4 h-4 text-brand" /> : <Copy className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />}
                   </button>
                 </div>
               </div>

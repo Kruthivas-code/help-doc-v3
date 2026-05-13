@@ -76,24 +76,24 @@ const Generator = () => {
     return fib`;
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col" data-testid="generator-page">
+    <div className="min-h-screen bg-background flex flex-col" data-testid="generator-page">
       {/* Header */}
-      <header className="h-14 border-b border-slate-800/50 flex items-center justify-between px-4 bg-slate-950 sticky top-0 z-50">
+      <header className="h-14 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between px-4 bg-background sticky top-0 z-50">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate("/admin/dashboard")}
-            className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+            className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white transition-colors"
             data-testid="back-to-dashboard"
           >
             <ArrowLeft className="w-4 h-4" />
             <span className="hidden sm:inline">Dashboard</span>
           </button>
           
-          <div className="h-5 w-px bg-slate-800" />
+          <div className="h-5 w-px bg-zinc-100 dark:bg-zinc-800" />
           
           <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-indigo-500" />
-            <span className="text-white font-medium">AI Generator</span>
+            <Sparkles className="w-4 h-4 text-brand" />
+            <span className="text-zinc-950 dark:text-white font-medium">AI Generator</span>
           </div>
         </div>
       </header>
@@ -101,18 +101,18 @@ const Generator = () => {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Input Panel */}
-        <div className="w-1/2 border-r border-slate-800/50 flex flex-col">
-          <div className="p-6 border-b border-slate-800/50">
-            <h2 className="text-lg font-semibold text-white mb-4">Code Input</h2>
+        <div className="w-1/2 border-r border-zinc-200 dark:border-zinc-800 flex flex-col">
+          <div className="p-6 border-b border-zinc-200 dark:border-zinc-800">
+            <h2 className="text-lg font-semibold text-zinc-950 dark:text-white mb-4">Code Input</h2>
             
             {/* Options */}
             <div className="flex gap-4 mb-4">
               <div className="flex-1">
-                <label className="block text-xs text-slate-500 mb-2">Language</label>
+                <label className="block text-xs text-zinc-500 mb-2">Language</label>
                 <select
                   value={language}
                   onChange={(e) => setLanguage(e.target.value)}
-                  className="w-full h-9 px-3 bg-slate-900 border border-slate-800 rounded-lg text-sm text-white focus:outline-none focus:border-slate-700"
+                  className="w-full h-9 px-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-950 dark:text-white focus:outline-none focus:border-zinc-200 dark:border-zinc-800"
                   data-testid="language-select"
                 >
                   {languages.map((l) => (
@@ -121,11 +121,11 @@ const Generator = () => {
                 </select>
               </div>
               <div className="flex-1">
-                <label className="block text-xs text-slate-500 mb-2">Doc Type</label>
+                <label className="block text-xs text-zinc-500 mb-2">Doc Type</label>
                 <select
                   value={docType}
                   onChange={(e) => setDocType(e.target.value)}
-                  className="w-full h-9 px-3 bg-slate-900 border border-slate-800 rounded-lg text-sm text-white focus:outline-none focus:border-slate-700"
+                  className="w-full h-9 px-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-sm text-zinc-950 dark:text-white focus:outline-none focus:border-zinc-200 dark:border-zinc-800"
                   data-testid="doctype-select"
                 >
                   {docTypes.map((t) => (
@@ -145,8 +145,8 @@ const Generator = () => {
                     onClick={() => setDocType(t.value)}
                     className={`h-8 px-3 rounded-lg text-sm flex items-center gap-2 transition-colors ${
                       docType === t.value
-                        ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30'
-                        : 'bg-slate-900 text-slate-400 border border-slate-800 hover:border-slate-700'
+                        ? 'bg-brand/20 text-brand border border-brand/30'
+                        : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-200 dark:border-zinc-800'
                     }`}
                     data-testid={`doctype-pill-${t.value}`}
                   >
@@ -160,11 +160,11 @@ const Generator = () => {
 
           {/* Code Input */}
           <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="flex items-center justify-between px-6 py-3 border-b border-slate-800/50">
-              <span className="text-xs text-slate-500">Paste your code</span>
+            <div className="flex items-center justify-between px-6 py-3 border-b border-zinc-200 dark:border-zinc-800">
+              <span className="text-xs text-zinc-500">Paste your code</span>
               <button
                 onClick={() => setCode(exampleCode)}
-                className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+                className="text-xs text-brand hover:text-brand-600 transition-colors"
                 data-testid="load-example"
               >
                 Load example
@@ -174,17 +174,17 @@ const Generator = () => {
               value={code}
               onChange={(e) => setCode(e.target.value)}
               placeholder="Paste your code here..."
-              className="flex-1 w-full px-6 py-4 bg-transparent text-slate-300 placeholder:text-slate-600 font-mono text-sm leading-relaxed resize-none focus:outline-none"
+              className="flex-1 w-full px-6 py-4 bg-transparent text-zinc-700 dark:text-zinc-300 placeholder:text-zinc-400 dark:text-zinc-600 font-mono text-sm leading-relaxed resize-none focus:outline-none"
               data-testid="code-input"
             />
           </div>
 
           {/* Generate Button */}
-          <div className="p-4 border-t border-slate-800/50">
+          <div className="p-4 border-t border-zinc-200 dark:border-zinc-800">
             <button
               onClick={handleGenerate}
               disabled={generating || !code.trim()}
-              className="w-full h-11 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:hover:bg-indigo-600 text-white rounded-lg font-medium flex items-center justify-center gap-2 transition-colors"
+              className="w-full h-11 bg-brand hover:bg-brand disabled:opacity-50 disabled:hover:bg-brand text-zinc-950 dark:text-white rounded-lg font-medium flex items-center justify-center gap-2 transition-colors"
               data-testid="generate-button"
             >
               {generating ? (
@@ -204,12 +204,12 @@ const Generator = () => {
 
         {/* Output Panel */}
         <div className="w-1/2 flex flex-col">
-          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800/50">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-800">
             <div className="flex items-center gap-4">
               <button
                 onClick={() => setShowPreview(true)}
                 className={`text-sm font-medium transition-colors ${
-                  showPreview ? 'text-white' : 'text-slate-500 hover:text-white'
+                  showPreview ? 'text-zinc-950 dark:text-white' : 'text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
                 }`}
                 data-testid="preview-tab"
               >
@@ -218,7 +218,7 @@ const Generator = () => {
               <button
                 onClick={() => setShowPreview(false)}
                 className={`text-sm font-medium transition-colors ${
-                  !showPreview ? 'text-white' : 'text-slate-500 hover:text-white'
+                  !showPreview ? 'text-zinc-950 dark:text-white' : 'text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
                 }`}
                 data-testid="markdown-tab"
               >
@@ -229,12 +229,12 @@ const Generator = () => {
             {result && (
               <button
                 onClick={handleCopy}
-                className="h-8 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-sm flex items-center gap-2 transition-colors"
+                className="h-8 px-3 bg-zinc-100 dark:bg-zinc-800 hover:bg-slate-700 text-zinc-700 dark:text-zinc-300 rounded-lg text-sm flex items-center gap-2 transition-colors"
                 data-testid="copy-button"
               >
                 {copied ? (
                   <>
-                    <Check className="w-3.5 h-3.5 text-emerald-500" />
+                    <Check className="w-3.5 h-3.5 text-brand" />
                     Copied
                   </>
                 ) : (
@@ -258,17 +258,17 @@ const Generator = () => {
                   </article>
                 </div>
               ) : (
-                <pre className="p-6 text-sm text-slate-300 font-mono whitespace-pre-wrap" data-testid="generated-markdown">
+                <pre className="p-6 text-sm text-zinc-700 dark:text-zinc-300 font-mono whitespace-pre-wrap" data-testid="generated-markdown">
                   {result}
                 </pre>
               )
             ) : (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center">
-                  <div className="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <Sparkles className="w-6 h-6 text-slate-600" />
+                  <div className="w-12 h-12 bg-zinc-100 dark:bg-zinc-800 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <Sparkles className="w-6 h-6 text-zinc-400 dark:text-zinc-600" />
                   </div>
-                  <p className="text-slate-500 text-sm">
+                  <p className="text-zinc-500 text-sm">
                     Generated documentation will appear here
                   </p>
                 </div>
