@@ -10,7 +10,6 @@ from typing import List, Optional
 import uuid
 from datetime import datetime, timezone, timedelta
 import httpx
-import base64
 from storage_service import (
     init_storage as init_object_storage,
     put_object as storage_put_object,
@@ -30,10 +29,6 @@ db = client[os.environ.get('DB_NAME', 'test_database')]
 # LLM Key
 EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY', '')
 
-# GitHub OAuth config
-GITHUB_CLIENT_ID = os.environ.get('GITHUB_CLIENT_ID', '')
-GITHUB_CLIENT_SECRET = os.environ.get('GITHUB_CLIENT_SECRET', '')
-GITHUB_CALLBACK_URL = os.environ.get('GITHUB_CALLBACK_URL', '')
 
 # Create the main app without a prefix
 app = FastAPI(title="DocuMint - AI Documentation Platform")
@@ -175,6 +170,7 @@ class Document(BaseModel):
     order: int = 0
     parent_id: Optional[str] = None
     icon: Optional[str] = None
+    description: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -185,6 +181,7 @@ class DocumentCreate(BaseModel):
     order: int = 0
     parent_id: Optional[str] = None
     icon: Optional[str] = None
+    description: Optional[str] = None
 
 class DocumentUpdate(BaseModel):
     title: Optional[str] = None
@@ -193,6 +190,7 @@ class DocumentUpdate(BaseModel):
     order: Optional[int] = None
     parent_id: Optional[str] = None
     icon: Optional[str] = None
+    description: Optional[str] = None
 
 class Generation(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -228,63 +226,6 @@ class CreateVersionRequest(BaseModel):
 class RestoreVersionRequest(BaseModel):
     version_id: str
 
-# ==================== GITHUB INTEGRATION MODELS ====================
-
-class GitHubAccount(BaseModel):
-    """User's connected GitHub account"""
-    model_config = ConfigDict(extra="ignore")
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    user_id: str
-    github_id: int
-    github_username: str
-    avatar_url: Optional[str] = None
-    access_token: str  # Encrypted in production
-    scopes: List[str] = []
-    connected_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-
-class GitHubRepo(BaseModel):
-    id: int
-    name: str
-    full_name: str
-    description: Optional[str] = None
-    private: bool
-    html_url: str
-    default_branch: str
-
-class GitHubRepoLink(BaseModel):
-    """Link between a project and a GitHub repo"""
-    model_config = ConfigDict(extra="ignore")
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    project_id: str
-    user_id: str
-    repo_owner: str
-    repo_name: str
-    repo_full_name: str
-    branch: str = "main"
-    docs_path: str = "docs"  # Path in repo where docs are stored
-    auto_sync: bool = False
-    last_synced: Optional[datetime] = None
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-
-class LinkRepoRequest(BaseModel):
-    repo_owner: str
-    repo_name: str
-    branch: str = "main"
-    docs_path: str = "docs"
-    auto_sync: bool = False
-
-class ImportFromGitHubRequest(BaseModel):
-    repo_owner: str
-    repo_name: str
-    branch: str = "main"
-    path: str = ""  # Path to import from
-
-class ExportToGitHubRequest(BaseModel):
-    repo_owner: str
-    repo_name: str
-    branch: str = "main"
-    path: str = "docs"  # Path to export to
-    commit_message: str = "Update documentation"
 
 # ==================== AUTH HELPERS ====================
 
@@ -1162,477 +1103,6 @@ async def delete_document_version(
     
     return {"message": "Version deleted"}
 
-# ==================== GITHUB INTEGRATION ROUTES ====================
-
-@api_router.get("/github/auth")
-async def github_auth_url(request: Request, user: User = Depends(get_current_user)):
-    """Get GitHub OAuth authorization URL"""
-    if not GITHUB_CLIENT_ID:
-        raise HTTPException(status_code=500, detail="GitHub integration not configured")
-    
-    # Generate state for CSRF protection
-    state = f"{user.user_id}_{uuid.uuid4().hex[:8]}"
-    
-    # Store state temporarily
-    await db.github_states.insert_one({
-        "state": state,
-        "user_id": user.user_id,
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "expires_at": (datetime.now(timezone.utc) + timedelta(minutes=10)).isoformat()
-    })
-    
-    # Build authorization URL
-    auth_url = (
-        f"https://github.com/login/oauth/authorize"
-        f"?client_id={GITHUB_CLIENT_ID}"
-        f"&redirect_uri={GITHUB_CALLBACK_URL}"
-        f"&scope=repo,read:user"
-        f"&state={state}"
-    )
-    
-    return {"auth_url": auth_url, "state": state}
-
-@api_router.get("/github/callback")
-async def github_callback(code: str, state: str):
-    """Handle GitHub OAuth callback"""
-    if not GITHUB_CLIENT_ID or not GITHUB_CLIENT_SECRET:
-        raise HTTPException(status_code=500, detail="GitHub integration not configured")
-    
-    # Verify state
-    state_doc = await db.github_states.find_one({"state": state})
-    if not state_doc:
-        raise HTTPException(status_code=400, detail="Invalid state parameter")
-    
-    # Check expiry
-    expires_at = datetime.fromisoformat(state_doc["expires_at"])
-    if expires_at < datetime.now(timezone.utc):
-        raise HTTPException(status_code=400, detail="State expired")
-    
-    user_id = state_doc["user_id"]
-    
-    # Delete used state
-    await db.github_states.delete_one({"state": state})
-    
-    # Exchange code for access token
-    async with httpx.AsyncClient() as client:
-        token_response = await client.post(
-            "https://github.com/login/oauth/access_token",
-            data={
-                "client_id": GITHUB_CLIENT_ID,
-                "client_secret": GITHUB_CLIENT_SECRET,
-                "code": code
-            },
-            headers={"Accept": "application/json"}
-        )
-        
-        if token_response.status_code != 200:
-            raise HTTPException(status_code=400, detail="Failed to exchange code for token")
-        
-        token_data = token_response.json()
-        access_token = token_data.get("access_token")
-        
-        if not access_token:
-            error = token_data.get("error_description", "Unknown error")
-            raise HTTPException(status_code=400, detail=f"GitHub OAuth error: {error}")
-        
-        # Get user info from GitHub
-        user_response = await client.get(
-            "https://api.github.com/user",
-            headers={
-                "Authorization": f"Bearer {access_token}",
-                "Accept": "application/vnd.github.v3+json"
-            }
-        )
-        
-        if user_response.status_code != 200:
-            raise HTTPException(status_code=400, detail="Failed to get GitHub user info")
-        
-        github_user = user_response.json()
-    
-    # Store or update GitHub account link
-    github_account = {
-        "user_id": user_id,
-        "github_id": github_user["id"],
-        "github_username": github_user["login"],
-        "avatar_url": github_user.get("avatar_url"),
-        "access_token": access_token,  # In production, encrypt this
-        "scopes": token_data.get("scope", "").split(","),
-        "connected_at": datetime.now(timezone.utc).isoformat()
-    }
-    
-    await db.github_accounts.update_one(
-        {"user_id": user_id},
-        {"$set": github_account},
-        upsert=True
-    )
-    
-    # Return HTML that closes the popup and notifies parent
-    return Response(
-        content=f"""
-        <html>
-        <head><title>GitHub Connected</title></head>
-        <body>
-            <script>
-                window.opener.postMessage({{ type: 'github-connected', username: '{github_user["login"]}' }}, '*');
-                window.close();
-            </script>
-            <p>GitHub connected! You can close this window.</p>
-        </body>
-        </html>
-        """,
-        media_type="text/html"
-    )
-
-@api_router.get("/github/status")
-async def github_status(user: User = Depends(get_current_user)):
-    """Check if user has GitHub connected"""
-    account = await db.github_accounts.find_one(
-        {"user_id": user.user_id},
-        {"_id": 0, "access_token": 0}  # Don't expose token
-    )
-    
-    if not account:
-        return {"connected": False}
-    
-    return {
-        "connected": True,
-        "github_username": account.get("github_username"),
-        "avatar_url": account.get("avatar_url"),
-        "connected_at": account.get("connected_at")
-    }
-
-@api_router.delete("/github/disconnect")
-async def github_disconnect(user: User = Depends(get_current_user)):
-    """Disconnect GitHub account"""
-    await db.github_accounts.delete_one({"user_id": user.user_id})
-    await db.github_repo_links.delete_many({"user_id": user.user_id})
-    return {"message": "GitHub disconnected"}
-
-@api_router.get("/github/repos")
-async def list_github_repos(
-    page: int = 1,
-    per_page: int = 30,
-    user: User = Depends(get_current_user)
-):
-    """List user's GitHub repositories"""
-    account = await db.github_accounts.find_one({"user_id": user.user_id})
-    if not account:
-        raise HTTPException(status_code=400, detail="GitHub not connected")
-    
-    access_token = account["access_token"]
-    
-    async with httpx.AsyncClient() as client:
-        response = await client.get(
-            "https://api.github.com/user/repos",
-            headers={
-                "Authorization": f"Bearer {access_token}",
-                "Accept": "application/vnd.github.v3+json"
-            },
-            params={
-                "page": page,
-                "per_page": per_page,
-                "sort": "updated",
-                "direction": "desc"
-            }
-        )
-        
-        if response.status_code == 401:
-            raise HTTPException(status_code=401, detail="GitHub token expired. Please reconnect.")
-        
-        if response.status_code != 200:
-            raise HTTPException(status_code=response.status_code, detail="Failed to fetch repositories")
-        
-        repos = response.json()
-        
-        # Filter to relevant fields
-        return {
-            "repositories": [
-                {
-                    "id": r["id"],
-                    "name": r["name"],
-                    "full_name": r["full_name"],
-                    "description": r.get("description"),
-                    "private": r["private"],
-                    "html_url": r["html_url"],
-                    "default_branch": r["default_branch"]
-                }
-                for r in repos
-            ],
-            "page": page,
-            "per_page": per_page
-        }
-
-@api_router.get("/github/repos/{owner}/{repo}/contents")
-async def list_repo_contents(
-    owner: str,
-    repo: str,
-    path: str = "",
-    branch: str = "main",
-    user: User = Depends(get_current_user)
-):
-    """List contents of a GitHub repository path"""
-    account = await db.github_accounts.find_one({"user_id": user.user_id})
-    if not account:
-        raise HTTPException(status_code=400, detail="GitHub not connected")
-    
-    access_token = account["access_token"]
-    
-    async with httpx.AsyncClient() as client:
-        url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
-        response = await client.get(
-            url,
-            headers={
-                "Authorization": f"Bearer {access_token}",
-                "Accept": "application/vnd.github.v3+json"
-            },
-            params={"ref": branch}
-        )
-        
-        if response.status_code == 404:
-            raise HTTPException(status_code=404, detail="Path not found")
-        
-        if response.status_code != 200:
-            raise HTTPException(status_code=response.status_code, detail="Failed to fetch contents")
-        
-        return response.json()
-
-@api_router.post("/projects/{project_id}/github/import")
-async def import_from_github(
-    project_id: str,
-    data: ImportFromGitHubRequest,
-    user: User = Depends(get_current_user)
-):
-    """Import markdown files from a GitHub repository into a project"""
-    project = await db.projects.find_one({"id": project_id, "user_id": user.user_id})
-    if not project:
-        raise HTTPException(status_code=404, detail="Project not found")
-    
-    account = await db.github_accounts.find_one({"user_id": user.user_id})
-    if not account:
-        raise HTTPException(status_code=400, detail="GitHub not connected")
-    
-    access_token = account["access_token"]
-    imported_docs = []
-    
-    async with httpx.AsyncClient() as client:
-        # Get contents of the path
-        url = f"https://api.github.com/repos/{data.repo_owner}/{data.repo_name}/contents/{data.path}"
-        response = await client.get(
-            url,
-            headers={
-                "Authorization": f"Bearer {access_token}",
-                "Accept": "application/vnd.github.v3+json"
-            },
-            params={"ref": data.branch}
-        )
-        
-        if response.status_code != 200:
-            raise HTTPException(status_code=response.status_code, detail="Failed to fetch repository contents")
-        
-        contents = response.json()
-        if not isinstance(contents, list):
-            contents = [contents]
-        
-        # Filter for markdown files
-        md_files = [f for f in contents if f["type"] == "file" and f["name"].endswith((".md", ".mdx"))]
-        
-        for order, file_info in enumerate(md_files):
-            # Fetch file content
-            file_response = await client.get(
-                file_info["url"],
-                headers={
-                    "Authorization": f"Bearer {access_token}",
-                    "Accept": "application/vnd.github.v3+json"
-                }
-            )
-            
-            if file_response.status_code == 200:
-                file_data = file_response.json()
-                content = base64.b64decode(file_data["content"]).decode("utf-8")
-                
-                # Create document
-                filename = file_info["name"]
-                title = filename.replace(".md", "").replace(".mdx", "").replace("-", " ").replace("_", " ").title()
-                slug = filename.replace(".md", "").replace(".mdx", "").lower().replace(" ", "-")
-                
-                # Check if document with this slug already exists
-                existing = await db.documents.find_one({
-                    "project_id": project_id,
-                    "slug": slug
-                })
-                
-                if existing:
-                    # Update existing
-                    await db.documents.update_one(
-                        {"id": existing["id"]},
-                        {
-                            "$set": {
-                                "content": content,
-                                "updated_at": datetime.now(timezone.utc).isoformat()
-                            }
-                        }
-                    )
-                    imported_docs.append({"slug": slug, "action": "updated"})
-                else:
-                    # Create new
-                    doc = Document(
-                        project_id=project_id,
-                        title=title,
-                        slug=slug,
-                        content=content,
-                        order=order
-                    )
-                    doc_dict = doc.model_dump()
-                    doc_dict["created_at"] = doc_dict["created_at"].isoformat()
-                    doc_dict["updated_at"] = doc_dict["updated_at"].isoformat()
-                    await db.documents.insert_one(doc_dict)
-                    imported_docs.append({"slug": slug, "action": "created"})
-    
-    return {
-        "message": f"Imported {len(imported_docs)} documents",
-        "documents": imported_docs
-    }
-
-@api_router.post("/projects/{project_id}/github/export")
-async def export_to_github(
-    project_id: str,
-    data: ExportToGitHubRequest,
-    user: User = Depends(get_current_user)
-):
-    """Export project documents to a GitHub repository"""
-    project = await db.projects.find_one({"id": project_id, "user_id": user.user_id})
-    if not project:
-        raise HTTPException(status_code=404, detail="Project not found")
-    
-    account = await db.github_accounts.find_one({"user_id": user.user_id})
-    if not account:
-        raise HTTPException(status_code=400, detail="GitHub not connected")
-    
-    access_token = account["access_token"]
-    
-    # Get all documents
-    documents = await db.documents.find(
-        {"project_id": project_id},
-        {"_id": 0}
-    ).sort("order", 1).to_list(500)
-    
-    exported_files = []
-    
-    async with httpx.AsyncClient() as client:
-        for doc in documents:
-            file_path = f"{data.path}/{doc['slug']}.md"
-            content_b64 = base64.b64encode(doc["content"].encode()).decode()
-            
-            # Check if file exists to get SHA for update
-            existing_response = await client.get(
-                f"https://api.github.com/repos/{data.repo_owner}/{data.repo_name}/contents/{file_path}",
-                headers={
-                    "Authorization": f"Bearer {access_token}",
-                    "Accept": "application/vnd.github.v3+json"
-                },
-                params={"ref": data.branch}
-            )
-            
-            payload = {
-                "message": f"{data.commit_message}: {doc['title']}",
-                "content": content_b64,
-                "branch": data.branch
-            }
-            
-            if existing_response.status_code == 200:
-                payload["sha"] = existing_response.json()["sha"]
-            
-            # Create or update file
-            put_response = await client.put(
-                f"https://api.github.com/repos/{data.repo_owner}/{data.repo_name}/contents/{file_path}",
-                headers={
-                    "Authorization": f"Bearer {access_token}",
-                    "Accept": "application/vnd.github.v3+json"
-                },
-                json=payload
-            )
-            
-            if put_response.status_code in [200, 201]:
-                action = "updated" if existing_response.status_code == 200 else "created"
-                exported_files.append({"file": file_path, "action": action})
-            else:
-                logger.error(f"Failed to export {file_path}: {put_response.text}")
-                exported_files.append({"file": file_path, "action": "failed", "error": put_response.text})
-    
-    return {
-        "message": f"Exported {len([f for f in exported_files if f['action'] != 'failed'])} documents",
-        "files": exported_files
-    }
-
-@api_router.post("/projects/{project_id}/github/link")
-async def link_github_repo(
-    project_id: str,
-    data: LinkRepoRequest,
-    user: User = Depends(get_current_user)
-):
-    """Link a project to a GitHub repository for syncing"""
-    project = await db.projects.find_one({"id": project_id, "user_id": user.user_id})
-    if not project:
-        raise HTTPException(status_code=404, detail="Project not found")
-    
-    account = await db.github_accounts.find_one({"user_id": user.user_id})
-    if not account:
-        raise HTTPException(status_code=400, detail="GitHub not connected")
-    
-    link = GitHubRepoLink(
-        project_id=project_id,
-        user_id=user.user_id,
-        repo_owner=data.repo_owner,
-        repo_name=data.repo_name,
-        repo_full_name=f"{data.repo_owner}/{data.repo_name}",
-        branch=data.branch,
-        docs_path=data.docs_path,
-        auto_sync=data.auto_sync
-    )
-    
-    link_dict = link.model_dump()
-    link_dict["created_at"] = link_dict["created_at"].isoformat()
-    
-    await db.github_repo_links.update_one(
-        {"project_id": project_id},
-        {"$set": link_dict},
-        upsert=True
-    )
-    
-    return {"message": "Repository linked", "link": link}
-
-@api_router.get("/projects/{project_id}/github/link")
-async def get_github_link(
-    project_id: str,
-    user: User = Depends(get_current_user)
-):
-    """Get the GitHub repo link for a project"""
-    project = await db.projects.find_one({"id": project_id, "user_id": user.user_id})
-    if not project:
-        raise HTTPException(status_code=404, detail="Project not found")
-    
-    link = await db.github_repo_links.find_one(
-        {"project_id": project_id},
-        {"_id": 0}
-    )
-    
-    if not link:
-        return {"linked": False}
-    
-    return {"linked": True, "link": link}
-
-@api_router.delete("/projects/{project_id}/github/link")
-async def unlink_github_repo(
-    project_id: str,
-    user: User = Depends(get_current_user)
-):
-    """Unlink a project from GitHub repository"""
-    project = await db.projects.find_one({"id": project_id, "user_id": user.user_id})
-    if not project:
-        raise HTTPException(status_code=404, detail="Project not found")
-    
-    await db.github_repo_links.delete_one({"project_id": project_id})
-    return {"message": "Repository unlinked"}
 
 # ==================== HEALTH CHECK ====================
 
@@ -1965,6 +1435,75 @@ Now produce the polished Markdown document."""
     except Exception as e:
         logger.error(f"Markdown generation error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Generation failed: {str(e)}")
+
+
+# ==================== WRITING ASSISTANT (Claude Sonnet via Universal Key) ====================
+
+class AssistantTweakRequest(BaseModel):
+    instruction: str
+    markdown: str
+    selection: Optional[str] = None  # if set, the user wants only this slice rewritten
+
+@api_router.post("/assistant/tweak")
+async def assistant_tweak(data: AssistantTweakRequest, user: User = Depends(get_current_user)):
+    """Apply an instruction to an existing piece of markdown.
+
+    If `selection` is set, only that slice is rewritten — the response should
+    be substituted for the selection in the source. Otherwise the entire
+    `markdown` is treated as the target.
+    """
+    from emergentintegrations.llm.chat import LlmChat, UserMessage
+
+    instruction = (data.instruction or "").strip()
+    source = (data.selection or data.markdown or "").strip()
+    if not instruction:
+        raise HTTPException(status_code=400, detail="instruction is required")
+    if not source:
+        raise HTTPException(status_code=400, detail="markdown is required")
+    if len(source) > 40000:
+        raise HTTPException(status_code=400, detail="markdown too large (max 40k chars)")
+
+    system_message = (
+        "You are a writing assistant inside a documentation editor. The user is editing a Markdown "
+        "documentation page and has asked you to apply an instruction to a piece of their content.\n\n"
+        "STRICT RULES:\n"
+        "1. Output ONLY the rewritten Markdown — no preface, no explanation, no surrounding code fence.\n"
+        "2. Preserve the original structure (headings level, lists, callouts) unless the instruction "
+        "explicitly asks to change it.\n"
+        "3. Keep all factual content the user provided. Do not invent new facts.\n"
+        "4. Keep custom components intact: <Callout>, <Steps>, <CardGroup>, <Tabs>, <Accordion>, "
+        "<YouTube>, <Loom>, <Video>, <Figure>.\n"
+        "5. Use fenced code blocks with language tags. Use `inline code` for identifiers / commands.\n"
+        "6. Match the existing voice and tone unless the instruction asks otherwise."
+    )
+
+    user_prompt = (
+        f"INSTRUCTION:\n{instruction}\n\n"
+        f"CONTENT TO REWRITE:\n\"\"\"\n{source}\n\"\"\"\n\n"
+        "Now output the rewritten Markdown."
+    )
+
+    try:
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"assist_tweak_{uuid.uuid4().hex[:8]}",
+            system_message=system_message,
+        ).with_model("anthropic", "claude-sonnet-4-5-20250929")
+
+        response = await chat.send_message(UserMessage(text=user_prompt))
+        out = (response or "").strip()
+        # Strip accidental ```markdown wrapping
+        if out.startswith("```"):
+            lines = out.split("\n")
+            if lines[0].startswith("```"):
+                lines = lines[1:]
+            if lines and lines[-1].strip() == "```":
+                lines = lines[:-1]
+            out = "\n".join(lines).strip()
+        return {"markdown": out, "applied_to_selection": bool(data.selection)}
+    except Exception as e:
+        logger.error(f"Assistant tweak error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Assistant failed: {str(e)}")
 
 
 # ==================== IMAGE SEARCH ====================

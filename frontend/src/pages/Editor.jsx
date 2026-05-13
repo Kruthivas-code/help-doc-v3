@@ -5,9 +5,9 @@ import axios from "axios";
 import { 
   ChevronLeft, ChevronDown, ChevronRight, Save, Eye, Code2, 
   Loader2, FileText, FolderOpen, Plus, Settings, Image as ImageIcon, 
-  Check, Monitor, Sun, Moon, Search, MoreHorizontal,
+  Check, Monitor, Sun, Moon, MoreHorizontal,
   Share2, Upload, Trash2, GripVertical, X, Edit3, Smartphone, Tablet,
-  Github, History, Pencil
+  History, Pencil
 } from "lucide-react";
 import { DocContent } from "@/components/docs/DocContent";
 import { SlashCommandMenu, useSlashCommands } from "@/components/docs/SlashCommands";
@@ -21,13 +21,12 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { ConfigurationsPanel } from "@/components/editor/ConfigurationsPanel";
-import { MediaPanel } from "@/components/editor/MediaPanel";
 import { UnifiedEditor } from "@/components/editor/UnifiedEditor";
-import { GitHubPanel } from "@/components/editor/GitHubPanel";
 import { VersionHistoryPanel } from "@/components/editor/VersionHistoryPanel";
+import { EditorNavTree } from "@/components/editor/EditorNavTree";
 import { LiveEditor } from "@/components/editor/LiveEditor";
 import { TipTapWYSIWYG } from "@/components/editor/TipTapWYSIWYG";
-import { MintlifyAIHelper } from "@/components/editor/MintlifyAIHelper";
+import { WritingAssistant, WritingAssistantTrigger } from "@/components/editor/WritingAssistant";
 import { ImagePickerModal } from "@/components/editor/ImagePickerModal";
 import { AnchorsMenu } from "@/components/editor/AnchorsMenu";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -174,6 +173,7 @@ const Editor = () => {
   const [imagePickerMode, setImagePickerMode] = useState('image'); // 'image' | 'gif'
   const [colorPickerCursor, setColorPickerCursor] = useState(null);
   const colorInputRef = useRef(null);
+  const [assistantOpen, setAssistantOpen] = useState(false);
   
   // Project & docs state
   const [project, setProject] = useState(null);
@@ -469,6 +469,64 @@ const Editor = () => {
     slashCommands.handleChange(newValue, cursorPos);
   };
 
+  // Save reordered navigation config to backend
+  const handleSaveNavConfig = useCallback(async (newConfig) => {
+    setNavConfig(newConfig); // optimistic
+    try {
+      await axios.put(`${API}/projects/${projectId}/config`, { navigation: newConfig });
+    } catch (err) {
+      console.error('Failed to save nav config:', err);
+      // Re-fetch to revert on failure
+      await fetchProjectData();
+    }
+  }, [projectId, fetchProjectData]);
+
+  // Save document metadata edits (from PageMetaDialog)
+  const handleSaveDocMetadata = useCallback(async (id, updates) => {
+    try {
+      const res = await axios.put(`${API}/projects/${projectId}/documents/${id}`, updates);
+      setDocuments((prev) => prev.map((d) => (d.id === id ? res.data : d)));
+      // If slug changed, mirror that change into the nav config so the page stays linked
+      if (updates.slug && navConfig?.tabs) {
+        const oldSlug = documents.find((d) => d.id === id)?.slug;
+        if (oldSlug && oldSlug !== updates.slug) {
+          const remapTabs = (tabs) => tabs.map((t) => ({
+            ...t,
+            groups: (t.groups || []).map((g) => ({
+              ...g,
+              pages: (g.pages || []).map((p) => {
+                if (typeof p === 'string') return p === oldSlug ? updates.slug : p;
+                return p.page === oldSlug ? { ...p, page: updates.slug } : p;
+              }),
+            })),
+          }));
+          await handleSaveNavConfig({ ...navConfig, tabs: remapTabs(navConfig.tabs) });
+        }
+      }
+      // If we're editing the current document, sync local title/slug
+      if (id === docId) {
+        if (updates.title) setTitle(updates.title);
+        if (updates.slug) setSlug(updates.slug);
+        if (updates.icon !== undefined) setIcon(updates.icon);
+      }
+    } catch (err) {
+      console.error('Failed to save document metadata:', err);
+      alert('Failed to save metadata');
+    }
+  }, [projectId, navConfig, documents, docId, handleSaveNavConfig]);
+
+  // Delete from PageMetaDialog (different signature than the sidebar trash button)
+  const handleDeleteFromDialog = useCallback(async (id) => {
+    try {
+      await axios.delete(`${API}/projects/${projectId}/documents/${id}`);
+      setDocuments((prev) => prev.filter((d) => d.id !== id));
+      if (id === docId) navigate(`/admin/docs/${projectId}`);
+    } catch (err) {
+      console.error('Failed to delete document:', err);
+      alert('Failed to delete document');
+    }
+  }, [projectId, docId, navigate]);
+
   const IconComponent = icon ? getIcon(icon) : null;
 
   if (loading) {
@@ -498,111 +556,21 @@ const Editor = () => {
         <div className="flex-1 overflow-hidden flex flex-col">
           <div className="px-4 py-3 flex items-center justify-between">
             <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Navigation</span>
-            <div className="flex items-center gap-1">
-              <button className="p-1 text-zinc-500 hover:text-zinc-950 dark:hover:text-white rounded-md">
-                <Search className="w-3.5 h-3.5" />
-              </button>
-            </div>
           </div>
           
           <ScrollArea className="flex-1 px-2 pr-3">
             <nav className="space-y-1 pb-4">
-              {/* Render navigation hierarchy if config exists */}
-              {navConfig?.tabs ? (
-                // Tab-based navigation
-                navConfig.tabs.map((tab, tabIndex) => (
-                  <div key={tab.id || tabIndex} className="mb-3">
-                    {/* Tab Header */}
-                    <button
-                      onClick={() => setExpandedSections(prev => ({
-                        ...prev,
-                        [`tab-${tabIndex}`]: !prev[`tab-${tabIndex}`]
-                      }))}
-                      className="w-full flex items-center gap-2 px-2 py-1.5 text-xs font-semibold text-brand uppercase tracking-wider hover:text-brand-600"
-                    >
-                      {expandedSections[`tab-${tabIndex}`] !== false ? (
-                        <ChevronDown className="w-3 h-3" />
-                      ) : (
-                        <ChevronRight className="w-3 h-3" />
-                      )}
-                      <span className="px-1.5 py-0.5 bg-brand/10 rounded text-[10px]">TAB</span>
-                      <span className="truncate">{tab.label || tab.id}</span>
-                    </button>
-                    
-                    {expandedSections[`tab-${tabIndex}`] !== false && tab.groups?.map((group, groupIndex) => (
-                      <NavGroup
-                        key={`${tabIndex}-${groupIndex}`}
-                        group={group}
-                        groupKey={`tab-${tabIndex}-group-${groupIndex}`}
-                        documents={documents}
-                        docId={docId}
-                        projectId={projectId}
-                        navigate={navigate}
-                        expandedSections={expandedSections}
-                        setExpandedSections={setExpandedSections}
-                        deletingDocId={deletingDocId}
-                        handleDeleteDocument={handleDeleteDocument}
-                        depth={1}
-                      />
-                    ))}
-                  </div>
-                ))
-              ) : navConfig?.groups ? (
-                // Direct groups (no tabs)
-                navConfig.groups.map((group, groupIndex) => (
-                  <NavGroup
-                    key={groupIndex}
-                    group={group}
-                    groupKey={`group-${groupIndex}`}
-                    documents={documents}
-                    docId={docId}
-                    projectId={projectId}
-                    navigate={navigate}
-                    expandedSections={expandedSections}
-                    setExpandedSections={setExpandedSections}
-                    deletingDocId={deletingDocId}
-                    handleDeleteDocument={handleDeleteDocument}
-                    depth={0}
-                  />
-                ))
-              ) : (
-                // No nav config - show flat list
-                documents.map((doc) => {
-                  const DocIcon = doc.icon ? getIcon(doc.icon) : FileText;
-                  const isActive = doc.id === docId;
-                  const isDeleting = deletingDocId === doc.id;
-                  return (
-                    <div
-                      key={doc.id}
-                      className={`group flex items-center gap-1 rounded-lg transition-colors ${
-                        isActive 
-                          ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-950 dark:text-white' 
-                          : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-950 dark:hover:text-white'
-                      }`}
-                    >
-                      <button
-                        onClick={() => navigate(`/admin/editor/${projectId}/${doc.id}`)}
-                        className="flex-1 flex items-center gap-2 px-3 py-2 text-left"
-                      >
-                        <DocIcon className="w-4 h-4 flex-shrink-0" />
-                        <span className="text-sm truncate">{doc.title}</span>
-                      </button>
-                      <button
-                        onClick={(e) => handleDeleteDocument(doc.id, e)}
-                        disabled={isDeleting}
-                        className="p-2 opacity-0 group-hover:opacity-100 text-zinc-500 hover:text-rose-600 dark:text-rose-400 transition-all"
-                        title="Delete document"
-                      >
-                        {isDeleting ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        ) : (
-                          <Trash2 className="w-3.5 h-3.5" />
-                        )}
-                      </button>
-                    </div>
-                  );
-                })
-              )}
+              {/* Sortable Tab > Group > Page tree with per-page metadata menu */}
+              <EditorNavTree
+                navConfig={navConfig}
+                documents={documents}
+                docId={docId}
+                deletingDocId={deletingDocId}
+                onSelect={(id) => navigate(`/admin/editor/${projectId}/${id}`)}
+                onSaveNavConfig={handleSaveNavConfig}
+                onSaveDocument={handleSaveDocMetadata}
+                onDeleteDocument={handleDeleteFromDialog}
+              />
               
               {/* Unlinked Documents Section */}
               {navConfig && (() => {
@@ -747,28 +715,6 @@ const Editor = () => {
               <Settings className="w-4 h-4" />
               <span className="text-sm">Configurations</span>
             </button>
-            <button 
-              onClick={() => setActivePanel(activePanel === 'media' ? null : 'media')}
-              className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
-                activePanel === 'media' 
-                  ? 'bg-brand/10 text-brand' 
-                  : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-950 dark:hover:text-white'
-              }`}
-            >
-              <ImageIcon className="w-4 h-4" />
-              <span className="text-sm">Images and Media</span>
-            </button>
-            <button 
-              onClick={() => setActivePanel(activePanel === 'github' ? null : 'github')}
-              className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
-                activePanel === 'github' 
-                  ? 'bg-brand/10 text-brand' 
-                  : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-950 dark:hover:text-white'
-              }`}
-            >
-              <Github className="w-4 h-4" />
-              <span className="text-sm">GitHub Sync</span>
-            </button>
             {docId && (
               <button 
                 onClick={() => setActivePanel(activePanel === 'history' ? null : 'history')}
@@ -798,12 +744,6 @@ const Editor = () => {
           <div className="h-full relative">
             {activePanel === 'config' && (
               <ConfigurationsPanel projectId={projectId} onClose={() => setActivePanel(null)} />
-            )}
-            {activePanel === 'media' && (
-              <MediaPanel projectId={projectId} onClose={() => setActivePanel(null)} />
-            )}
-            {activePanel === 'github' && (
-              <GitHubPanel projectId={projectId} onClose={() => setActivePanel(null)} />
             )}
             {activePanel === 'history' && docId && (
               <VersionHistoryPanel 
@@ -894,12 +834,9 @@ const Editor = () => {
               </button>
             </div>
 
-            {/* Mintlify AI Helper - Only shown in Markdown view */}
+            {/* Writing Assistant trigger - Only in Markdown view */}
             {(viewMode === 'markdown' || viewMode === 'split') && (
-              <MintlifyAIHelper 
-                content={content} 
-                onChange={setContent}
-              />
+              <WritingAssistantTrigger onOpen={() => setAssistantOpen(true)} />
             )}
 
             {/* Image Picker Button - Only shown in Markdown view */}
@@ -1068,6 +1005,32 @@ const Editor = () => {
         data-testid="hex-color-input"
         tabIndex={-1}
         aria-hidden="true"
+      />
+
+      {/* Writing Assistant slide-over */}
+      <WritingAssistant
+        open={assistantOpen}
+        onClose={() => setAssistantOpen(false)}
+        content={content}
+        onApplyContent={(md) => setContent(md)}
+        onApplySelection={(replacement, start, end) => {
+          setContent((prev) => prev.slice(0, start) + replacement + prev.slice(end));
+        }}
+        selection={(() => {
+          const el = textareaRef.current;
+          if (!el) return null;
+          const start = el.selectionStart ?? 0;
+          const end = el.selectionEnd ?? 0;
+          if (start === end) return null;
+          return { start, end, text: content.slice(start, end) };
+        })()}
+        projectId={projectId}
+        navConfig={navConfig}
+        onAfterCreatePage={async (newDoc) => {
+          // Refresh local document list and navigate to the new page
+          await fetchProjectData();
+          if (newDoc?.id) navigate(`/admin/editor/${projectId}/${newDoc.id}`);
+        }}
       />
 
       {/* Link Document Modal */}

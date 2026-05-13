@@ -1,0 +1,83 @@
+{
+  "summary": "Iteration 10 backend regression complete. 23/23 tests passed covering: (a) all 6 GitHub routes return 404 (auth, callback, sync, link, info, DELETE link), (b) new POST /api/assistant/tweak (auth gating, Pydantic 422 on missing fields, 400 on empty/oversize values, 200 with {markdown, applied_to_selection} for both full-markdown and selection paths via real Claude Sonnet 4.5 call), (c) Document.description field persists end-to-end via PUT then GET, (d) regression on /api/public/default-project (>=50 docs), /api/public/files/{path} image proxy, /api/generator/markdown (auth + LLM success), /api/auth/me (401 + 200 with seeded session).",
+
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "POST /api/assistant/tweak",
+        "issue": "Pydantic model has no max_length on `instruction`; only `selection || markdown` is length-capped at 40k chars. A 1MB instruction would be accepted and forwarded to the LLM. Low risk (frontend won't send it), but consider a server-side cap."
+      },
+      {
+        "endpoint": "POST /api/assistant/tweak",
+        "issue": "When `selection` is set, only the selection is sent to the LLM and the outer `markdown` field is ignored entirely — the model has no surrounding context. Intentional per the route docstring, but worth confirming this is the product behaviour (it may produce worse rewrites than passing both)."
+      }
+    ]
+  },
+
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+
+  "passed_tests": [
+    "GET /api/github/auth -> 404",
+    "GET /api/github/callback -> 404",
+    "POST /api/projects/{id}/github/sync -> 404",
+    "POST /api/projects/{id}/github/link -> 404",
+    "GET  /api/projects/{id}/github/info -> 404",
+    "DELETE /api/projects/{id}/github/link -> 404",
+    "POST /api/assistant/tweak -> 401 without token",
+    "POST /api/assistant/tweak -> 401 with invalid bearer",
+    "POST /api/assistant/tweak -> 422 when instruction key missing",
+    "POST /api/assistant/tweak -> 422 when markdown key missing",
+    "POST /api/assistant/tweak -> 400 when instruction is whitespace",
+    "POST /api/assistant/tweak -> 400 when markdown is whitespace",
+    "POST /api/assistant/tweak -> 400 when markdown > 40k chars",
+    "POST /api/assistant/tweak -> 200 returns {markdown, applied_to_selection=false} for full-doc",
+    "POST /api/assistant/tweak -> 200 returns {markdown, applied_to_selection=true} when selection set",
+    "PUT  /api/projects/{id}/documents/{did} with {description} -> 200 + persists on GET",
+    "GET  /api/public/default-project -> 200 with project+config+documents, docs>=50",
+    "GET  /api/public/default-project -> nav tabs present in config",
+    "GET  /api/public/files/{path} -> 200 image/* for migrated asset",
+    "POST /api/generator/markdown -> 401 unauth",
+    "POST /api/generator/markdown -> 200 with markdown string when authed",
+    "GET  /api/auth/me -> 401 unauth",
+    "GET  /api/auth/me -> 200 returns seeded admin user"
+  ],
+
+  "test_report_links": [
+    "/app/backend/tests/test_assistant_tweak_and_github_removal.py",
+    "/app/test_reports/pytest/pytest_iteration_10.xml"
+  ],
+
+  "action_items": [],
+
+  "critical_code_review_comments": [
+    "server.py is 1883 lines — past the 700-line guideline. Consider splitting into modules (auth, projects, documents, assistant, generator, public, assets) for maintainability. Not blocking this round.",
+    "/api/assistant/tweak (server.py:1447) and /api/generator/markdown (server.py:1371) duplicate the same ```fence-stripping post-processing block. Extract to a helper (e.g. strip_markdown_fence(text)).",
+    "AssistantTweakRequest has no Pydantic field constraints (no min_length, no max_length on `instruction`). The 40k cap is enforced manually inside the handler — moving it into Field(max_length=...) gives a cleaner 422 and self-documents the contract.",
+    "When `selection` is provided, only the selection is sent to the LLM — the outer markdown is ignored. If the product intent is to give the model surrounding context, the prompt should include both. Otherwise, the `markdown` arg can be dropped from the request schema when selection is set, to avoid confusion."
+  ],
+
+  "updated_files": [
+    "/app/backend/tests/test_assistant_tweak_and_github_removal.py"
+  ],
+
+  "success_rate": {
+    "backend": "100% (23/23)",
+    "frontend": "N/A (backend-only requested)"
+  },
+
+  "test_credentials": "No real credentials. The test seeds a throwaway admin user + session_token directly in MongoDB (email ends with @emergent.sh so is_admin() is true) and uses it as Authorization: Bearer <token>. Cleaned up in the session-scoped fixture teardown. This bypasses Google OAuth without changing production code.",
+
+  "seed_data_creation": "Per test-session: 1 user row in `users` (email TEST_admin-<hex>@emergent.sh, user_id TEST_admin_<hex>) + 1 row in `user_sessions` (session_token TEST_session_<hex>, 2h expiry). Both removed in fixture teardown.",
+
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+
+  "context_for_next_testing_agent": "Iteration-10 regression suite lives at /app/backend/tests/test_assistant_tweak_and_github_removal.py. It depends on the existing storage_migration suite remaining green. Auth-protected tests are powered by a seed-and-teardown admin session fixture (`admin_session`) — re-use that pattern for any future auth-required endpoint testing instead of stubbing get_current_user. LLM calls in test_tweak_success_* and test_generator_markdown_success use minimal prompts (~5 tokens) and complete in <5s each; total suite runs in ~10s. GitHub routes are fully removed from server.py (grep 'github' returns nothing). The .env still contains GITHUB_CLIENT_ID / GITHUB_CLIENT_SECRET / GITHUB_CALLBACK_URL keys — harmless but dead config that the main agent may want to clean up.",
+
+  "rca of the issue": "N/A — no bugs found."
+}
