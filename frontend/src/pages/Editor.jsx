@@ -527,6 +527,39 @@ const Editor = () => {
     }
   }, [projectId, docId, navigate]);
 
+  // Create a fresh document and link it under the given nav group
+  const handleCreatePageInGroup = useCallback(async (tabPath) => {
+    try {
+      // Build a sensible default slug & title (admin can rename via 3-dots after)
+      const ts = Date.now().toString(36);
+      const newTitle = 'Untitled Page';
+      const newSlug = `untitled-${ts}`;
+      const { data: doc } = await axios.post(`${API}/projects/${projectId}/documents`, {
+        title: newTitle,
+        slug: newSlug,
+        content: '',
+      });
+      // Append slug to the selected group's pages
+      const { tabIndex, groupIndex } = tabPath;
+      const cfg = navConfig || {};
+      const tabs = cfg.tabs || [];
+      const newTabs = tabs.map((t, ti) => {
+        if (ti !== tabIndex) return t;
+        const groups = (t.groups || []).map((g, gi) =>
+          gi === groupIndex ? { ...g, pages: [...(g.pages || []), newSlug] } : g,
+        );
+        return { ...t, groups };
+      });
+      await handleSaveNavConfig({ ...cfg, tabs: newTabs });
+      // Refresh local docs and jump into the new page
+      setDocuments((prev) => [...prev, doc]);
+      if (doc?.id) navigate(`/admin/editor/${projectId}/${doc.id}`);
+    } catch (err) {
+      console.error('Failed to create page:', err);
+      alert(err?.response?.data?.detail || 'Failed to create new page');
+    }
+  }, [projectId, navConfig, handleSaveNavConfig, navigate]);
+
   const IconComponent = icon ? getIcon(icon) : null;
 
   if (loading) {
@@ -570,6 +603,7 @@ const Editor = () => {
                 onSaveNavConfig={handleSaveNavConfig}
                 onSaveDocument={handleSaveDocMetadata}
                 onDeleteDocument={handleDeleteFromDialog}
+                onCreatePage={handleCreatePageInGroup}
               />
               
               {/* Unlinked Documents Section */}

@@ -106,6 +106,16 @@ Build a Mintlify-class documentation platform for **Emergent's Documentation** w
 - Verify Drag-and-Drop navigation reorder feature (P1 — user verification pending)
 - Sync "Deleting Your Account" content into production admin (P1 — user action; preview DB is updated)
 
+## Completed work — Feb 13, 2026 (Sidebar nav full editor)
+- The admin left-sidebar nav tree is now a **self-contained editor**. Every action that used to require opening the lower-left Configurations panel is now inline:
+  - **`+ New Tab`** button at the top of the tree.
+  - **Per-tab `+`** button → creates a new folder/group inside the tab.
+  - **Per-group `+`** button → creates a new Untitled document and links it under the group; navigates straight into the editor.
+  - **3-dots menu** on every Tab and Group with Rename / Delete (delete uses a `confirm` with clear copy that documents themselves stay intact).
+  - **Inline rename** on tab and group labels (double-click or via Rename menu) with Enter to commit / Esc to cancel.
+- New `onCreatePage` flow in `Editor.jsx`: POST `/projects/:pid/documents` → append slug into the chosen group → save config → jump into the new doc.
+- "Made with Emergent" badge re-skinned as a theme-aware frosted pill (CSS-only, light & dark variants).
+
 ## Completed work — Feb 13, 2026 (Admin Editor overhaul)
 - **Search icon** removed from the admin sidebar Navigation header.
 - **Images & Media** panel and **GitHub Sync** panel + button **fully removed**:

@@ -276,7 +276,10 @@ const SortableTab = ({
   tab, tabId, tabIndex,
   documents, docId, expanded, setExpanded,
   deletingDocId, onSelect, onOpenMeta, onGroupsReorder, onPagesReorder,
+  onRenameTab, onDeleteTab, onAddGroup,
+  onRenameGroup, onDeleteGroup, onCreatePage,
 }) => {
+  const [editing, setEditing] = useState(false);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: tabId });
   const style = {
@@ -300,7 +303,7 @@ const SortableTab = ({
 
   return (
     <div ref={setNodeRef} style={style} className="mb-3">
-      <div className="group flex items-center gap-1">
+      <div className="group flex items-center gap-1 pr-1">
         <button
           {...attributes}
           {...listeners}
@@ -310,14 +313,68 @@ const SortableTab = ({
         >
           <GripVertical className="w-3.5 h-3.5" />
         </button>
-        <button
-          onClick={() => setExpanded((prev) => ({ ...prev, [tabId]: !isOpen }))}
-          className="flex-1 flex items-center gap-2 px-2 py-1.5 text-xs font-semibold text-brand uppercase tracking-wider hover:text-brand-600"
-        >
-          {isOpen ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-          <span className="px-1.5 py-0.5 bg-brand/10 rounded text-[10px]">TAB</span>
-          <span className="truncate">{tab.label || tab.id}</span>
-        </button>
+        {editing ? (
+          <div className="flex-1 flex items-center gap-1 py-1">
+            <span className="px-1.5 py-0.5 bg-brand/10 rounded text-[10px] text-brand">TAB</span>
+            <InlineEditable
+              value={tab.label || tab.id || ''}
+              onCommit={(v) => { setEditing(false); if (v !== tab.label) onRenameTab?.(tabIndex, v); }}
+              onCancel={() => setEditing(false)}
+              placeholder="Tab name"
+            />
+          </div>
+        ) : (
+          <button
+            onClick={() => setExpanded((prev) => ({ ...prev, [tabId]: !isOpen }))}
+            onDoubleClick={() => setEditing(true)}
+            className="flex-1 flex items-center gap-2 px-2 py-1.5 text-xs font-semibold text-brand uppercase tracking-wider hover:text-brand-600 min-w-0"
+            title="Double-click to rename"
+            data-testid={`tab-${tab.id || tab.label}`}
+          >
+            {isOpen ? <ChevronDown className="w-3 h-3 flex-shrink-0" /> : <ChevronRight className="w-3 h-3 flex-shrink-0" />}
+            <span className="px-1.5 py-0.5 bg-brand/10 rounded text-[10px] flex-shrink-0">TAB</span>
+            <span className="truncate">{tab.label || tab.id}</span>
+          </button>
+        )}
+        {!editing && (
+          <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+            <button
+              onClick={(e) => { e.stopPropagation(); onAddGroup?.(tabIndex); }}
+              className="p-1 text-zinc-500 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded"
+              title="New folder in this tab"
+              data-testid={`tab-add-group-${tab.id || tab.label}`}
+            >
+              <Plus className="w-3.5 h-3.5" />
+            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className="p-1 text-zinc-500 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded"
+                  onClick={(e) => e.stopPropagation()}
+                  title="Tab menu"
+                  data-testid={`tab-menu-${tab.id || tab.label}`}
+                >
+                  <MoreHorizontal className="w-3.5 h-3.5" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-40 bg-white dark:bg-zinc-900">
+                <DropdownMenuItem onClick={() => setEditing(true)}>
+                  <Pencil className="w-3.5 h-3.5 mr-2" /> Rename
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="text-rose-600 dark:text-rose-400 focus:text-rose-700"
+                  onClick={() => {
+                    if (window.confirm(`Delete tab "${tab.label}"? Its folders and page references will be removed (documents themselves stay).`)) {
+                      onDeleteTab?.(tabIndex);
+                    }
+                  }}
+                >
+                  <Trash2 className="w-3.5 h-3.5 mr-2" /> Delete tab
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )}
       </div>
 
       {isOpen && (
@@ -342,6 +399,9 @@ const SortableTab = ({
                   onSelect={onSelect}
                   onOpenMeta={onOpenMeta}
                   onPagesReorder={onPagesReorder}
+                  onRenameGroup={onRenameGroup}
+                  onDeleteGroup={onDeleteGroup}
+                  onCreatePage={onCreatePage}
                 />
               );
             })}
@@ -362,6 +422,7 @@ export const EditorNavTree = ({
   onSaveNavConfig,    // (newConfig) => Promise<void>
   onSaveDocument,     // (docId, updates) => Promise<void>
   onDeleteDocument,   // (docId) => Promise<void>
+  onCreatePage,       // (tabPath) => Promise<void>  - creates a new doc + appends slug to nav
 }) => {
   const [expanded, setExpanded] = useState({});
   const [metaDocId, setMetaDocId] = useState(null);
@@ -401,43 +462,114 @@ export const EditorNavTree = ({
     onSaveNavConfig({ ...navConfig, tabs: newTabs });
   }, [tabs, navConfig, onSaveNavConfig]);
 
-  if (!navConfig?.tabs?.length) {
-    return (
-      <div className="px-4 py-6 text-center text-xs text-zinc-500">
-        No navigation configured.
-      </div>
-    );
-  }
+  // ----- Tab mutators -----
+  const handleAddTab = useCallback(() => {
+    const newTab = {
+      id: `tab-${Date.now()}`,
+      label: 'New Tab',
+      groups: [{ group: 'New Group', pages: [] }],
+    };
+    onSaveNavConfig({ ...(navConfig || {}), tabs: [...tabs, newTab] });
+  }, [tabs, navConfig, onSaveNavConfig]);
+
+  const handleRenameTab = useCallback((tabIndex, newLabel) => {
+    const newTabs = tabs.map((t, i) => (i === tabIndex ? { ...t, label: newLabel } : t));
+    onSaveNavConfig({ ...navConfig, tabs: newTabs });
+  }, [tabs, navConfig, onSaveNavConfig]);
+
+  const handleDeleteTab = useCallback((tabIndex) => {
+    const newTabs = tabs.filter((_, i) => i !== tabIndex);
+    onSaveNavConfig({ ...navConfig, tabs: newTabs });
+  }, [tabs, navConfig, onSaveNavConfig]);
+
+  // ----- Group mutators -----
+  const handleAddGroup = useCallback((tabIndex) => {
+    const newTabs = tabs.map((t, i) => {
+      if (i !== tabIndex) return t;
+      return { ...t, groups: [...(t.groups || []), { group: 'New Group', pages: [] }] };
+    });
+    onSaveNavConfig({ ...navConfig, tabs: newTabs });
+  }, [tabs, navConfig, onSaveNavConfig]);
+
+  const handleRenameGroup = useCallback((tabPath, newName) => {
+    const { tabIndex, groupIndex } = tabPath;
+    const newTabs = tabs.map((t, ti) => {
+      if (ti !== tabIndex) return t;
+      const newGroups = (t.groups || []).map((g, gi) =>
+        gi === groupIndex ? { ...g, group: newName } : g,
+      );
+      return { ...t, groups: newGroups };
+    });
+    onSaveNavConfig({ ...navConfig, tabs: newTabs });
+  }, [tabs, navConfig, onSaveNavConfig]);
+
+  const handleDeleteGroup = useCallback((tabPath) => {
+    const { tabIndex, groupIndex } = tabPath;
+    const newTabs = tabs.map((t, ti) => {
+      if (ti !== tabIndex) return t;
+      const newGroups = (t.groups || []).filter((_, gi) => gi !== groupIndex);
+      return { ...t, groups: newGroups };
+    });
+    onSaveNavConfig({ ...navConfig, tabs: newTabs });
+  }, [tabs, navConfig, onSaveNavConfig]);
+
+  const handleCreatePage = useCallback((tabPath) => {
+    onCreatePage?.(tabPath);
+  }, [onCreatePage]);
 
   return (
     <Fragment>
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleTabDrag}>
-        <SortableContext
-          items={tabs.map((t, i) => `tab::${i}::${t.id || t.label || ''}`)}
-          strategy={verticalListSortingStrategy}
+      {/* + New Tab — always at top so the tree is never an empty dead-end */}
+      <div className="px-2 pb-2 mb-1 border-b border-zinc-200 dark:border-zinc-800">
+        <button
+          onClick={handleAddTab}
+          className="w-full flex items-center justify-center gap-1.5 px-2 py-1.5 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800/50 rounded-md transition-colors"
+          data-testid="add-tab-btn"
         >
-          {tabs.map((tab, tIdx) => {
-            const tabId = `tab::${tIdx}::${tab.id || tab.label || ''}`;
-            return (
-              <SortableTab
-                key={tabId}
-                tabId={tabId}
-                tabIndex={tIdx}
-                tab={tab}
-                documents={documents}
-                docId={docId}
-                expanded={expanded}
-                setExpanded={setExpanded}
-                deletingDocId={deletingDocId}
-                onSelect={onSelect}
-                onOpenMeta={(doc) => setMetaDocId(doc.id)}
-                onGroupsReorder={handleGroupsReorder}
-                onPagesReorder={handlePagesReorder}
-              />
-            );
-          })}
-        </SortableContext>
-      </DndContext>
+          <Plus className="w-3.5 h-3.5" />
+          New Tab
+        </button>
+      </div>
+
+      {!tabs.length ? (
+        <div className="px-4 py-6 text-center text-xs text-zinc-500">
+          No tabs yet. Click <strong className="text-zinc-700 dark:text-zinc-300">New Tab</strong> above to start.
+        </div>
+      ) : (
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleTabDrag}>
+          <SortableContext
+            items={tabs.map((t, i) => `tab::${i}::${t.id || t.label || ''}`)}
+            strategy={verticalListSortingStrategy}
+          >
+            {tabs.map((tab, tIdx) => {
+              const tabId = `tab::${tIdx}::${tab.id || tab.label || ''}`;
+              return (
+                <SortableTab
+                  key={tabId}
+                  tabId={tabId}
+                  tabIndex={tIdx}
+                  tab={tab}
+                  documents={documents}
+                  docId={docId}
+                  expanded={expanded}
+                  setExpanded={setExpanded}
+                  deletingDocId={deletingDocId}
+                  onSelect={onSelect}
+                  onOpenMeta={(doc) => setMetaDocId(doc.id)}
+                  onGroupsReorder={handleGroupsReorder}
+                  onPagesReorder={handlePagesReorder}
+                  onRenameTab={handleRenameTab}
+                  onDeleteTab={handleDeleteTab}
+                  onAddGroup={handleAddGroup}
+                  onRenameGroup={handleRenameGroup}
+                  onDeleteGroup={handleDeleteGroup}
+                  onCreatePage={handleCreatePage}
+                />
+              );
+            })}
+          </SortableContext>
+        </DndContext>
+      )}
 
       <PageMetaDialog
         open={Boolean(metaDoc)}
