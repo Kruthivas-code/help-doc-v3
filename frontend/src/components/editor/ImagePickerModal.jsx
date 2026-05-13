@@ -17,7 +17,7 @@ const TabButton = ({ active, onClick, children, icon: Icon }) => (
     className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
       active 
         ? 'bg-brand text-zinc-950 dark:text-white' 
-        : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:bg-white/5'
+        : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white hover:bg-white/5'
     }`}
   >
     {Icon && <Icon className="w-4 h-4" />}
@@ -486,7 +486,7 @@ export const ImagePickerModal = ({ isOpen, onClose, onInsert, projectId, mode = 
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white rounded-md hover:bg-white/5 transition-colors"
+            className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white rounded-md hover:bg-white/5 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -554,7 +554,7 @@ export const ImagePickerModal = ({ isOpen, onClose, onInsert, projectId, mode = 
           <div className="flex gap-3">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white transition-colors"
+              className="px-4 py-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white transition-colors"
             >
               Cancel
             </button>

@@ -121,7 +121,7 @@ export const SearchDialog = ({
           />
           <button 
             onClick={onClose}
-            className="p-1 text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white transition-colors"
+            className="p-1 text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -262,7 +262,7 @@ export const SearchTrigger = ({ onClick, className = '' }) => {
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-2 px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-md text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white transition-colors ${className}`}
+      className={`flex items-center gap-2 px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-md text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white transition-colors ${className}`}
       data-testid="search-trigger"
     >
       <Search className="w-4 h-4" />

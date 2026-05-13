@@ -70,7 +70,11 @@ const ToolbarButton = ({ active, onClick, title, children, testId }) => (
 const Divider = () => <span className="h-5 w-px bg-zinc-200 dark:bg-zinc-800 mx-0.5" />;
 
 export const TipTapWYSIWYG = ({ content, onChange, placeholder = 'Start writing — markdown shortcuts work too…' }) => {
-    const lastEmittedMd = useRef(content || '');
+    // Track the last markdown we *emitted* from this editor so we know when
+    // incoming `content` came from us vs. from an external source (e.g. the
+    // markdown view of the split editor). Start as null so the initial mount
+    // always loads the incoming content.
+    const lastEmittedMd = useRef(null);
     const debounceRef = useRef(null);
 
     const editor = useEditor({
@@ -88,7 +92,10 @@ export const TipTapWYSIWYG = ({ content, onChange, placeholder = 'Start writing 
                 HTMLAttributes: { class: 'rounded-lg my-4 border border-zinc-200 dark:border-zinc-800' },
             }),
         ],
-        content: '',
+        // Seed with the initial markdown rendered to HTML so the editor mounts
+        // with the user's existing content immediately (no flash of empty doc
+        // when switching from Markdown view to Visual view).
+        content: content ? marked.parse(content) : '',
         editorProps: {
             attributes: {
                 class: 'tiptap-wysiwyg prose prose-zinc dark:prose-invert max-w-none focus:outline-none px-6 py-8 min-h-full',
@@ -96,7 +103,6 @@ export const TipTapWYSIWYG = ({ content, onChange, placeholder = 'Start writing 
             },
         },
         onUpdate: ({ editor }) => {
-            // Convert HTML -> markdown and emit. Debounce to avoid thrashing on every keystroke.
             if (debounceRef.current) clearTimeout(debounceRef.current);
             debounceRef.current = setTimeout(() => {
                 const html = editor.getHTML();
@@ -107,12 +113,13 @@ export const TipTapWYSIWYG = ({ content, onChange, placeholder = 'Start writing 
         },
     });
 
-    // Sync incoming markdown content -> editor when it changes externally
-    // (e.g. when user types in the markdown side of the split view).
+    // Sync incoming markdown -> editor when it changes externally
+    // (e.g. user typing in the markdown side of the split view).
     useEffect(() => {
         if (!editor) return;
         const incoming = content || '';
-        if (incoming === lastEmittedMd.current) return; // came from our own edit
+        // Skip if this update came from our own onUpdate emission
+        if (incoming === lastEmittedMd.current) return;
         const html = marked.parse(incoming);
         editor.commands.setContent(html, { emitUpdate: false });
         lastEmittedMd.current = incoming;

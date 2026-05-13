@@ -375,14 +375,14 @@ export const MintlifyAIHelper = ({ content, onChange, onClose }) => {
               <button
                 onClick={analyzeContent}
                 disabled={isAnalyzing}
-                className="flex items-center gap-1.5 px-2 py-1 text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white rounded-md transition-colors"
+                className="flex items-center gap-1.5 px-2 py-1 text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white rounded-md transition-colors"
               >
                 <RefreshCw className={`w-3 h-3 ${isAnalyzing ? 'animate-spin' : ''}`} />
                 <span>Re-analyze</span>
               </button>
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white rounded transition-colors"
+                className="p-1 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white rounded transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -418,7 +418,7 @@ export const MintlifyAIHelper = ({ content, onChange, onClose }) => {
                 <p className="text-rose-600 dark:text-rose-400">{error}</p>
                 <button
                   onClick={analyzeContent}
-                  className="mt-2 text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white"
+                  className="mt-2 text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white"
                 >
                   Try again
                 </button>

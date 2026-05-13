@@ -93,7 +93,7 @@ const NavGroup = ({
                     ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-950 dark:text-white' 
                     : isMissing
                       ? 'text-zinc-400 dark:text-zinc-600 hover:bg-zinc-100 dark:hover:bg-zinc-800/30'
-                      : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
+                      : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white'
                 }`}
               >
                 <button
@@ -166,7 +166,7 @@ const Editor = () => {
   
   // UI state
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [viewMode, setViewMode] = useState('visual'); // 'markdown' | 'visual' | 'split'
+  const [viewMode, setViewMode] = useState('markdown'); // 'markdown' | 'split' | 'visual'
   const [theme, setTheme] = useState('dark');
   const [activePanel, setActivePanel] = useState(null); // null | 'config' | 'media' | 'files' | 'github' | 'history'
   const [previewDevice, setPreviewDevice] = useState('desktop'); // 'desktop' | 'tablet' | 'mobile'
@@ -461,7 +461,7 @@ const Editor = () => {
         <div className="h-14 px-4 flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800/50">
           <button 
             onClick={() => navigate(`/admin/docs/${projectId}`)}
-            className="flex items-center gap-2 text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white transition-colors"
+            className="flex items-center gap-2 text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
             <span className="text-sm font-medium">Main Menu</span>
@@ -473,7 +473,7 @@ const Editor = () => {
           <div className="px-4 py-3 flex items-center justify-between">
             <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Navigation</span>
             <div className="flex items-center gap-1">
-              <button className="p-1 text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white rounded-md">
+              <button className="p-1 text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white rounded-md">
                 <Search className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -551,7 +551,7 @@ const Editor = () => {
                       className={`group flex items-center gap-1 rounded-lg transition-colors ${
                         isActive 
                           ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-950 dark:text-white' 
-                          : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
+                          : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white'
                       }`}
                     >
                       <button
@@ -644,7 +644,7 @@ const Editor = () => {
                           className={`group flex items-center gap-1 rounded-lg transition-colors ml-2 pr-1 ${
                             isActive 
                               ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-950 dark:text-white' 
-                              : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
+                              : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white'
                           }`}
                         >
                           <button
@@ -695,7 +695,7 @@ const Editor = () => {
                   setIcon(null);
                   navigate(`/admin/editor/${projectId}`);
                 }}
-                className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800/50 transition-colors"
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800/50 transition-colors"
               >
                 <Plus className="w-4 h-4" />
                 <span className="text-sm">Add new</span>
@@ -715,7 +715,7 @@ const Editor = () => {
               className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
                 activePanel === 'config' 
                   ? 'bg-brand/10 text-brand' 
-                  : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
+                  : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white'
               }`}
             >
               <Settings className="w-4 h-4" />
@@ -726,7 +726,7 @@ const Editor = () => {
               className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
                 activePanel === 'media' 
                   ? 'bg-brand/10 text-brand' 
-                  : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
+                  : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white'
               }`}
             >
               <ImageIcon className="w-4 h-4" />
@@ -737,7 +737,7 @@ const Editor = () => {
               className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
                 activePanel === 'github' 
                   ? 'bg-brand/10 text-brand' 
-                  : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
+                  : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white'
               }`}
             >
               <Github className="w-4 h-4" />
@@ -749,7 +749,7 @@ const Editor = () => {
                 className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
                   activePanel === 'history' 
                     ? 'bg-brand/10 text-brand' 
-                    : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
+                    : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white'
                 }`}
               >
                 <History className="w-4 h-4" />
@@ -823,22 +823,8 @@ const Editor = () => {
             {/* Anchors menu */}
             <AnchorsMenu content={content} onContentChange={setContent} slug={slug} />
 
-            {/* View Mode Toggle — Visual / Markdown / Split */}
+            {/* View Mode Toggle — Markdown / Split / Visual */}
             <div className="inline-flex items-center rounded-full border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 p-0.5">
-              <button
-                type="button"
-                onClick={() => setViewMode('visual')}
-                className={`btn-press flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-colors ${
-                  viewMode === 'visual'
-                    ? 'bg-white dark:bg-zinc-700 text-zinc-950 dark:text-white shadow-sm'
-                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
-                }`}
-                title="Visual WYSIWYG editor"
-                data-testid="view-mode-visual"
-              >
-                <Edit3 className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Visual</span>
-              </button>
               <button
                 type="button"
                 onClick={() => setViewMode('markdown')}
@@ -866,6 +852,20 @@ const Editor = () => {
               >
                 <span>Split</span>
               </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('visual')}
+                className={`btn-press flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-colors ${
+                  viewMode === 'visual'
+                    ? 'bg-white dark:bg-zinc-700 text-zinc-950 dark:text-white shadow-sm'
+                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
+                }`}
+                title="Visual WYSIWYG editor"
+                data-testid="view-mode-visual"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Visual</span>
+              </button>
             </div>
 
             {/* Mintlify AI Helper - Only shown in Markdown view */}
@@ -883,7 +883,7 @@ const Editor = () => {
                   setImagePickerMode('image');
                   setImagePickerOpen(true);
                 }}
-                className="flex items-center gap-2 px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white text-sm rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                className="flex items-center gap-2 px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white text-sm rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
                 data-testid="image-picker-btn"
               >
                 <ImageIcon className="w-4 h-4" />
@@ -898,7 +898,7 @@ const Editor = () => {
                 await navigator.clipboard.writeText(url);
                 alert('Link copied!');
               }}
-              className="flex items-center gap-2 px-3 py-1.5 text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white text-sm rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+              className="flex items-center gap-2 px-3 py-1.5 text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white text-sm rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
             >
               <Share2 className="w-4 h-4" />
               <span>Copy Link</span>

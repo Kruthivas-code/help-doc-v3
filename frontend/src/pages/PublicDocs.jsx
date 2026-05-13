@@ -688,36 +688,38 @@ const PublicDocs = () => {
 
                         {/* Prev / Next */}
                         {(prevDoc || nextDoc) && (
-                            <div className="flex flex-col sm:flex-row justify-between gap-3 mt-16 pt-8 border-t border-zinc-200 dark:border-zinc-800">
+                            <nav className="grid sm:grid-cols-2 gap-3 mt-16 pt-8 border-t border-zinc-200 dark:border-zinc-800">
                                 {prevDoc ? (
                                     <button
                                         type="button"
                                         onClick={() => handleDocSelect(prevDoc.slug)}
-                                        className="btn-press card-lift flex items-center gap-3 px-4 py-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-left"
+                                        className="btn-press card-lift group flex flex-col items-start gap-1 px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-left hover:border-zinc-300 dark:hover:border-zinc-700"
                                         data-testid="prev-doc-btn"
                                     >
-                                        <ArrowLeft className="h-4 w-4 text-zinc-400" />
-                                        <div>
-                                            <span className="eyebrow text-zinc-500 block mb-0.5">Previous</span>
-                                            <span className="text-sm font-semibold text-zinc-950 dark:text-white">{prevDoc.title}</span>
-                                        </div>
+                                        <span className="inline-flex items-center gap-1 eyebrow text-zinc-500 group-hover:text-brand transition-colors">
+                                            <ArrowLeft className="h-3 w-3" /> Previous
+                                        </span>
+                                        <span className="text-sm font-semibold text-zinc-950 dark:text-white tracking-tight truncate w-full">
+                                            {prevDoc.title}
+                                        </span>
                                     </button>
                                 ) : <div />}
-                                {nextDoc && (
+                                {nextDoc ? (
                                     <button
                                         type="button"
                                         onClick={() => handleDocSelect(nextDoc.slug)}
-                                        className="btn-press card-lift flex items-center gap-3 px-4 py-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-right"
+                                        className="btn-press card-lift group flex flex-col items-end gap-1 px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-right hover:border-zinc-300 dark:hover:border-zinc-700"
                                         data-testid="next-doc-btn"
                                     >
-                                        <div>
-                                            <span className="eyebrow text-zinc-500 block mb-0.5">Next</span>
-                                            <span className="text-sm font-semibold text-zinc-950 dark:text-white">{nextDoc.title}</span>
-                                        </div>
-                                        <ArrowRight className="h-4 w-4 text-zinc-400" />
+                                        <span className="inline-flex items-center gap-1 eyebrow text-zinc-500 group-hover:text-brand transition-colors">
+                                            Next <ArrowRight className="h-3 w-3" />
+                                        </span>
+                                        <span className="text-sm font-semibold text-zinc-950 dark:text-white tracking-tight truncate w-full">
+                                            {nextDoc.title}
+                                        </span>
                                     </button>
-                                )}
-                            </div>
+                                ) : <div />}
+                            </nav>
                         )}
                     </article>
                 ) : (

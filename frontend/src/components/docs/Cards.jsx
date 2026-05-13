@@ -90,7 +90,7 @@ export const Card = ({
       )}
       
       {/* Title */}
-      <h4 className="text-base font-semibold !text-zinc-950 dark:!text-white mb-2 group-hover:text-brand transition-colors flex items-center gap-2">
+      <h4 className="text-[15px] font-bold tracking-tight !text-zinc-950 dark:!text-white mb-2 group-hover:text-brand transition-colors flex items-center gap-2">
         {title}
         {href && (
           <span className="opacity-0 group-hover:opacity-100 transition-opacity">
@@ -129,7 +129,7 @@ export const Card = ({
     return (
       <button
         onClick={handleClick}
-        className={`card group text-left w-full p-5 bg-white dark:bg-zinc-900/30 hover:bg-zinc-50 dark:hover:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800/60 hover:border-zinc-300 dark:hover:border-zinc-700 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md dark:shadow-none ${className}`}
+        className={`card group text-left w-full p-6 lg:p-7 bg-white dark:bg-zinc-900/30 hover:bg-zinc-50 dark:hover:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800/60 hover:border-zinc-300 dark:hover:border-zinc-700 rounded-2xl transition-all duration-200 shadow-sm hover:shadow-md dark:shadow-none ${className}`}
         data-testid="card"
       >
         {content}

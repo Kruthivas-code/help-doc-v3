@@ -280,7 +280,7 @@ export const GitHubPanel = ({ projectId, onClose }) => {
               </div>
               <button
                 onClick={unlinkRepo}
-                className="text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white"
+                className="text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white"
               >
                 Unlink
               </button>
@@ -292,7 +292,7 @@ export const GitHubPanel = ({ projectId, onClose }) => {
                 href={`https://github.com/${link.repo_full_name}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="ml-auto text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white"
+                className="ml-auto text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white"
               >
                 <ExternalLink className="w-4 h-4" />
               </a>
@@ -308,7 +308,7 @@ export const GitHubPanel = ({ projectId, onClose }) => {
               <button
                 onClick={loadRepos}
                 disabled={reposLoading}
-                className="flex items-center gap-1.5 px-2 py-1 text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white"
+                className="flex items-center gap-1.5 px-2 py-1 text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white"
               >
                 <RefreshCw className={`w-3 h-3 ${reposLoading ? 'animate-spin' : ''}`} />
                 {repos.length > 0 ? 'Refresh' : 'Load'}

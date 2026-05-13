@@ -190,7 +190,7 @@ export const VersionHistoryPanel = ({ projectId, documentId, documentTitle, onCl
                   setShowCreateForm(false);
                   setNewVersionName('');
                 }}
-                className="px-3 py-1.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white text-sm"
+                className="px-3 py-1.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white text-sm"
               >
                 Cancel
               </button>
@@ -199,7 +199,7 @@ export const VersionHistoryPanel = ({ projectId, documentId, documentTitle, onCl
         ) : (
           <button
             onClick={() => setShowCreateForm(true)}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 border border-dashed border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:border-zinc-600 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white rounded-lg transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 border border-dashed border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:border-zinc-600 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white rounded-lg transition-colors"
           >
             <Plus className="w-4 h-4" />
             Create Version Snapshot
@@ -253,7 +253,7 @@ export const VersionHistoryPanel = ({ projectId, documentId, documentTitle, onCl
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => previewVersion(version)}
-                      className="p-1.5 text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:bg-zinc-200 dark:bg-zinc-700 rounded transition-colors"
+                      className="p-1.5 text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:bg-zinc-700 rounded transition-colors"
                       title="Preview"
                     >
                       <Eye className="w-4 h-4" />

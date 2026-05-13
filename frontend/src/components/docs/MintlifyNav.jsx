@@ -41,7 +41,7 @@ const Tab = ({ tab, active, onClick }) => {
         href={tab.href}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white transition-colors"
+        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white transition-colors"
       >
         {tab.icon && <Icon className="w-4 h-4" />}
         <span>{tab.tab}</span>
@@ -56,7 +56,7 @@ const Tab = ({ tab, active, onClick }) => {
       className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors border-b-2 ${
         active 
           ? 'text-zinc-950 dark:text-white border-brand' 
-          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white border-transparent'
+          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white border-transparent'
       }`}
     >
       {tab.icon && <Icon className="w-4 h-4" />}
@@ -83,7 +83,7 @@ const Anchor = ({ anchor, active, onClick, children }) => {
         href={anchor.href}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white transition-colors"
+        className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white transition-colors"
       >
         {anchor.icon && <Icon className="w-4 h-4" />}
         <span>{anchor.anchor}</span>
@@ -97,7 +97,7 @@ const Anchor = ({ anchor, active, onClick, children }) => {
       <button
         onClick={() => setExpanded(!expanded)}
         className={`w-full flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors rounded-lg ${
-          active ? 'text-zinc-950 dark:text-white bg-zinc-100 dark:bg-zinc-800/50' : 'text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800/30'
+          active ? 'text-zinc-950 dark:text-white bg-zinc-100 dark:bg-zinc-800/50' : 'text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800/30'
         }`}
       >
         {anchor.icon && <Icon className="w-4 h-4" />}
@@ -153,7 +153,7 @@ const PageLink = ({ page, basePath, selectedSlug, onClick }) => {
       className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg transition-colors ${
         isSelected 
           ? 'bg-brand/10 text-brand' 
-          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800/30'
+          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800/30'
       }`}
     >
       <Icon className="w-4 h-4 flex-shrink-0" />
@@ -172,7 +172,7 @@ const Dropdown = ({ dropdown, children }) => {
     <div className="mb-2">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800/30 rounded-lg transition-colors"
+        className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800/30 rounded-lg transition-colors"
       >
         {expanded ? <FolderOpen className="w-4 h-4" /> : <Folder className="w-4 h-4" />}
         <span className="flex-1 text-left">{dropdown.dropdown}</span>
@@ -326,7 +326,7 @@ export const MintlifyNav = ({
               href={anchor.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800/30 transition-colors"
+              className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800/30 transition-colors"
             >
               <ExternalLink className="w-4 h-4" />
               <span>{anchor.anchor}</span>

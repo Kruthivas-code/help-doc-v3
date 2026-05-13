@@ -129,7 +129,7 @@ export const MediaPanel = ({ projectId, onClose }) => {
         <div className="flex items-center gap-2">
           <button
             onClick={fetchAssets}
-            className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800"
           >
             <RefreshCw className="w-4 h-4" />
           </button>
@@ -165,7 +165,7 @@ export const MediaPanel = ({ projectId, onClose }) => {
               className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left transition-colors ${
                 selectedFolder === folder.path
                   ? 'bg-brand/10 text-brand'
-                  : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white'
               }`}
             >
               {selectedFolder === folder.path ? (
@@ -246,7 +246,7 @@ export const MediaPanel = ({ projectId, onClose }) => {
           <div className="w-64 border-l border-zinc-200 dark:border-zinc-800 p-4 overflow-auto">
             <div className="flex items-center justify-between mb-4">
               <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Preview</span>
-              <button onClick={() => setSelectedAsset(null)} className="text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white">
+              <button onClick={() => setSelectedAsset(null)} className="text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white">
                 <X className="w-4 h-4" />
               </button>
             </div>

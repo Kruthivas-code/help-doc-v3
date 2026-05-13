@@ -101,7 +101,7 @@ const CodeBlockRenderer = ({ children, className }) => {
         </div>
         <button
           onClick={handleCopy}
-          className="btn-press flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white rounded-md transition-colors"
+          className="btn-press flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white rounded-md transition-colors"
           data-testid="copy-code-btn"
         >
           {copied ? (
@@ -559,19 +559,19 @@ export const DocContent = ({ content, className = '', onHeadings }) => {
     // Using !important variant to override prose styles
     h1: ({ children }) => {
       const id = String(children).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-      return <h1 id={id} className="scroll-mt-20 !text-zinc-950 dark:!text-white font-bold">{children}</h1>;
+      return <h1 id={id} className="scroll-mt-20 !text-zinc-950 dark:!text-white font-heading font-black tracking-tight">{children}</h1>;
     },
     h2: ({ children }) => {
       const id = String(children).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-      return <h2 id={id} className="scroll-mt-20 !text-zinc-950 dark:!text-white text-2xl font-semibold mt-10 mb-4">{children}</h2>;
+      return <h2 id={id} className="scroll-mt-20 !text-zinc-950 dark:!text-white text-2xl font-heading font-black tracking-tight mt-10 mb-3">{children}</h2>;
     },
     h3: ({ children }) => {
       const id = String(children).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-      return <h3 id={id} className="scroll-mt-20 !text-zinc-950 dark:!text-white text-xl font-semibold mt-8 mb-3">{children}</h3>;
+      return <h3 id={id} className="scroll-mt-20 !text-zinc-950 dark:!text-white text-lg font-heading font-extrabold tracking-tight mt-7 mb-2">{children}</h3>;
     },
     h4: ({ children }) => {
       const id = String(children).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-      return <h4 id={id} className="scroll-mt-20 !text-zinc-950 dark:!text-white text-lg font-semibold mt-6 mb-2">{children}</h4>;
+      return <h4 id={id} className="scroll-mt-20 !text-zinc-950 dark:!text-white text-base font-heading font-bold tracking-tight mt-5 mb-2">{children}</h4>;
     },
 
     // Blockquote - detect callout syntax [!TYPE]
@@ -597,7 +597,7 @@ export const DocContent = ({ content, className = '', onHeadings }) => {
       }
 
       return (
-        <blockquote className="my-6 pl-4 border-l-4 border-brand italic [&>*]:!text-zinc-400 dark:text-zinc-600 dark:[&>*]:!text-zinc-700 dark:text-zinc-300 [&_p]:!text-zinc-400 dark:text-zinc-600 dark:[&_p]:!text-zinc-700 dark:text-zinc-300">
+        <blockquote className="my-5 pl-4 border-l-2 border-brand bg-zinc-50 dark:bg-zinc-900/60 rounded-r-md py-2 pr-3 [&>*]:!text-zinc-700 dark:[&>*]:!text-zinc-300 [&_p]:!text-zinc-700 dark:[&_p]:!text-zinc-300 [&_p]:!my-1 [&_strong]:!text-zinc-900 dark:[&_strong]:!text-zinc-100 [&_a]:!text-brand">
           {children}
         </blockquote>
       );
@@ -611,12 +611,12 @@ export const DocContent = ({ content, className = '', onHeadings }) => {
     ),
     thead: ({ children }) => <thead className="bg-zinc-100 dark:bg-zinc-900">{children}</thead>,
     th: ({ children }) => (
-      <th className="text-left px-4 py-3 text-sm font-semibold !text-zinc-950 dark:!text-zinc-200 border-b border-zinc-200 dark:border-zinc-800">
+      <th className="text-left px-3 py-2 text-xs font-bold tracking-wide uppercase !text-zinc-700 dark:!text-zinc-300 border-b border-zinc-200 dark:border-zinc-800">
         {children}
       </th>
     ),
     td: ({ children }) => (
-      <td className="px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300 border-b border-zinc-200/50 dark:border-zinc-800">
+      <td className="px-3 py-2 text-sm !text-zinc-700 dark:!text-zinc-300 border-b border-zinc-100 dark:border-zinc-800/60 align-top">
         {children}
       </td>
     ),

@@ -80,7 +80,7 @@ export const CodeBlock = ({
                 <button
                     type="button"
                     onClick={handleCopy}
-                    className="btn-press flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white rounded-md transition-colors"
+                    className="btn-press flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-950 dark:hover:text-zinc-950 dark:hover:text-white rounded-md transition-colors"
                     data-testid="copy-code"
                 >
                     {copied ? (
