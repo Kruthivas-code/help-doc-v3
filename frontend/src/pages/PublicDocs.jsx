@@ -693,30 +693,32 @@ const PublicDocs = () => {
                                     <button
                                         type="button"
                                         onClick={() => handleDocSelect(prevDoc.slug)}
-                                        className="btn-press card-lift group flex flex-col items-start gap-1 px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-left hover:border-zinc-300 dark:hover:border-zinc-700"
+                                        className="btn-press card-lift group flex items-center gap-3 px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-left hover:border-zinc-300 dark:hover:border-zinc-700"
                                         data-testid="prev-doc-btn"
                                     >
-                                        <span className="inline-flex items-center gap-1 eyebrow text-zinc-500 group-hover:text-brand transition-colors">
-                                            <ArrowLeft className="h-3 w-3" /> Previous
-                                        </span>
-                                        <span className="text-sm font-semibold text-zinc-950 dark:text-white tracking-tight truncate w-full">
-                                            {prevDoc.title}
-                                        </span>
+                                        <ArrowLeft className="h-4 w-4 text-zinc-400 group-hover:text-brand group-hover:-translate-x-0.5 transition-all flex-shrink-0" />
+                                        <div className="min-w-0 flex-1">
+                                            <p className="eyebrow text-zinc-500 group-hover:text-brand transition-colors">Previous</p>
+                                            <p className="text-sm font-semibold text-zinc-950 dark:text-white tracking-tight truncate mt-0.5">
+                                                {prevDoc.title}
+                                            </p>
+                                        </div>
                                     </button>
                                 ) : <div />}
                                 {nextDoc ? (
                                     <button
                                         type="button"
                                         onClick={() => handleDocSelect(nextDoc.slug)}
-                                        className="btn-press card-lift group flex flex-col items-end gap-1 px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-right hover:border-zinc-300 dark:hover:border-zinc-700"
+                                        className="btn-press card-lift group flex items-center gap-3 px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-right hover:border-zinc-300 dark:hover:border-zinc-700"
                                         data-testid="next-doc-btn"
                                     >
-                                        <span className="inline-flex items-center gap-1 eyebrow text-zinc-500 group-hover:text-brand transition-colors">
-                                            Next <ArrowRight className="h-3 w-3" />
-                                        </span>
-                                        <span className="text-sm font-semibold text-zinc-950 dark:text-white tracking-tight truncate w-full">
-                                            {nextDoc.title}
-                                        </span>
+                                        <div className="min-w-0 flex-1">
+                                            <p className="eyebrow text-zinc-500 group-hover:text-brand transition-colors">Next</p>
+                                            <p className="text-sm font-semibold text-zinc-950 dark:text-white tracking-tight truncate mt-0.5">
+                                                {nextDoc.title}
+                                            </p>
+                                        </div>
+                                        <ArrowRight className="h-4 w-4 text-zinc-400 group-hover:text-brand group-hover:translate-x-0.5 transition-all flex-shrink-0" />
                                     </button>
                                 ) : <div />}
                             </nav>
