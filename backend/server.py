@@ -905,7 +905,7 @@ async def upload_asset(
     folder: str = Form("/"),
     user: User = Depends(get_current_user)
 ):
-    """Upload an asset to Supabase storage"""
+    """Upload an asset to Tigris object storage"""
     project = await get_project_with_admin_check(project_id, user)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")

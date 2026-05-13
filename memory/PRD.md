@@ -75,8 +75,8 @@ Build a Mintlify-class documentation platform for **Emergent's Documentation** w
 - **Frontend**: React, Tailwind CSS, Shadcn UI, Tiptap (WYSIWYG)
 - **Backend**: FastAPI, MongoDB
 - **Auth**: Emergent Google OAuth, GitHub OAuth (partial)
-- **AI**: Emergent LLM Key (GPT-4o)
-- **Storage**: Supabase for media assets
+- **AI**: Emergent LLM Key (Claude Sonnet for markdown gen)
+- **Storage**: Emergent-managed Tigris Object Storage via Universal Key (migrated from Supabase Feb 2026)
 
 ## Key API Endpoints
 - `GET /api/public/default-project` - Fetch default project for public site
@@ -103,6 +103,18 @@ Build a Mintlify-class documentation platform for **Emergent's Documentation** w
 
 ## Upcoming Tasks
 - Complete GitHub OAuth flow with credentials
+- Verify Drag-and-Drop navigation reorder feature (P1 — user verification pending)
+- Sync "Deleting Your Account" content into production admin (P1 — user action; preview DB is updated)
+
+## Completed work — Feb 13, 2026 (Supabase → Tigris migration)
+- Resumed failed migration: re-downloaded last image from Supabase and uploaded to Tigris successfully
+- Discovered 3 additional logo URLs in `project_configs` collection that the original script missed; migrated them
+- All 11 unique Supabase URLs (7 doc images + 3 logos + 1 already-migrated) are now in Tigris (`emergent-docs/_legacy/migrated/`)
+- Stripped Supabase from codebase: removed `if not supabase:` dead check (server.py:913), removed `SUPABASE_URL`/`SUPABASE_ANON_KEY`/`SUPABASE_SERVICE_KEY` from `backend/.env`, removed `@supabase/supabase-js` from `frontend/package.json`
+- Deleted one-time `migrate_supabase_to_tigris.py` script (migration table preserved in `migration_map` collection for audit)
+- Updated `upload_asset` docstring to mention Tigris instead of Supabase
+- Backend regression: 22/22 tests pass (`/app/backend/tests/test_storage_migration.py`)
+- Frontend smoke: home + `/plans-and-credits` render 0 broken images, 0 Supabase URLs
 
 ## Future/Backlog
 - Full GitHub "Docs-as-Code" integration
