@@ -32,6 +32,7 @@ export const useAuth = () => {
 import Dashboard from "@/pages/Dashboard";
 import DocsView from "@/pages/DocsView";
 import Editor from "@/pages/Editor";
+import EditorEntry from "@/pages/EditorEntry";
 import Generator from "@/pages/Generator";
 import PublicDocs from "@/pages/PublicDocs";
 import AdminLogin from "@/pages/AdminLogin";
@@ -59,7 +60,7 @@ const AuthCallback = () => {
           if (response.data.token) {
             localStorage.setItem('auth_token', response.data.token);
           }
-          navigate("/admin/dashboard", { replace: true, state: { user: response.data } });
+          navigate("/admin/edit", { replace: true, state: { user: response.data } });
         } catch (error) {
           console.error("Auth error:", error);
           navigate("/admin", { replace: true });
@@ -176,6 +177,7 @@ function AppRouter() {
       
       {/* Admin Routes */}
       <Route path="/admin" element={<AdminLogin />} />
+      <Route path="/admin/edit" element={<ProtectedRoute><EditorEntry /></ProtectedRoute>} />
       <Route path="/admin/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/admin/docs/:projectId" element={<ProtectedRoute><DocsView /></ProtectedRoute>} />
       <Route path="/admin/docs/:projectId/:docSlug" element={<ProtectedRoute><DocsView /></ProtectedRoute>} />
@@ -213,7 +215,7 @@ function AuthProvider({ children }) {
   }, []);
 
   const login = useCallback(() => {
-    const redirectUrl = window.location.origin + '/admin/dashboard';
+    const redirectUrl = window.location.origin + '/admin/edit';
     window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
   }, []);
 

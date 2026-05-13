@@ -24,7 +24,7 @@ const ToolbarButton = ({ onClick, active, disabled, children, title }) => (
     onClick={onClick}
     disabled={disabled}
     title={title}
-    className={`p-2 rounded-lg transition-colors ${
+    className={`p-2 rounded-md transition-colors ${
       active 
         ? 'bg-brand text-zinc-950 dark:text-white' 
         : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800'
@@ -35,7 +35,7 @@ const ToolbarButton = ({ onClick, active, disabled, children, title }) => (
 );
 
 // Divider
-const Divider = () => <div className="w-px h-6 bg-slate-700 mx-1" />;
+const Divider = () => <div className="w-px h-6 bg-zinc-200 dark:bg-zinc-700 mx-1" />;
 
 // Image Upload Dialog
 const ImageUploadDialog = ({ isOpen, onClose, onInsert, projectId }) => {
@@ -118,7 +118,7 @@ const ImageUploadDialog = ({ isOpen, onClose, onInsert, projectId }) => {
             <button
               onClick={handleUrlInsert}
               disabled={!url.trim()}
-              className="w-full py-3 bg-brand hover:bg-brand disabled:opacity-50 text-zinc-950 dark:text-white rounded-lg font-medium"
+              className="w-full py-3 bg-brand hover:bg-brand-600 disabled:opacity-50 text-zinc-950 dark:text-white rounded-md font-medium"
             >
               Insert Image
             </button>
@@ -186,7 +186,7 @@ const YoutubeDialog = ({ isOpen, onClose, onInsert }) => {
           <button
             onClick={handleInsert}
             disabled={!url.trim()}
-            className="w-full py-3 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-zinc-950 dark:text-white rounded-lg font-medium"
+            className="w-full py-3 bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-zinc-950 dark:text-white rounded-md font-medium"
           >
             Embed Video
           </button>
@@ -231,13 +231,13 @@ const LinkDialog = ({ isOpen, onClose, onInsert, initialUrl = '' }) => {
           <div className="flex gap-2">
             <button
               onClick={() => { onInsert(''); onClose(); }}
-              className="flex-1 py-3 bg-zinc-100 dark:bg-zinc-800 hover:bg-slate-700 text-zinc-950 dark:text-white rounded-lg font-medium"
+              className="flex-1 py-3 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700 text-zinc-950 dark:text-white rounded-lg font-medium"
             >
               Remove Link
             </button>
             <button
               onClick={handleInsert}
-              className="flex-1 py-3 bg-brand hover:bg-brand text-zinc-950 dark:text-white rounded-lg font-medium"
+              className="flex-1 py-3 bg-brand hover:bg-brand-600 text-zinc-950 dark:text-white rounded-md font-medium"
             >
               Save Link
             </button>

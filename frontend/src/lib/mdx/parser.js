@@ -221,8 +221,8 @@ export function extractComponents(content) {
   // Combined pattern for all components we need to extract
   // Order matters: we check for the most specific patterns first
   const patterns = [
-    // Container components with opening/closing tags
-    { regex: /<(Steps|CardGroup|Tabs|Accordion|CodeGroup|AccordionGroup)>([\s\S]*?)<\/\1>/gi, type: 'container' },
+    // Container components with opening/closing tags (optional attributes allowed)
+    { regex: /<(Steps|CardGroup|Tabs|Accordion|CodeGroup|AccordionGroup)(?:\s+[^>]*?)?>([\s\S]*?)<\/\1>/gi, type: 'container' },
     // Columns layout component with cols attribute
     { regex: /<Columns\s+cols=\{(\d+)\}>([\s\S]*?)<\/Columns>/gi, type: 'columns' },
     // Callout with type and optional title

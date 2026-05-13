@@ -69,7 +69,7 @@ const TopHeader = ({ config, project, onSearchOpen, onMobileMenuToggle, mobileMe
                 >
                     <Search className="h-3.5 w-3.5" />
                     <span className="flex-1 text-left">Search documentation</span>
-                    <kbd className="px-1.5 py-0.5 text-[10px] font-mono rounded bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-500">⌘K</kbd>
+                    <kbd className="px-1.5 py-0.5 text-[10px] font-mono rounded bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300">⌘K</kbd>
                 </button>
 
                 <div className="ml-auto md:ml-0 flex items-center gap-2 sm:gap-3">
@@ -113,10 +113,10 @@ const TopHeader = ({ config, project, onSearchOpen, onMobileMenuToggle, mobileMe
    LEFT SIDEBAR — sticky scroll, tab → groups → pages
    ============================================================ */
 const SidebarLink = ({ active, missing, onClick, children, testId, depth = 0 }) => {
-    const pad = depth === 0 ? 'px-3' : 'px-3 ml-2';
+    const pad = depth === 0 ? 'pl-4' : 'pl-6';
     if (missing) {
         return (
-            <span className={`flex items-center ${pad} py-1.5 text-[13px] text-zinc-400 dark:text-zinc-600 cursor-not-allowed`}>
+            <span className={`flex items-center ${pad} pr-3 py-1.5 text-[13px] text-zinc-400 dark:text-zinc-600 cursor-not-allowed`}>
                 <span className="truncate flex-1">{children}</span>
                 <span className="text-[10px] text-rose-500 ml-2">missing</span>
             </span>
@@ -127,10 +127,10 @@ const SidebarLink = ({ active, missing, onClick, children, testId, depth = 0 }) 
             type="button"
             onClick={onClick}
             data-testid={testId}
-            className={`btn-press w-full flex items-center ${pad} py-1.5 rounded-md text-[13px] text-left transition-colors ${
+            className={`btn-press w-full flex items-center ${pad} pr-3 py-1.5 rounded-md text-[13px] text-left transition-colors relative ${
                 active
-                    ? 'bg-brand/10 text-brand font-semibold'
-                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-900'
+                    ? 'text-brand font-semibold bg-brand/5 dark:bg-brand/10 before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:bg-brand before:rounded-r'
+                    : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-100 hover:bg-zinc-100/70 dark:hover:bg-zinc-900'
             }`}
         >
             <span className="truncate flex-1">{children}</span>
@@ -142,24 +142,27 @@ const GroupSection = ({ group, groupId, documents, activeSlug, onDocSelect, defa
     const [open, setOpen] = useState(defaultOpen);
     const hasPages = group.pages?.length > 0;
     const hasSubgroups = group.groups?.length > 0;
+    const groupLabel = group.group;
 
     return (
-        <div className="mt-3">
-            {group.group && (
+        <div className="mt-1">
+            {groupLabel && (
                 <button
                     type="button"
                     onClick={() => setOpen(o => !o)}
-                    className="btn-press w-full flex items-center justify-between px-3 py-1.5 rounded-md text-[11px] font-bold uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
+                    className="btn-press w-full flex items-center justify-between px-3 py-1.5 rounded-md text-[13px] font-semibold text-zinc-800 dark:text-zinc-200 hover:text-zinc-950 dark:hover:text-white tracking-tight"
                     data-testid={`group-${groupId}`}
                 >
-                    <span>{group.group}</span>
+                    <span className="truncate text-left">{groupLabel}</span>
                     {(hasPages || hasSubgroups) && (
-                        <ChevronDown className={`h-3 w-3 transition-transform ${open ? '' : '-rotate-90'}`} />
+                        <ChevronRight
+                            className={`h-3.5 w-3.5 text-zinc-400 dark:text-zinc-600 transition-transform flex-shrink-0 ml-2 ${open ? 'rotate-90' : ''}`}
+                        />
                     )}
                 </button>
             )}
             {open && (
-                <div className="mt-1 space-y-0.5">
+                <div className="mt-0.5 space-y-0.5">
                     {hasPages && group.pages.map((page, idx) => {
                         const slug = typeof page === 'string' ? page : page.page;
                         const doc = documents.find(d => d.slug?.toLowerCase() === slug?.toLowerCase());
@@ -207,7 +210,7 @@ const LeftSidebar = ({ tabs, documents, activeSlug, onDocSelect, mobileOpen, onM
             )}
             <aside
                 className={`
-                    fixed top-14 bottom-0 left-0 z-40 w-72 lg:w-60
+                    fixed top-14 bottom-0 left-0 z-40 w-72 lg:w-64
                     bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800
                     overflow-y-auto
                     transform transition-transform duration-300 ease-out
@@ -215,23 +218,28 @@ const LeftSidebar = ({ tabs, documents, activeSlug, onDocSelect, mobileOpen, onM
                 `}
                 data-testid="left-sidebar"
             >
-                <nav className="px-3 py-6">
+                <nav className="px-3 pb-12 pt-2">
                     {tabs.map((tab, ti) => (
-                        <div key={tab.id || ti} className="mb-6 last:mb-0">
-                            <p className="px-3 mb-1 eyebrow text-zinc-500 dark:text-zinc-500">
+                        <section key={tab.id || ti} className={ti === 0 ? 'pt-4' : 'pt-7'}>
+                            <h3
+                                className="px-3 mb-1.5 text-[11px] font-bold tracking-[0.14em] uppercase text-zinc-950 dark:text-white"
+                                data-testid={`sidebar-tab-${tab.id}`}
+                            >
                                 {tab.label}
-                            </p>
-                            {(tab.groups || []).map((g, gi) => (
-                                <GroupSection
-                                    key={gi}
-                                    group={g}
-                                    groupId={`${tab.id}-${gi}`}
-                                    documents={documents}
-                                    activeSlug={activeSlug}
-                                    onDocSelect={(slug) => { onDocSelect(slug); onMobileClose(); }}
-                                />
-                            ))}
-                        </div>
+                            </h3>
+                            <div className="space-y-0.5">
+                                {(tab.groups || []).map((g, gi) => (
+                                    <GroupSection
+                                        key={gi}
+                                        group={g}
+                                        groupId={`${tab.id}-${gi}`}
+                                        documents={documents}
+                                        activeSlug={activeSlug}
+                                        onDocSelect={(slug) => { onDocSelect(slug); onMobileClose(); }}
+                                    />
+                                ))}
+                            </div>
+                        </section>
                     ))}
                 </nav>
             </aside>
@@ -353,7 +361,7 @@ const SearchDialog = ({ open, onClose, onSelect, config }) => {
                         className="flex-1 bg-transparent text-sm sm:text-base placeholder:text-zinc-400 outline-none text-zinc-950 dark:text-white"
                         data-testid="search-input"
                     />
-                    <kbd className="px-2 py-0.5 text-[10px] font-mono rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-500 border border-zinc-200 dark:border-zinc-700">ESC</kbd>
+                    <kbd className="px-2 py-0.5 text-[10px] font-mono rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700">ESC</kbd>
                 </div>
                 <div className="max-h-[60vh] overflow-auto">
                     {hasResults ? (
@@ -644,7 +652,7 @@ const PublicDocs = () => {
                 onMobileClose={() => setMobileMenuOpen(false)}
             />
 
-            <main className="lg:ml-60 xl:mr-60 min-h-screen pt-14">
+            <main className="lg:ml-64 xl:mr-60 min-h-screen pt-14">
                 {selectedDoc ? (
                     <article
                         key={selectedDoc.id}

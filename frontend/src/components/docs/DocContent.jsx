@@ -66,8 +66,8 @@ const CALLOUT_CONFIG = {
   TIP: { icon: Lightbulb, bg: 'bg-brand/10', border: 'border-brand/30', iconColor: 'text-emerald-600 dark:text-brand', textColorLight: '#065f46', textColorDark: '#a7f3d0', title: 'Tip' },
   WARNING: { icon: AlertTriangle, bg: 'bg-amber-500/10', border: 'border-amber-500/30', iconColor: 'text-amber-600 dark:text-amber-400', textColorLight: '#92400e', textColorDark: '#fde68a', title: 'Warning' },
   CAUTION: { icon: AlertTriangle, bg: 'bg-amber-500/10', border: 'border-amber-500/30', iconColor: 'text-amber-600 dark:text-amber-400', textColorLight: '#92400e', textColorDark: '#fde68a', title: 'Caution' },
-  ERROR: { icon: AlertCircle, bg: 'bg-red-500/10', border: 'border-red-500/30', iconColor: 'text-red-600 dark:text-red-400', textColorLight: '#991b1b', textColorDark: '#fecaca', title: 'Error' },
-  DANGER: { icon: AlertCircle, bg: 'bg-red-500/10', border: 'border-red-500/30', iconColor: 'text-red-600 dark:text-red-400', textColorLight: '#991b1b', textColorDark: '#fecaca', title: 'Danger' },
+  ERROR: { icon: AlertCircle, bg: 'bg-rose-500/10', border: 'border-rose-500/30', iconColor: 'text-red-600 dark:text-rose-600 dark:text-rose-400', textColorLight: '#991b1b', textColorDark: '#fecaca', title: 'Error' },
+  DANGER: { icon: AlertCircle, bg: 'bg-rose-500/10', border: 'border-rose-500/30', iconColor: 'text-red-600 dark:text-rose-600 dark:text-rose-400', textColorLight: '#991b1b', textColorDark: '#fecaca', title: 'Danger' },
   SUCCESS: { icon: CheckCircle, bg: 'bg-brand/10', border: 'border-brand/30', iconColor: 'text-emerald-600 dark:text-brand', textColorLight: '#065f46', textColorDark: '#a7f3d0', title: 'Success' },
 };
 
@@ -101,7 +101,7 @@ const CodeBlockRenderer = ({ children, className }) => {
         </div>
         <button
           onClick={handleCopy}
-          className="btn-press flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white rounded transition-colors"
+          className="btn-press flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white rounded-md transition-colors"
           data-testid="copy-code-btn"
         >
           {copied ? (
@@ -629,7 +629,7 @@ export const DocContent = ({ content, className = '', onHeadings }) => {
           href={href}
           target={isExternal ? '_blank' : undefined}
           rel={isExternal ? 'noopener noreferrer' : undefined}
-          className="text-[#188455] hover:text-[#157149] underline-offset-2 hover:underline"
+          className="text-[#1588FC] hover:text-[#0772E3] underline-offset-2 hover:underline"
         >
           {children}
         </a>

@@ -253,10 +253,10 @@ const ICON_CATEGORIES = {
 // Callout configurations
 const CALLOUT_TYPES = {
   note: { icon: Info, color: 'blue', bg: 'bg-blue-500/10', border: 'border-blue-500/30', text: 'text-blue-400' },
-  tip: { icon: Lightbulb, color: 'green', bg: 'bg-green-500/10', border: 'border-green-500/30', text: 'text-green-400' },
+  tip: { icon: Lightbulb, color: 'green', bg: 'bg-brand/10', border: 'border-green-500/30', text: 'text-green-400' },
   warning: { icon: AlertTriangle, color: 'amber', bg: 'bg-amber-500/10', border: 'border-amber-500/30', text: 'text-amber-400' },
-  error: { icon: AlertCircle, color: 'red', bg: 'bg-red-500/10', border: 'border-red-500/30', text: 'text-red-400' },
-  success: { icon: CheckCircle, color: 'green', bg: 'bg-green-500/10', border: 'border-green-500/30', text: 'text-green-400' },
+  error: { icon: AlertCircle, color: 'red', bg: 'bg-rose-500/10', border: 'border-rose-500/30', text: 'text-rose-600 dark:text-rose-400' },
+  success: { icon: CheckCircle, color: 'green', bg: 'bg-brand/10', border: 'border-green-500/30', text: 'text-green-400' },
 };
 
 // Editable Text Component
@@ -363,20 +363,20 @@ const BlockWrapper = ({ children, onDelete, onMoveUp, onMoveDown, showControls =
         }`}>
           <button 
             onClick={(e) => { e.stopPropagation(); onMoveUp(); }}
-            className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:bg-slate-700 rounded transition-colors"
+            className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:bg-zinc-200 dark:bg-zinc-700 rounded transition-colors"
             title="Move up"
           >
             <ChevronUp className="w-4 h-4" />
           </button>
           <button 
-            className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white cursor-grab rounded"
+            className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white cursor-grab rounded-md"
             title="Drag to reorder"
           >
             <GripVertical className="w-4 h-4" />
           </button>
           <button 
             onClick={(e) => { e.stopPropagation(); onMoveDown(); }}
-            className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:bg-slate-700 rounded transition-colors"
+            className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:bg-zinc-200 dark:bg-zinc-700 rounded transition-colors"
             title="Move down"
           >
             <ChevronDown className="w-4 h-4" />
@@ -384,7 +384,7 @@ const BlockWrapper = ({ children, onDelete, onMoveUp, onMoveDown, showControls =
           <div className="border-t border-zinc-200 dark:border-zinc-800 my-1" />
           <button 
             onClick={(e) => { e.stopPropagation(); onDelete(); }}
-            className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-red-400 hover:bg-red-500/20 rounded transition-colors"
+            className="p-1.5 text-zinc-600 dark:text-zinc-400 hover:text-rose-600 dark:text-rose-400 hover:bg-rose-500/20 rounded transition-colors"
             title="Delete block"
           >
             <Trash2 className="w-4 h-4" />
@@ -467,8 +467,8 @@ const CalloutBlock = ({ block, onChange, onDelete, onMoveUp, onMoveDown }) => {
                       onChange({ ...block, calloutType: t });
                       setShowTypeSelector(false);
                     }}
-                    className={`w-full flex items-center gap-2 px-3 py-1.5 rounded text-sm capitalize hover:bg-slate-700 ${
-                      block.calloutType === t ? 'bg-slate-700' : ''
+                    className={`w-full flex items-center gap-2 px-3 py-1.5 rounded text-sm capitalize hover:bg-zinc-200 dark:bg-zinc-700 ${
+                      block.calloutType === t ? 'bg-zinc-200 dark:bg-zinc-700' : ''
                     }`}
                   >
                     <TypeIcon className={`w-4 h-4 ${CALLOUT_TYPES[t].text}`} />
@@ -530,12 +530,12 @@ const CardItem = ({ card, onChange }) => {
     : ICON_CATEGORIES[activeCategory] || [];
 
   return (
-    <div className="bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 rounded-xl p-5 hover:border-slate-600 transition-colors">
+    <div className="bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 rounded-xl p-5 hover:border-zinc-300 dark:border-zinc-600 transition-colors">
       {/* Icon */}
       <div className="relative mb-4" ref={iconPickerRef}>
         <button
           onClick={() => setShowIconSelector(!showIconSelector)}
-          className="w-12 h-12 bg-slate-700/50 rounded-lg flex items-center justify-center hover:bg-slate-700 transition-colors"
+          className="w-12 h-12 bg-zinc-200 dark:bg-zinc-700/50 rounded-lg flex items-center justify-center hover:bg-zinc-200 dark:bg-zinc-700 transition-colors"
           title="Click to change icon"
         >
           <IconComponent className="w-6 h-6 text-zinc-600 dark:text-zinc-400" />
@@ -591,7 +591,7 @@ const CardItem = ({ card, onChange }) => {
                         setShowIconSelector(false);
                         setIconSearch('');
                       }}
-                      className={`p-2 rounded-lg hover:bg-slate-700 transition-colors group ${
+                      className={`p-2 rounded-lg hover:bg-zinc-200 dark:bg-zinc-700 transition-colors group ${
                         card.icon === iconName ? 'bg-brand/20 ring-1 ring-brand' : ''
                       }`}
                       title={iconName}
@@ -681,7 +681,7 @@ const CardGroupBlock = ({ block, onChange, onDelete, onMoveUp, onMoveDown }) => 
               {cards.length > 1 && (
                 <button
                   onClick={() => removeCard(index)}
-                  className="absolute -top-2 -right-2 p-1 bg-red-500 rounded-full opacity-0 group-hover/card:opacity-100 transition-opacity"
+                  className="absolute -top-2 -right-2 p-1 bg-rose-500 rounded-full opacity-0 group-hover/card:opacity-100 transition-opacity"
                 >
                   <Trash2 className="w-3 h-3 text-zinc-950 dark:text-white" />
                 </button>
@@ -691,7 +691,7 @@ const CardGroupBlock = ({ block, onChange, onDelete, onMoveUp, onMoveDown }) => 
         </div>
         <button
           onClick={addCard}
-          className="mt-3 flex items-center gap-2 px-3 py-2 text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white border border-dashed border-zinc-200 dark:border-zinc-800 hover:border-slate-600 rounded-lg transition-colors"
+          className="mt-3 flex items-center gap-2 px-3 py-2 text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white border border-dashed border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:border-zinc-600 rounded-md transition-colors"
         >
           <Plus className="w-4 h-4" />
           Add Card
@@ -780,7 +780,7 @@ const StepsBlock = ({ block, onChange, onDelete, onMoveUp, onMoveDown }) => {
     <BlockWrapper onDelete={onDelete} onMoveUp={onMoveUp} onMoveDown={onMoveDown}>
       <div className="mb-6 relative">
         {/* Vertical line */}
-        <div className="absolute left-4 top-8 bottom-8 w-0.5 bg-slate-700" />
+        <div className="absolute left-4 top-8 bottom-8 w-0.5 bg-zinc-200 dark:bg-zinc-700" />
         
         <div className="space-y-6">
           {steps.map((step, index) => (
@@ -811,7 +811,7 @@ const StepsBlock = ({ block, onChange, onDelete, onMoveUp, onMoveDown }) => {
               {steps.length > 1 && (
                 <button
                   onClick={() => removeStep(index)}
-                  className="absolute -right-2 top-0 p-1 text-zinc-500 hover:text-red-400 opacity-0 group-hover/step:opacity-100 transition-opacity"
+                  className="absolute -right-2 top-0 p-1 text-zinc-500 hover:text-rose-600 dark:text-rose-400 opacity-0 group-hover/step:opacity-100 transition-opacity"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -822,7 +822,7 @@ const StepsBlock = ({ block, onChange, onDelete, onMoveUp, onMoveDown }) => {
 
         <button
           onClick={addStep}
-          className="mt-4 ml-12 flex items-center gap-2 px-3 py-2 text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white border border-dashed border-zinc-200 dark:border-zinc-800 hover:border-slate-600 rounded-lg transition-colors"
+          className="mt-4 ml-12 flex items-center gap-2 px-3 py-2 text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white border border-dashed border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:border-zinc-600 rounded-md transition-colors"
         >
           <Plus className="w-4 h-4" />
           Add Step
@@ -849,7 +849,7 @@ const AddBlockMenu = ({ onAdd, position }) => {
     <div className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full py-2 flex items-center justify-center gap-2 text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white border border-dashed border-zinc-200 dark:border-zinc-800 hover:border-slate-600 rounded-lg transition-colors opacity-0 hover:opacity-100"
+        className="w-full py-2 flex items-center justify-center gap-2 text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white border border-dashed border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:border-zinc-600 rounded-lg transition-colors opacity-0 hover:opacity-100"
       >
         <Plus className="w-4 h-4" />
         <span className="text-sm">Add block</span>
@@ -864,7 +864,7 @@ const AddBlockMenu = ({ onAdd, position }) => {
                 onAdd(position, { ...defaultBlock, id: Date.now().toString() });
                 setOpen(false);
               }}
-              className="w-full flex items-center gap-3 px-3 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:bg-slate-700 rounded-lg transition-colors"
+              className="w-full flex items-center gap-3 px-3 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:bg-zinc-200 dark:bg-zinc-700 rounded-lg transition-colors"
             >
               <Icon className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
               {label}

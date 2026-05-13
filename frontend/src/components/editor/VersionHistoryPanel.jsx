@@ -137,7 +137,7 @@ export const VersionHistoryPanel = ({ projectId, documentId, documentTitle, onCl
           <History className="w-5 h-5 text-zinc-950 dark:text-white" />
           <h2 className="font-semibold text-zinc-950 dark:text-white">Version History</h2>
         </div>
-        <button onClick={onClose} className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded">
+        <button onClick={onClose} className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md">
           <X className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
         </button>
       </div>
@@ -153,7 +153,7 @@ export const VersionHistoryPanel = ({ projectId, documentId, documentTitle, onCl
       {/* Message */}
       {message && (
         <div className={`mx-4 mt-3 px-3 py-2 rounded-lg text-sm flex items-center gap-2 ${
-          message.type === 'success' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+          message.type === 'success' ? 'bg-brand/20 text-green-400' : 'bg-rose-500/20 text-rose-600 dark:text-rose-400'
         }`}>
           {message.type === 'success' ? <Check className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
           {message.text}
@@ -180,7 +180,7 @@ export const VersionHistoryPanel = ({ projectId, documentId, documentTitle, onCl
               <button
                 onClick={createVersion}
                 disabled={creating}
-                className="flex-1 flex items-center justify-center gap-2 px-3 py-1.5 bg-brand hover:bg-brand disabled:opacity-50 text-zinc-950 dark:text-white text-sm rounded-lg transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 px-3 py-1.5 bg-brand hover:bg-brand-600 disabled:opacity-50 text-zinc-950 dark:text-white text-sm rounded-md transition-colors"
               >
                 {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                 Save
@@ -199,7 +199,7 @@ export const VersionHistoryPanel = ({ projectId, documentId, documentTitle, onCl
         ) : (
           <button
             onClick={() => setShowCreateForm(true)}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 border border-dashed border-zinc-200 dark:border-zinc-800 hover:border-slate-600 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white rounded-lg transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 border border-dashed border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:border-zinc-600 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white rounded-lg transition-colors"
           >
             <Plus className="w-4 h-4" />
             Create Version Snapshot
@@ -253,7 +253,7 @@ export const VersionHistoryPanel = ({ projectId, documentId, documentTitle, onCl
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => previewVersion(version)}
-                      className="p-1.5 text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:bg-slate-700 rounded transition-colors"
+                      className="p-1.5 text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:bg-zinc-200 dark:bg-zinc-700 rounded transition-colors"
                       title="Preview"
                     >
                       <Eye className="w-4 h-4" />
@@ -261,7 +261,7 @@ export const VersionHistoryPanel = ({ projectId, documentId, documentTitle, onCl
                     <button
                       onClick={() => restoreVersion(version.id)}
                       disabled={restoring}
-                      className="p-1.5 text-zinc-500 hover:text-green-400 hover:bg-green-500/20 rounded transition-colors"
+                      className="p-1.5 text-zinc-500 hover:text-green-400 hover:bg-brand/20 rounded transition-colors"
                       title="Restore"
                     >
                       {restoring ? (
@@ -272,7 +272,7 @@ export const VersionHistoryPanel = ({ projectId, documentId, documentTitle, onCl
                     </button>
                     <button
                       onClick={() => deleteVersion(version.id)}
-                      className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-red-500/20 rounded transition-colors"
+                      className="p-1.5 text-zinc-500 hover:text-rose-600 dark:text-rose-400 hover:bg-rose-500/20 rounded transition-colors"
                       title="Delete"
                     >
                       <Trash2 className="w-4 h-4" />

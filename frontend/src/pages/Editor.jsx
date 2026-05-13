@@ -28,6 +28,7 @@ import { VersionHistoryPanel } from "@/components/editor/VersionHistoryPanel";
 import { LiveEditor } from "@/components/editor/LiveEditor";
 import { MintlifyAIHelper } from "@/components/editor/MintlifyAIHelper";
 import { ImagePickerModal } from "@/components/editor/ImagePickerModal";
+import { AnchorsMenu } from "@/components/editor/AnchorsMenu";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 // Navigation Group Component for hierarchical document list
@@ -59,7 +60,7 @@ const NavGroup = ({
           ...prev,
           [groupKey]: !prev[groupKey]
         }))}
-        className="w-full flex items-center gap-2 px-2 py-1.5 text-slate-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white transition-colors"
+        className="w-full flex items-center gap-2 px-2 py-1.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white transition-colors"
       >
         {isExpanded ? (
           <ChevronDown className="w-3 h-3 flex-shrink-0" />
@@ -91,7 +92,7 @@ const NavGroup = ({
                     ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-950 dark:text-white' 
                     : isMissing
                       ? 'text-zinc-400 dark:text-zinc-600 hover:bg-zinc-100 dark:hover:bg-zinc-800/30'
-                      : 'text-slate-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
+                      : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
                 }`}
               >
                 <button
@@ -100,16 +101,16 @@ const NavGroup = ({
                   className="flex-1 flex items-center gap-2 px-2 py-1.5 text-left min-w-0"
                   title={isMissing ? `Document "${slug}" not found` : pageTitle}
                 >
-                  <PageIcon className={`w-3.5 h-3.5 flex-shrink-0 ${isMissing ? 'text-red-500/50' : ''}`} />
+                  <PageIcon className={`w-3.5 h-3.5 flex-shrink-0 ${isMissing ? 'text-rose-600 dark:text-rose-400/50' : ''}`} />
                   <span className={`text-sm truncate ${isMissing ? 'italic' : ''}`}>
                     {pageTitle || slug}
                   </span>
-                  {isMissing && <span className="text-[10px] text-red-500/70">missing</span>}
+                  {isMissing && <span className="text-[10px] text-rose-600 dark:text-rose-400/70">missing</span>}
                 </button>
                 {doc && !isDeleting && (
                   <button
                     onClick={(e) => handleDeleteDocument(doc.id, e)}
-                    className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded transition-all flex-shrink-0"
+                    className="p-1.5 text-zinc-500 hover:text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 rounded transition-all flex-shrink-0"
                     title="Delete document"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -471,7 +472,7 @@ const Editor = () => {
           <div className="px-4 py-3 flex items-center justify-between">
             <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Navigation</span>
             <div className="flex items-center gap-1">
-              <button className="p-1 text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white rounded">
+              <button className="p-1 text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white rounded-md">
                 <Search className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -549,7 +550,7 @@ const Editor = () => {
                       className={`group flex items-center gap-1 rounded-lg transition-colors ${
                         isActive 
                           ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-950 dark:text-white' 
-                          : 'text-slate-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
+                          : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
                       }`}
                     >
                       <button
@@ -562,7 +563,7 @@ const Editor = () => {
                       <button
                         onClick={(e) => handleDeleteDocument(doc.id, e)}
                         disabled={isDeleting}
-                        className="p-2 opacity-0 group-hover:opacity-100 text-zinc-500 hover:text-red-400 transition-all"
+                        className="p-2 opacity-0 group-hover:opacity-100 text-zinc-500 hover:text-rose-600 dark:text-rose-400 transition-all"
                         title="Delete document"
                       >
                         {isDeleting ? (
@@ -620,7 +621,7 @@ const Editor = () => {
                               }
                             }
                           }}
-                          className="px-2 py-0.5 text-[10px] text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded transition-colors"
+                          className="px-2 py-0.5 text-[10px] text-rose-600 dark:text-rose-400 hover:text-red-300 hover:bg-rose-500/10 rounded transition-colors"
                           title="Delete all unlinked documents"
                         >
                           Delete All
@@ -667,7 +668,7 @@ const Editor = () => {
                           {!isDeleting && (
                             <button
                               onClick={(e) => handleDeleteDocument(doc.id, e)}
-                              className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded transition-all flex-shrink-0"
+                              className="p-1.5 text-zinc-500 hover:text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 rounded transition-all flex-shrink-0"
                               title="Delete document"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -713,7 +714,7 @@ const Editor = () => {
               className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
                 activePanel === 'config' 
                   ? 'bg-brand/10 text-brand' 
-                  : 'text-slate-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
+                  : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
               }`}
             >
               <Settings className="w-4 h-4" />
@@ -724,7 +725,7 @@ const Editor = () => {
               className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
                 activePanel === 'media' 
                   ? 'bg-brand/10 text-brand' 
-                  : 'text-slate-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
+                  : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
               }`}
             >
               <ImageIcon className="w-4 h-4" />
@@ -735,7 +736,7 @@ const Editor = () => {
               className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
                 activePanel === 'github' 
                   ? 'bg-brand/10 text-brand' 
-                  : 'text-slate-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
+                  : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
               }`}
             >
               <Github className="w-4 h-4" />
@@ -747,7 +748,7 @@ const Editor = () => {
                 className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
                   activePanel === 'history' 
                     ? 'bg-brand/10 text-brand' 
-                    : 'text-slate-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
+                    : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
                 }`}
               >
                 <History className="w-4 h-4" />
@@ -805,7 +806,7 @@ const Editor = () => {
             
             {/* Save Status */}
             {saving ? (
-              <div className="flex items-center gap-2 text-slate-400 text-sm">
+              <div className="flex items-center gap-2 text-zinc-500 text-sm">
                 <Loader2 className="w-4 h-4 animate-spin" />
                 <span>Saving...</span>
               </div>
@@ -818,12 +819,15 @@ const Editor = () => {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Anchors menu */}
+            <AnchorsMenu content={content} onContentChange={setContent} slug={slug} />
+
             {/* View Mode Toggle - Markdown / Split / Visual / Preview */}
             <div className="flex items-center bg-zinc-100 dark:bg-zinc-800/50 rounded-lg p-0.5">
               <button
                 onClick={() => setViewMode('markdown')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                  viewMode === 'markdown' ? 'bg-slate-700 text-zinc-950 dark:text-white' : 'text-slate-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
+                  viewMode === 'markdown' ? 'bg-white dark:bg-zinc-700 text-zinc-950 dark:text-white shadow-sm' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
                 }`}
                 title="Markdown Editor"
                 data-testid="view-mode-markdown"
@@ -834,7 +838,7 @@ const Editor = () => {
               <button
                 onClick={() => setViewMode('split')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                  viewMode === 'split' ? 'bg-slate-700 text-zinc-950 dark:text-white' : 'text-slate-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
+                  viewMode === 'split' ? 'bg-white dark:bg-zinc-700 text-zinc-950 dark:text-white shadow-sm' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
                 }`}
                 title="Split View"
                 data-testid="view-mode-split"
@@ -844,7 +848,7 @@ const Editor = () => {
               <button
                 onClick={() => setViewMode('visual')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                  viewMode === 'visual' ? 'bg-slate-700 text-zinc-950 dark:text-white' : 'text-slate-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
+                  viewMode === 'visual' ? 'bg-white dark:bg-zinc-700 text-zinc-950 dark:text-white shadow-sm' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
                 }`}
                 title="Visual Editor"
                 data-testid="view-mode-visual"
@@ -855,7 +859,7 @@ const Editor = () => {
               <button
                 onClick={() => setViewMode('preview')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                  viewMode === 'preview' ? 'bg-slate-700 text-zinc-950 dark:text-white' : 'text-slate-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
+                  viewMode === 'preview' ? 'bg-white dark:bg-zinc-700 text-zinc-950 dark:text-white shadow-sm' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
                 }`}
                 title="Device Preview"
                 data-testid="view-mode-preview"
@@ -871,7 +875,7 @@ const Editor = () => {
                 <button
                   onClick={() => setPreviewDevice('desktop')}
                   className={`p-2 rounded-md transition-colors ${
-                    previewDevice === 'desktop' ? 'bg-[#188455] text-zinc-950 dark:text-white' : 'text-slate-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
+                    previewDevice === 'desktop' ? 'bg-brand text-zinc-950 dark:text-white' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
                   }`}
                   title="Desktop (1280px)"
                   data-testid="device-desktop"
@@ -881,7 +885,7 @@ const Editor = () => {
                 <button
                   onClick={() => setPreviewDevice('tablet')}
                   className={`p-2 rounded-md transition-colors ${
-                    previewDevice === 'tablet' ? 'bg-[#188455] text-zinc-950 dark:text-white' : 'text-slate-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
+                    previewDevice === 'tablet' ? 'bg-brand text-zinc-950 dark:text-white' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
                   }`}
                   title="Tablet (768px)"
                   data-testid="device-tablet"
@@ -891,7 +895,7 @@ const Editor = () => {
                 <button
                   onClick={() => setPreviewDevice('mobile')}
                   className={`p-2 rounded-md transition-colors ${
-                    previewDevice === 'mobile' ? 'bg-[#188455] text-zinc-950 dark:text-white' : 'text-slate-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
+                    previewDevice === 'mobile' ? 'bg-brand text-zinc-950 dark:text-white' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
                   }`}
                   title="Mobile (375px)"
                   data-testid="device-mobile"
@@ -916,7 +920,7 @@ const Editor = () => {
                   setImagePickerMode('image');
                   setImagePickerOpen(true);
                 }}
-                className="flex items-center gap-2 px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white text-sm rounded-lg hover:bg-slate-700 transition-colors"
+                className="flex items-center gap-2 px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white text-sm rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
                 data-testid="image-picker-btn"
               >
                 <ImageIcon className="w-4 h-4" />
@@ -941,7 +945,7 @@ const Editor = () => {
             <button
               onClick={handleSave}
               disabled={saving}
-              className="flex items-center gap-2 px-4 py-1.5 bg-brand hover:bg-brand-600 disabled:opacity-50 text-zinc-950 dark:text-white text-sm font-medium rounded-lg transition-colors"
+              className="flex items-center gap-2 px-4 py-1.5 bg-brand hover:bg-brand-600-600 disabled:opacity-50 text-zinc-950 dark:text-white text-sm font-medium rounded-md transition-colors"
               data-testid="save-button"
             >
               {saving ? (
@@ -973,7 +977,7 @@ const Editor = () => {
                       data-testid="doc-title-input"
                     />
                     <p className="text-sm text-zinc-500 mt-1">
-                      Type <kbd className="px-1.5 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded text-xs text-slate-400">/</kbd> for commands
+                      Type <kbd className="px-1.5 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded text-xs text-zinc-500">/</kbd> for commands
                     </p>
                   </div>
                 </div>
@@ -1025,7 +1029,7 @@ const Editor = () => {
                   {/* Simulated Top Nav */}
                   <div className="sticky top-0 z-10 bg-[#020617]/80 backdrop-blur-xl border-b border-white/5 px-4 h-14 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-md bg-[#188455] flex items-center justify-center">
+                      <div className="w-6 h-6 rounded-md bg-brand flex items-center justify-center">
                         <FileText className="w-3 h-3 text-zinc-950 dark:text-white" />
                       </div>
                       <span className="font-semibold text-zinc-950 dark:text-white text-sm">{project?.name || 'Docs'}</span>
@@ -1040,7 +1044,7 @@ const Editor = () => {
                     {/* Title */}
                     <div className="flex items-center gap-3 mb-6">
                       {IconComponent && (
-                        <div className={`${previewDevice === 'mobile' ? 'w-8 h-8' : 'w-10 h-10'} rounded-lg bg-[#188455]/20 flex items-center justify-center text-[#188455]`}>
+                        <div className={`${previewDevice === 'mobile' ? 'w-8 h-8' : 'w-10 h-10'} rounded-lg bg-brand/20 flex items-center justify-center text-[#1588FC]`}>
                           <IconComponent className={previewDevice === 'mobile' ? 'w-4 h-4' : 'w-5 h-5'} />
                         </div>
                       )}
@@ -1120,7 +1124,7 @@ const Editor = () => {
         <DialogContent className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700 max-w-md">
           <DialogHeader>
             <DialogTitle className="text-zinc-950 dark:text-white">Link Document</DialogTitle>
-            <DialogDescription className="text-slate-400">
+            <DialogDescription className="text-zinc-500">
               {docToLink 
                 ? `Select a missing page to link "${docToLink.title}" to.`
                 : 'Select an unlinked document first.'}
@@ -1157,7 +1161,7 @@ const Editor = () => {
                             <div>
                               <p className="text-sm text-zinc-950 dark:text-white">{missing.title}</p>
                               <p className="text-xs text-zinc-500">
-                                <span className="text-red-400/70">missing:</span>{' '}
+                                <span className="text-rose-600 dark:text-rose-400/70">missing:</span>{' '}
                                 <span className="font-mono">{missing.slug}</span>
                               </p>
                               <p className="text-[10px] text-zinc-400 dark:text-zinc-600">in &quot;{missing.groupName}&quot;</p>
@@ -1216,7 +1220,7 @@ const DeviceFrame = ({ device, children }) => {
   return (
     <div className="flex flex-col items-center gap-4">
       {/* Device Label */}
-      <div className="flex items-center gap-2 text-slate-400 text-sm">
+      <div className="flex items-center gap-2 text-zinc-500 text-sm">
         {device === 'desktop' && <Monitor className="w-4 h-4" />}
         {device === 'tablet' && <Tablet className="w-4 h-4" />}
         {device === 'mobile' && <Smartphone className="w-4 h-4" />}

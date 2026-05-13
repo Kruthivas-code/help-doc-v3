@@ -13,7 +13,7 @@ const AdminLogin = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (user && !loading) navigate("/admin/dashboard", { replace: true });
+        if (user && !loading) navigate("/admin/edit", { replace: true });
     }, [user, loading, navigate]);
 
     if (loading) {
@@ -50,7 +50,7 @@ const AdminLogin = () => {
                     <h2 className="font-heading text-xl font-black tracking-tight text-zinc-950 dark:text-white text-center mb-1">
                         Welcome back
                     </h2>
-                    <p className="text-zinc-500 text-sm text-center mb-8">
+                    <p className="text-zinc-600 dark:text-zinc-300 text-sm text-center mb-8">
                         Sign in to manage your documentation
                     </p>
 
@@ -70,7 +70,7 @@ const AdminLogin = () => {
                     </button>
 
                     <div className="mt-6 text-center">
-                        <a href="/" className="text-xs text-zinc-500 hover:text-brand transition-colors">
+                        <a href="/" className="text-xs text-zinc-600 dark:text-zinc-300 hover:text-brand transition-colors">
                             ← Back to documentation
                         </a>
                     </div>

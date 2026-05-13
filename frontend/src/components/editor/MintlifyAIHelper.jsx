@@ -123,33 +123,33 @@ const SectionSuggestion = ({
   return (
     <div className={`border rounded-lg overflow-hidden transition-all ${
       hasSuggestion 
-        ? 'border-amber-500/30 bg-amber-500/5' 
-        : 'border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800/30'
+        ? 'border-amber-300 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/5' 
+        : 'border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/30'
     }`}>
       {/* Header */}
       <button 
         onClick={onToggleExpand}
-        className="w-full px-4 py-3 flex items-center justify-between hover:bg-white/5 transition-colors"
+        className="w-full px-4 py-3 flex items-center justify-between hover:bg-zinc-100/60 dark:hover:bg-white/5 transition-colors"
       >
         <div className="flex items-center gap-3">
           {isLoading ? (
-            <Loader2 className="w-4 h-4 text-amber-400 animate-spin" />
+            <Loader2 className="w-4 h-4 text-amber-600 dark:text-amber-400 animate-spin" />
           ) : hasSuggestion ? (
-            <AlertCircle className="w-4 h-4 text-amber-400" />
+            <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
           ) : (
             <CheckCircle className="w-4 h-4 text-brand" />
           )}
           <span className="font-medium text-zinc-950 dark:text-white text-sm">{section.title}</span>
           {hasSuggestion && (
-            <span className="px-2 py-0.5 text-xs rounded-full bg-amber-500/20 text-amber-400">
+            <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-transparent">
               Suggestions available
             </span>
           )}
         </div>
         {isExpanded ? (
-          <ChevronUp className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
+          <ChevronUp className="w-4 h-4 text-zinc-500" />
         ) : (
-          <ChevronDown className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
+          <ChevronDown className="w-4 h-4 text-zinc-500" />
         )}
       </button>
       
@@ -161,19 +161,19 @@ const SectionSuggestion = ({
               {/* Before/After Comparison */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <div className="text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-2 flex items-center gap-2">
+                  <div className="eyebrow text-zinc-500 mb-2 flex items-center gap-2">
                     <span>Original (Mintlify)</span>
                   </div>
-                  <pre className="p-3 bg-white dark:bg-zinc-900 rounded-lg text-xs text-zinc-600 dark:text-zinc-400 overflow-x-auto max-h-48 overflow-y-auto">
+                  <pre className="p-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-xs text-zinc-700 dark:text-zinc-300 overflow-x-auto max-h-48 overflow-y-auto font-mono">
                     {section.content.slice(0, 500)}{section.content.length > 500 ? '...' : ''}
                   </pre>
                 </div>
                 <div>
-                  <div className="text-xs font-medium text-brand mb-2 flex items-center gap-2">
+                  <div className="eyebrow text-brand mb-2 flex items-center gap-2">
                     <span>Suggested (Platform Format)</span>
                     <ArrowRight className="w-3 h-3" />
                   </div>
-                  <pre className="p-3 bg-emerald-900/20 border border-emerald-500/20 rounded-lg text-xs text-emerald-300 overflow-x-auto max-h-48 overflow-y-auto">
+                  <pre className="p-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-500/20 rounded-lg text-xs text-emerald-800 dark:text-brand-600 overflow-x-auto max-h-48 overflow-y-auto font-mono">
                     {suggestion.slice(0, 500)}{suggestion.length > 500 ? '...' : ''}
                   </pre>
                 </div>
@@ -183,14 +183,14 @@ const SectionSuggestion = ({
               <div className="flex items-center gap-2 justify-end">
                 <button
                   onClick={() => onReject(section)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white rounded-lg hover:bg-slate-700 transition-colors"
+                  className="btn-press flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white rounded-md border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
                 >
                   <X className="w-4 h-4" />
                   <span>Reject</span>
                 </button>
                 <button
                   onClick={() => onAccept(section, suggestion)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-emerald-600 hover:bg-brand-600 text-zinc-950 dark:text-white rounded-lg transition-colors"
+                  className="btn-press flex items-center gap-1.5 px-3 py-1.5 text-sm bg-brand text-white rounded-md font-bold hover:opacity-90 transition-opacity"
                 >
                   <Check className="w-4 h-4" />
                   <span>Accept</span>
@@ -348,19 +348,17 @@ export const MintlifyAIHelper = ({ content, onChange, onClose }) => {
             analyzeContent();
           }
         }}
-        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+        className={`btn-press flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-bold transition-colors ${
           isOpen 
-            ? 'bg-amber-600 text-zinc-950 dark:text-white' 
-            : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:bg-slate-700'
+            ? 'bg-amber-500 text-white' 
+            : 'bg-amber-100 dark:bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-500/30 hover:bg-amber-200 dark:hover:bg-amber-500/25'
         }`}
         data-testid="mintlify-helper-toggle"
       >
         <Wand2 className="w-4 h-4" />
         <span>Mintlify Helper</span>
         {suggestionCount > 0 && (
-          <span className="px-1.5 py-0.5 text-xs rounded-full bg-amber-500 text-zinc-950 dark:text-white">
-            {suggestionCount}
-          </span>
+          <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-amber-500 text-white">{suggestionCount}</span>
         )}
       </button>
 
@@ -377,7 +375,7 @@ export const MintlifyAIHelper = ({ content, onChange, onClose }) => {
               <button
                 onClick={analyzeContent}
                 disabled={isAnalyzing}
-                className="flex items-center gap-1.5 px-2 py-1 text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white rounded transition-colors"
+                className="flex items-center gap-1.5 px-2 py-1 text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white rounded-md transition-colors"
               >
                 <RefreshCw className={`w-3 h-3 ${isAnalyzing ? 'animate-spin' : ''}`} />
                 <span>Re-analyze</span>
@@ -393,14 +391,14 @@ export const MintlifyAIHelper = ({ content, onChange, onClose }) => {
 
           {/* Detected Patterns Summary */}
           {detectedPatterns.length > 0 && (
-            <div className="px-4 py-3 bg-amber-500/10 border-b border-amber-500/20">
+            <div className="px-4 py-3 bg-amber-50 dark:bg-amber-500/10 border-b border-amber-200 dark:border-amber-500/20">
               <div className="flex items-center gap-2 mb-2">
-                <AlertCircle className="w-4 h-4 text-amber-400" />
-                <span className="text-sm font-medium text-amber-400">Mintlify Syntax Detected</span>
+                <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                <span className="text-sm font-semibold text-amber-800 dark:text-amber-300">Mintlify Syntax Detected</span>
               </div>
               <div className="flex flex-wrap gap-2">
                 {detectedPatterns.map((p, i) => (
-                  <span key={i} className="px-2 py-1 text-xs rounded bg-amber-500/20 text-amber-300">
+                  <span key={i} className="px-2 py-1 text-xs rounded bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-200 border border-amber-200 dark:border-transparent">
                     {p.name} ({p.count})
                   </span>
                 ))}
@@ -417,7 +415,7 @@ export const MintlifyAIHelper = ({ content, onChange, onClose }) => {
               </div>
             ) : error ? (
               <div className="p-4 text-center">
-                <p className="text-red-400">{error}</p>
+                <p className="text-rose-600 dark:text-rose-400">{error}</p>
                 <button
                   onClick={analyzeContent}
                   className="mt-2 text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white"
@@ -453,13 +451,13 @@ export const MintlifyAIHelper = ({ content, onChange, onClose }) => {
 
           {/* Footer */}
           {suggestionCount > 0 && (
-            <div className="px-4 py-3 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-100 dark:bg-zinc-800/50">
-              <span className="text-sm text-zinc-600 dark:text-zinc-400">
+            <div className="px-4 py-3 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-50 dark:bg-zinc-800/50">
+              <span className="text-sm text-zinc-700 dark:text-zinc-300 font-medium">
                 {suggestionCount} suggestion{suggestionCount !== 1 ? 's' : ''} available
               </span>
               <button
                 onClick={handleAcceptAll}
-                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-brand-600 text-zinc-950 dark:text-white text-sm font-medium rounded-lg transition-colors"
+                className="btn-press flex items-center gap-2 px-4 py-2 bg-brand text-white text-sm font-bold rounded-md hover:opacity-90 transition-opacity"
               >
                 <Check className="w-4 h-4" />
                 <span>Accept All</span>

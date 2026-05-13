@@ -24,7 +24,7 @@ const ToolBtn = ({ onClick, active, disabled, children, title }) => (
     onClick={onClick}
     disabled={disabled}
     title={title}
-    className={`p-1.5 rounded transition-colors ${
+    className={`p-1.5 rounded-md transition-colors ${
       active ? 'bg-brand text-zinc-950 dark:text-white' : 'text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800'
     } ${disabled ? 'opacity-30 cursor-not-allowed' : ''}`}
   >
@@ -76,7 +76,7 @@ const ImageDialog = ({ isOpen, onClose, onInsert, projectId }) => {
         {tab === 'url' ? (
           <div className="space-y-3">
             <input type="text" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://..." className="w-full px-3 py-2 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-950 dark:text-white text-sm" />
-            <button onClick={() => { if(url) { onInsert(url); onClose(); }}} disabled={!url} className="w-full py-2 bg-brand hover:bg-brand disabled:opacity-50 text-zinc-950 dark:text-white rounded-lg text-sm font-medium">Insert</button>
+            <button onClick={() => { if(url) { onInsert(url); onClose(); }}} disabled={!url} className="w-full py-2 bg-brand hover:bg-brand-600 disabled:opacity-50 text-zinc-950 dark:text-white rounded-lg text-sm font-medium">Insert</button>
           </div>
         ) : (
           <div onClick={() => fileInputRef.current?.click()} className="border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-lg p-6 text-center cursor-pointer hover:border-brand">
@@ -103,7 +103,7 @@ const YoutubeDialog = ({ isOpen, onClose, onInsert }) => {
           <button onClick={onClose} className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white"><X className="w-5 h-5" /></button>
         </div>
         <input type="text" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://youtube.com/watch?v=..." className="w-full px-3 py-2 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-950 dark:text-white text-sm mb-3" />
-        <button onClick={() => { if(url) { onInsert(url); onClose(); }}} disabled={!url} className="w-full py-2 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-zinc-950 dark:text-white rounded-lg text-sm font-medium">Embed</button>
+        <button onClick={() => { if(url) { onInsert(url); onClose(); }}} disabled={!url} className="w-full py-2 bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-zinc-950 dark:text-white rounded-lg text-sm font-medium">Embed</button>
       </div>
     </div>
   );
@@ -201,7 +201,7 @@ export const MintlifyEditor = ({
             <Code className="w-4 h-4" />
           </ToolBtn>
           
-          <div className="w-px h-5 bg-slate-700 mx-1.5" />
+          <div className="w-px h-5 bg-zinc-200 dark:bg-zinc-700 mx-1.5" />
           
           {/* Headings */}
           <ToolBtn onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} active={editor.isActive('heading', { level: 1 })} title="H1">
@@ -214,7 +214,7 @@ export const MintlifyEditor = ({
             <Heading3 className="w-4 h-4" />
           </ToolBtn>
           
-          <div className="w-px h-5 bg-slate-700 mx-1.5" />
+          <div className="w-px h-5 bg-zinc-200 dark:bg-zinc-700 mx-1.5" />
           
           {/* Lists */}
           <ToolBtn onClick={() => editor.chain().focus().toggleBulletList().run()} active={editor.isActive('bulletList')} title="Bullet List">
@@ -230,7 +230,7 @@ export const MintlifyEditor = ({
             <FileCode className="w-4 h-4" />
           </ToolBtn>
           
-          <div className="w-px h-5 bg-slate-700 mx-1.5" />
+          <div className="w-px h-5 bg-zinc-200 dark:bg-zinc-700 mx-1.5" />
           
           {/* Media */}
           <ToolBtn onClick={() => setImageOpen(true)} title="Insert Image">
@@ -246,7 +246,7 @@ export const MintlifyEditor = ({
             {calloutOpen && <CalloutMenu editor={editor} onClose={() => setCalloutOpen(false)} />}
           </div>
           
-          <div className="w-px h-5 bg-slate-700 mx-1.5" />
+          <div className="w-px h-5 bg-zinc-200 dark:bg-zinc-700 mx-1.5" />
           
           {/* Undo/Redo */}
           <ToolBtn onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()} title="Undo">
@@ -261,21 +261,21 @@ export const MintlifyEditor = ({
         <div className="flex items-center gap-0.5 bg-zinc-100 dark:bg-zinc-800/50 rounded-lg p-0.5">
           <button
             onClick={() => setDevicePreview('desktop')}
-            className={`p-1.5 rounded ${devicePreview === 'desktop' ? 'bg-slate-700 text-zinc-950 dark:text-white' : 'text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'}`}
+            className={`p-1.5 rounded ${devicePreview === 'desktop' ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-950 dark:text-white' : 'text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'}`}
             title="Desktop view"
           >
             <Monitor className="w-4 h-4" />
           </button>
           <button
             onClick={() => setDevicePreview('tablet')}
-            className={`p-1.5 rounded ${devicePreview === 'tablet' ? 'bg-slate-700 text-zinc-950 dark:text-white' : 'text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'}`}
+            className={`p-1.5 rounded ${devicePreview === 'tablet' ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-950 dark:text-white' : 'text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'}`}
             title="Tablet view"
           >
             <Tablet className="w-4 h-4" />
           </button>
           <button
             onClick={() => setDevicePreview('mobile')}
-            className={`p-1.5 rounded ${devicePreview === 'mobile' ? 'bg-slate-700 text-zinc-950 dark:text-white' : 'text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'}`}
+            className={`p-1.5 rounded ${devicePreview === 'mobile' ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-950 dark:text-white' : 'text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'}`}
             title="Mobile view"
           >
             <Smartphone className="w-4 h-4" />

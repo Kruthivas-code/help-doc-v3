@@ -184,7 +184,7 @@ const Generator = () => {
             <button
               onClick={handleGenerate}
               disabled={generating || !code.trim()}
-              className="w-full h-11 bg-brand hover:bg-brand disabled:opacity-50 disabled:hover:bg-brand text-zinc-950 dark:text-white rounded-lg font-medium flex items-center justify-center gap-2 transition-colors"
+              className="w-full h-11 bg-brand hover:bg-brand-600 disabled:opacity-50 disabled:hover:bg-brand text-zinc-950 dark:text-white rounded-md font-medium flex items-center justify-center gap-2 transition-colors"
               data-testid="generate-button"
             >
               {generating ? (
@@ -229,7 +229,7 @@ const Generator = () => {
             {result && (
               <button
                 onClick={handleCopy}
-                className="h-8 px-3 bg-zinc-100 dark:bg-zinc-800 hover:bg-slate-700 text-zinc-700 dark:text-zinc-300 rounded-lg text-sm flex items-center gap-2 transition-colors"
+                className="h-8 px-3 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-md text-sm flex items-center gap-2 transition-colors"
                 data-testid="copy-button"
               >
                 {copied ? (

@@ -118,15 +118,17 @@ html.dark ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); 
    DESIGN SYSTEM UTILITIES
    ======================================================================== */
 @layer utilities {
-    /* Eyebrow — signature label above section headings */
+    /* Eyebrow — signature label above section headings.
+       Uses zinc-500 in light (4.5:1 on white) and zinc-400 in dark for AA contrast. */
     .eyebrow {
         font-size: 10px;
         letter-spacing: 0.3em;
         text-transform: uppercase;
         font-weight: 700;
-        color: hsl(var(--muted-foreground));
+        color: rgb(113 113 122); /* zinc-500 */
         display: inline-block;
     }
+    html.dark .eyebrow { color: rgb(161 161 170); } /* zinc-400 */
 
     /* Heading classes (Geist) */
     .h-display { font-family: var(--font-heading); font-weight: 900; letter-spacing: -0.025em; line-height: 1.04; }

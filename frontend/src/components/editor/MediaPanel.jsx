@@ -129,14 +129,14 @@ export const MediaPanel = ({ projectId, onClose }) => {
         <div className="flex items-center gap-2">
           <button
             onClick={fetchAssets}
-            className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800"
           >
             <RefreshCw className="w-4 h-4" />
           </button>
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
-            className="px-3 py-1.5 bg-brand hover:bg-brand disabled:opacity-50 text-zinc-950 dark:text-white text-sm font-medium rounded-lg flex items-center gap-2"
+            className="px-3 py-1.5 bg-brand hover:bg-brand-600 disabled:opacity-50 text-zinc-950 dark:text-white text-sm font-medium rounded-lg flex items-center gap-2"
           >
             {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
             Add
@@ -230,7 +230,7 @@ export const MediaPanel = ({ projectId, onClose }) => {
                     </div>
                     <button
                       onClick={(e) => { e.stopPropagation(); deleteAsset(asset); }}
-                      className="p-1.5 text-zinc-500 hover:text-red-400 opacity-0 group-hover:opacity-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded"
+                      className="p-1.5 text-zinc-500 hover:text-rose-600 dark:text-rose-400 opacity-0 group-hover:opacity-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -283,7 +283,7 @@ export const MediaPanel = ({ projectId, onClose }) => {
                   />
                   <button
                     onClick={() => copyUrl(selectedAsset.url)}
-                    className="p-1.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-slate-700 rounded"
+                    className="p-1.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700 rounded"
                   >
                     {copied ? <Check className="w-4 h-4 text-brand" /> : <Copy className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />}
                   </button>
@@ -293,7 +293,7 @@ export const MediaPanel = ({ projectId, onClose }) => {
             
             <button
               onClick={() => deleteAsset(selectedAsset)}
-              className="w-full mt-4 px-3 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg text-sm flex items-center justify-center gap-2"
+              className="w-full mt-4 px-3 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 rounded-lg text-sm flex items-center justify-center gap-2"
             >
               <Trash2 className="w-4 h-4" />
               Delete

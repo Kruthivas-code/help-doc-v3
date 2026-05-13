@@ -27,7 +27,7 @@ export const Tabs = ({ children, defaultTab = 0, className = '' }) => {
             className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors border-b-2 -mb-px ${
               activeTab === index
                 ? 'text-emerald-600 dark:text-brand border-emerald-600 dark:border-indigo-400'
-                : 'text-zinc-500 dark:text-zinc-400 border-transparent hover:text-slate-900 dark:hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:border-zinc-300 dark:hover:border-slate-600'
+                : 'text-zinc-500 dark:text-zinc-400 border-transparent hover:text-slate-900 dark:hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:border-zinc-300 dark:hover:border-zinc-300 dark:border-zinc-600'
             }`}
             data-testid={`tab-${index}`}
           >

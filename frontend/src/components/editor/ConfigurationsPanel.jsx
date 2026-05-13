@@ -37,7 +37,7 @@ const ColorPicker = ({ label, value, onChange, description }) => {
       <div className="flex items-center gap-2">
         <input
           type="color"
-          value={value || '#188455'}
+          value={value || '#1588FC'}
           onChange={(e) => onChange(e.target.value)}
           className="w-10 h-10 rounded-lg cursor-pointer bg-transparent border border-zinc-200 dark:border-zinc-800"
         />
@@ -45,7 +45,7 @@ const ColorPicker = ({ label, value, onChange, description }) => {
           type="text"
           value={value || ''}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="#188455"
+          placeholder="#1588FC"
           className="flex-1 px-3 py-2 bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-950 dark:text-white text-sm font-mono"
         />
       </div>
@@ -55,10 +55,10 @@ const ColorPicker = ({ label, value, onChange, description }) => {
 
 const ThemeCard = ({ theme, selected, onClick, accentColor }) => {
   const themes = {
-    default: { name: 'Default', bg: '#020617', accent: accentColor || '#188455' },
+    default: { name: 'Default', bg: '#020617', accent: accentColor || '#1588FC' },
     mint: { name: 'Mint', bg: '#020617', accent: '#10b981' },
     dark: { name: 'Dark', bg: '#030712', accent: '#3b82f6' },
-    light: { name: 'Light', bg: '#f8fafc', accent: accentColor || '#188455' }
+    light: { name: 'Light', bg: '#f8fafc', accent: accentColor || '#1588FC' }
   };
   
   const t = themes[theme];
@@ -68,7 +68,7 @@ const ThemeCard = ({ theme, selected, onClick, accentColor }) => {
     <button
       onClick={() => onClick(theme)}
       className={`relative p-3 rounded-xl border-2 transition-all ${
-        selected ? 'border-[#188455] bg-[#188455]/10' : 'border-zinc-200 dark:border-zinc-800 hover:border-slate-600'
+        selected ? 'border-[#1588FC] bg-brand/10' : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:border-zinc-600'
       }`}
       data-testid={`theme-${theme}`}
     >
@@ -78,7 +78,7 @@ const ThemeCard = ({ theme, selected, onClick, accentColor }) => {
       </div>
       <span className="text-sm text-zinc-700 dark:text-zinc-300">{t.name}</span>
       {selected && (
-        <div className="absolute top-2 right-2 w-5 h-5 bg-[#188455] rounded-full flex items-center justify-center">
+        <div className="absolute top-2 right-2 w-5 h-5 bg-brand rounded-full flex items-center justify-center">
           <Check className="w-3 h-3 text-zinc-950 dark:text-white" />
         </div>
       )}
@@ -103,8 +103,8 @@ const BackgroundPatternPicker = ({ value, onChange }) => {
             onClick={() => onChange(pattern.id)}
             className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all ${
               value === pattern.id 
-                ? 'border-[#188455] bg-[#188455]/10 text-zinc-950 dark:text-white' 
-                : 'border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-slate-600'
+                ? 'border-[#1588FC] bg-brand/10 text-zinc-950 dark:text-white' 
+                : 'border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-zinc-300 dark:border-zinc-600'
             }`}
           >
             <pattern.icon className="w-4 h-4" />
@@ -157,7 +157,7 @@ const ImageUploader = ({ label, value, onChange, description, projectId }) => {
             />
             <button
               onClick={() => onChange('')}
-              className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+              className="absolute -top-2 -right-2 w-5 h-5 bg-rose-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
             >
               <X className="w-3 h-3 text-zinc-950 dark:text-white" />
             </button>
@@ -165,7 +165,7 @@ const ImageUploader = ({ label, value, onChange, description, projectId }) => {
         ) : (
           <div 
             onClick={() => fileInputRef.current?.click()}
-            className="h-12 w-24 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-lg flex items-center justify-center cursor-pointer hover:border-slate-600 transition-colors"
+            className="h-12 w-24 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-lg flex items-center justify-center cursor-pointer hover:border-zinc-300 dark:border-zinc-600 transition-colors"
           >
             {uploading ? (
               <Loader2 className="w-5 h-5 animate-spin text-zinc-500" />
@@ -265,7 +265,7 @@ const NavGroupEditor = ({ group, index, onChange, onRemove, depth = 0, onCreateD
         <button onClick={() => setExpanded(!expanded)} className="p-0.5">
           {expanded ? <ChevronDown className="w-4 h-4 text-zinc-500" /> : <ChevronRight className="w-4 h-4 text-zinc-500" />}
         </button>
-        <FolderTree className={`w-4 h-4 ${depth === 0 ? 'text-[#188455]' : depth === 1 ? 'text-blue-400' : 'text-brand'}`} />
+        <FolderTree className={`w-4 h-4 ${depth === 0 ? 'text-[#1588FC]' : depth === 1 ? 'text-blue-400' : 'text-brand'}`} />
         <input
           type="text"
           value={group.group || ''}
@@ -275,7 +275,7 @@ const NavGroupEditor = ({ group, index, onChange, onRemove, depth = 0, onCreateD
         />
         <button
           onClick={() => onRemove(index)}
-          className="p-1.5 text-zinc-500 hover:text-red-400 transition-colors"
+          className="p-1.5 text-zinc-500 hover:text-rose-600 dark:text-rose-400 transition-colors"
           title="Remove group"
         >
           <Trash2 className="w-4 h-4" />
@@ -319,12 +319,12 @@ const NavGroupEditor = ({ group, index, onChange, onRemove, depth = 0, onCreateD
                   />
                   {creatingDoc === pageIndex ? (
                     <div className="p-2 flex-shrink-0">
-                      <Loader2 className="w-4 h-4 animate-spin text-[#188455]" />
+                      <Loader2 className="w-4 h-4 animate-spin text-[#1588FC]" />
                     </div>
                   ) : (
                     <button
                       onClick={() => removePage(pageIndex)}
-                      className="p-2 text-zinc-500 hover:text-red-400 flex-shrink-0 transition-colors"
+                      className="p-2 text-zinc-500 hover:text-rose-600 dark:text-rose-400 flex-shrink-0 transition-colors"
                       title="Remove page"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -350,7 +350,7 @@ const NavGroupEditor = ({ group, index, onChange, onRemove, depth = 0, onCreateD
                     }`}
                   />
                   {page.page?.startsWith('api') && (
-                    <span className="text-xs text-red-400">Slug cannot start with "api"</span>
+                    <span className="text-xs text-rose-600 dark:text-rose-400">Slug cannot start with "api"</span>
                   )}
                 </div>
               </div>
@@ -380,7 +380,7 @@ const NavGroupEditor = ({ group, index, onChange, onRemove, depth = 0, onCreateD
             {canAddSubgroup && (
               <button
                 onClick={addSubgroup}
-                className="flex items-center gap-1.5 px-2 py-1 text-xs text-[#188455] hover:text-emerald-300 transition-colors"
+                className="flex items-center gap-1.5 px-2 py-1 text-xs text-[#1588FC] hover:text-brand-600 transition-colors"
               >
                 <FolderTree className="w-3 h-3" />
                 Add Subgroup
@@ -419,8 +419,8 @@ const SortableTabItem = ({ tab, index, activeTabIndex, setActiveTabIndex, update
       style={style}
       className={`flex items-center gap-2 p-2 rounded-lg border transition-colors cursor-pointer ${
         activeTabIndex === index 
-          ? 'border-[#188455] bg-[#188455]/10' 
-          : 'border-zinc-200 dark:border-zinc-800 hover:border-slate-600'
+          ? 'border-[#1588FC] bg-brand/10' 
+          : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:border-zinc-600'
       } ${isDragging ? 'shadow-lg' : ''}`}
       onClick={() => setActiveTabIndex(index)}
     >
@@ -459,7 +459,7 @@ const SortableTabItem = ({ tab, index, activeTabIndex, setActiveTabIndex, update
           e.stopPropagation();
           removeTab(index);
         }}
-        className="p-1.5 text-zinc-500 hover:text-red-400 transition-colors"
+        className="p-1.5 text-zinc-500 hover:text-rose-600 dark:text-rose-400 transition-colors"
         disabled={tabsLength <= 1}
         title="Remove tab"
       >
@@ -565,7 +565,7 @@ const NavGroupEditorWithHandle = ({ group, index, onChange, onRemove, depth = 0,
 
   return (
     <div 
-      className={`bg-zinc-100 dark:bg-zinc-800/30 rounded-lg p-3 space-y-2 ${depth > 0 ? 'ml-4 border-l-2 border-zinc-200 dark:border-zinc-800' : ''} ${isDragging ? 'shadow-lg ring-2 ring-[#188455]' : ''}`} 
+      className={`bg-zinc-100 dark:bg-zinc-800/30 rounded-lg p-3 space-y-2 ${depth > 0 ? 'ml-4 border-l-2 border-zinc-200 dark:border-zinc-800' : ''} ${isDragging ? 'shadow-lg ring-2 ring-[#1588FC]' : ''}`} 
       data-testid={`nav-group-${depth}-${index}`}
     >
       <div className="flex items-center gap-2">
@@ -581,7 +581,7 @@ const NavGroupEditorWithHandle = ({ group, index, onChange, onRemove, depth = 0,
         <button onClick={() => setExpanded(!expanded)} className="p-0.5">
           {expanded ? <ChevronDown className="w-4 h-4 text-zinc-500" /> : <ChevronRight className="w-4 h-4 text-zinc-500" />}
         </button>
-        <FolderTree className={`w-4 h-4 ${depth === 0 ? 'text-[#188455]' : depth === 1 ? 'text-blue-400' : 'text-brand'}`} />
+        <FolderTree className={`w-4 h-4 ${depth === 0 ? 'text-[#1588FC]' : depth === 1 ? 'text-blue-400' : 'text-brand'}`} />
         <input
           type="text"
           value={group.group || ''}
@@ -591,7 +591,7 @@ const NavGroupEditorWithHandle = ({ group, index, onChange, onRemove, depth = 0,
         />
         <button
           onClick={() => onRemove(index)}
-          className="p-1.5 text-zinc-500 hover:text-red-400 transition-colors"
+          className="p-1.5 text-zinc-500 hover:text-rose-600 dark:text-rose-400 transition-colors"
           title="Remove group"
         >
           <Trash2 className="w-4 h-4" />
@@ -637,7 +637,7 @@ const NavGroupEditorWithHandle = ({ group, index, onChange, onRemove, depth = 0,
                   )}
                   <button
                     onClick={() => removePage(pageIndex)}
-                    className="p-1.5 text-zinc-500 hover:text-red-400 transition-colors"
+                    className="p-1.5 text-zinc-500 hover:text-rose-600 dark:text-rose-400 transition-colors"
                     title="Remove page"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -662,7 +662,7 @@ const NavGroupEditorWithHandle = ({ group, index, onChange, onRemove, depth = 0,
                     }`}
                   />
                   {page.page?.startsWith('api') && (
-                    <span className="text-xs text-red-400 whitespace-nowrap">Cannot start with "api"</span>
+                    <span className="text-xs text-rose-600 dark:text-rose-400 whitespace-nowrap">Cannot start with "api"</span>
                   )}
                 </div>
               </div>
@@ -692,7 +692,7 @@ const NavGroupEditorWithHandle = ({ group, index, onChange, onRemove, depth = 0,
             {canAddSubgroup && (
               <button
                 onClick={addSubgroup}
-                className="flex items-center gap-1.5 px-2 py-1 text-xs text-[#188455] hover:text-emerald-300 transition-colors"
+                className="flex items-center gap-1.5 px-2 py-1 text-xs text-[#1588FC] hover:text-brand-600 transition-colors"
               >
                 <FolderTree className="w-3 h-3" />
                 Add Subgroup
@@ -842,7 +842,7 @@ const NavigationEditor = ({ navigation, onChange, onCreateDocument }) => {
         <button
           onClick={() => handleViewModeChange('visual')}
           className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-            viewMode === 'visual' ? 'bg-slate-700 text-zinc-950 dark:text-white' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
+            viewMode === 'visual' ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-950 dark:text-white' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
           }`}
           data-testid="nav-visual-mode-btn"
         >
@@ -851,7 +851,7 @@ const NavigationEditor = ({ navigation, onChange, onCreateDocument }) => {
         <button
           onClick={() => handleViewModeChange('json')}
           className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-            viewMode === 'json' ? 'bg-slate-700 text-zinc-950 dark:text-white' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
+            viewMode === 'json' ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-950 dark:text-white' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'
           }`}
           data-testid="nav-json-mode-btn"
         >
@@ -904,7 +904,7 @@ const NavigationEditor = ({ navigation, onChange, onCreateDocument }) => {
             
             <button
               onClick={addTab}
-              className="flex items-center gap-1.5 px-2 py-1 text-xs text-[#188455] hover:text-emerald-300"
+              className="flex items-center gap-1.5 px-2 py-1 text-xs text-[#1588FC] hover:text-brand-600"
             >
               <Plus className="w-3 h-3" />
               Add Tab
@@ -949,7 +949,7 @@ const NavigationEditor = ({ navigation, onChange, onCreateDocument }) => {
               
             <button
               onClick={addGroup}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2 mt-2 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:border-slate-600 transition-colors"
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 mt-2 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-md text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:border-zinc-300 dark:border-zinc-600 transition-colors"
               data-testid="add-nav-group-btn"
             >
               <Plus className="w-4 h-4" />
@@ -968,7 +968,7 @@ const NavigationEditor = ({ navigation, onChange, onCreateDocument }) => {
             spellCheck="false"
             data-testid="nav-json-textarea"
           />
-          {jsonError && <p className="text-xs text-red-400">{jsonError}</p>}
+          {jsonError && <p className="text-xs text-rose-600 dark:text-rose-400">{jsonError}</p>}
           <p className="text-xs text-zinc-500">
             Structure: {`{ "tabs": [{ "id": "...", "label": "Tab Name", "icon": "book", "groups": [...] }] }`}
           </p>
@@ -1026,7 +1026,7 @@ const NavbarEditor = ({ navbar, onChange }) => {
                 placeholder="https://..."
                 className="flex-1 px-2 py-1.5 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded text-zinc-950 dark:text-white text-sm placeholder:text-zinc-500"
               />
-              <button onClick={() => removeLink(index)} className="p-1.5 text-zinc-500 hover:text-red-400">
+              <button onClick={() => removeLink(index)} className="p-1.5 text-zinc-500 hover:text-rose-600 dark:text-rose-400">
                 <Trash2 className="w-4 h-4" />
               </button>
             </div>
@@ -1072,7 +1072,7 @@ const ToggleSwitch = ({ label, checked, onChange }) => (
     <span className="text-sm text-zinc-600 dark:text-zinc-400">{label}</span>
     <button
       onClick={() => onChange(!checked)}
-      className={`w-10 h-6 rounded-full transition-colors ${checked ? 'bg-[#188455]' : 'bg-slate-700'}`}
+      className={`w-10 h-6 rounded-full transition-colors ${checked ? 'bg-brand' : 'bg-zinc-200 dark:bg-zinc-700'}`}
     >
       <div className={`w-4 h-4 bg-white rounded-full transition-transform mx-1 ${checked ? 'translate-x-4' : ''}`} />
     </button>
@@ -1094,7 +1094,7 @@ export const ConfigurationsPanel = ({ projectId, onClose }) => {
       setConfig({
         site_title: '',
         site_description: '',
-        primary_color: '#188455',
+        primary_color: '#1588FC',
         theme: 'default',
         background_pattern: 'grid',
         toc_enabled: true,
@@ -1273,7 +1273,7 @@ export const ConfigurationsPanel = ({ projectId, onClose }) => {
           <button
             onClick={saveConfig}
             disabled={saving}
-            className="flex items-center gap-2 px-3 py-1.5 bg-[#188455] hover:bg-[#157149] disabled:opacity-50 text-zinc-950 dark:text-white text-sm rounded-lg transition-colors"
+            className="flex items-center gap-2 px-3 py-1.5 bg-brand hover:bg-brand-600-600 disabled:opacity-50 text-zinc-950 dark:text-white text-sm rounded-md transition-colors"
             data-testid="save-config-btn"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
@@ -1385,7 +1385,7 @@ export const ConfigurationsPanel = ({ projectId, onClose }) => {
                     <ColorPicker
                       label="Primary Accent Color"
                       description="Used for highlights, links, and active states"
-                      value={config.primary_color || '#188455'}
+                      value={config.primary_color || '#1588FC'}
                       onChange={(c) => updateConfig('primary_color', c)}
                     />
                     <BackgroundPatternPicker
@@ -1438,7 +1438,7 @@ export const ConfigurationsPanel = ({ projectId, onClose }) => {
                         <button
                           onClick={syncAllPages}
                           disabled={syncing}
-                          className="flex items-center gap-2 px-3 py-1.5 bg-brand hover:bg-brand disabled:opacity-50 text-zinc-950 dark:text-white text-xs rounded-lg transition-colors"
+                          className="flex items-center gap-2 px-3 py-1.5 bg-brand hover:bg-brand-600 disabled:opacity-50 text-zinc-950 dark:text-white text-xs rounded-md transition-colors"
                           data-testid="sync-pages-btn"
                         >
                           {syncing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
@@ -1446,7 +1446,7 @@ export const ConfigurationsPanel = ({ projectId, onClose }) => {
                         </button>
                       </div>
                       {syncResult && (
-                        <div className={`mt-2 text-xs ${syncResult.error ? 'text-red-400' : 'text-brand'}`}>
+                        <div className={`mt-2 text-xs ${syncResult.error ? 'text-rose-600 dark:text-rose-400' : 'text-brand'}`}>
                           {syncResult.error 
                             ? syncResult.error 
                             : `✓ Created ${syncResult.created} new pages (${syncResult.skipped} already existed)`

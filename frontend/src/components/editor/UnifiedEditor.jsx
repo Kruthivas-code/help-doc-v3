@@ -26,7 +26,7 @@ const ToolBtn = ({ onClick, active, disabled, children, title }) => (
     onClick={onClick}
     disabled={disabled}
     title={title}
-    className={`p-1.5 rounded transition-all ${
+    className={`p-1.5 rounded-md transition-all ${
       active ? 'bg-brand text-zinc-950 dark:text-white' : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800'
     } ${disabled ? 'opacity-30 cursor-not-allowed' : ''}`}
   >
@@ -34,7 +34,7 @@ const ToolBtn = ({ onClick, active, disabled, children, title }) => (
   </button>
 );
 
-const Divider = () => <div className="w-px h-5 bg-slate-700/50 mx-1" />;
+const Divider = () => <div className="w-px h-5 bg-zinc-200 dark:bg-zinc-700/50 mx-1" />;
 
 // Image Dialog
 const ImageDialog = ({ isOpen, onClose, onInsert, projectId }) => {
@@ -83,7 +83,7 @@ const ImageDialog = ({ isOpen, onClose, onInsert, projectId }) => {
             <div className="space-y-3">
               <input type="text" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://example.com/image.png" className="w-full px-3 py-2.5 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-950 dark:text-white text-sm placeholder:text-zinc-500" />
               <input type="text" value={alt} onChange={(e) => setAlt(e.target.value)} placeholder="Alt text (optional)" className="w-full px-3 py-2.5 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-950 dark:text-white text-sm placeholder:text-zinc-500" />
-              <button onClick={() => { if(url) { onInsert(url, alt); onClose(); setUrl(''); setAlt(''); }}} disabled={!url} className="w-full py-2.5 bg-brand hover:bg-brand disabled:opacity-50 text-zinc-950 dark:text-white rounded-lg text-sm font-medium transition-colors">Insert Image</button>
+              <button onClick={() => { if(url) { onInsert(url, alt); onClose(); setUrl(''); setAlt(''); }}} disabled={!url} className="w-full py-2.5 bg-brand hover:bg-brand-600 disabled:opacity-50 text-zinc-950 dark:text-white rounded-lg text-sm font-medium transition-colors">Insert Image</button>
             </div>
           ) : (
             <div onClick={() => fileInputRef.current?.click()} className="border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl p-8 text-center cursor-pointer hover:border-brand transition-colors">
@@ -133,7 +133,7 @@ const YoutubeDialog = ({ isOpen, onClose, onInsert }) => {
             const id = extractVideoId(url);
             if(id) { onInsert(`https://www.youtube.com/embed/${id}`); onClose(); setUrl(''); }
             else alert('Invalid YouTube URL');
-          }} disabled={!url} className="w-full py-2.5 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-zinc-950 dark:text-white rounded-lg text-sm font-medium transition-colors">Embed Video</button>
+          }} disabled={!url} className="w-full py-2.5 bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-zinc-950 dark:text-white rounded-lg text-sm font-medium transition-colors">Embed Video</button>
         </div>
       </div>
     </div>
@@ -157,8 +157,8 @@ const LinkDialog = ({ isOpen, onClose, onInsert, initialUrl = '' }) => {
         <div className="p-4 space-y-3">
           <input type="text" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://example.com" className="w-full px-3 py-2.5 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-950 dark:text-white text-sm placeholder:text-zinc-500" />
           <div className="flex gap-2">
-            <button onClick={() => { onInsert(''); onClose(); }} className="flex-1 py-2.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-slate-700 text-zinc-950 dark:text-white rounded-lg text-sm font-medium">Remove Link</button>
-            <button onClick={() => { onInsert(url); onClose(); }} className="flex-1 py-2.5 bg-brand hover:bg-brand text-zinc-950 dark:text-white rounded-lg text-sm font-medium">Save Link</button>
+            <button onClick={() => { onInsert(''); onClose(); }} className="flex-1 py-2.5 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700 text-zinc-950 dark:text-white rounded-lg text-sm font-medium">Remove Link</button>
+            <button onClick={() => { onInsert(url); onClose(); }} className="flex-1 py-2.5 bg-brand hover:bg-brand-600 text-zinc-950 dark:text-white rounded-lg text-sm font-medium">Save Link</button>
           </div>
         </div>
       </div>
@@ -405,21 +405,21 @@ export const UnifiedEditor = ({
         <div className="flex items-center gap-0.5 bg-zinc-100 dark:bg-zinc-800/50 rounded-lg p-0.5">
           <button
             onClick={() => setDevicePreview('desktop')}
-            className={`p-1.5 rounded transition-colors ${devicePreview === 'desktop' ? 'bg-slate-700 text-zinc-950 dark:text-white' : 'text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'}`}
+            className={`p-1.5 rounded transition-colors ${devicePreview === 'desktop' ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-950 dark:text-white' : 'text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'}`}
             title="Desktop preview"
           >
             <Monitor className="w-4 h-4" />
           </button>
           <button
             onClick={() => setDevicePreview('tablet')}
-            className={`p-1.5 rounded transition-colors ${devicePreview === 'tablet' ? 'bg-slate-700 text-zinc-950 dark:text-white' : 'text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'}`}
+            className={`p-1.5 rounded transition-colors ${devicePreview === 'tablet' ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-950 dark:text-white' : 'text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'}`}
             title="Tablet preview"
           >
             <Tablet className="w-4 h-4" />
           </button>
           <button
             onClick={() => setDevicePreview('mobile')}
-            className={`p-1.5 rounded transition-colors ${devicePreview === 'mobile' ? 'bg-slate-700 text-zinc-950 dark:text-white' : 'text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'}`}
+            className={`p-1.5 rounded transition-colors ${devicePreview === 'mobile' ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-950 dark:text-white' : 'text-zinc-500 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white'}`}
             title="Mobile preview"
           >
             <Smartphone className="w-4 h-4" />

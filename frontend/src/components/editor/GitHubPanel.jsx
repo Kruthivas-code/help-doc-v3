@@ -207,7 +207,7 @@ export const GitHubPanel = ({ projectId, onClose }) => {
           <Github className="w-5 h-5 text-zinc-950 dark:text-white" />
           <h2 className="font-semibold text-zinc-950 dark:text-white">GitHub Integration</h2>
         </div>
-        <button onClick={onClose} className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded">
+        <button onClick={onClose} className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md">
           <X className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
         </button>
       </div>
@@ -215,7 +215,7 @@ export const GitHubPanel = ({ projectId, onClose }) => {
       {/* Message */}
       {message && (
         <div className={`mx-4 mt-3 px-3 py-2 rounded-lg text-sm flex items-center gap-2 ${
-          message.type === 'success' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+          message.type === 'success' ? 'bg-brand/20 text-green-400' : 'bg-rose-500/20 text-rose-600 dark:text-rose-400'
         }`}>
           {message.type === 'success' ? <Check className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
           {message.text}
@@ -253,7 +253,7 @@ export const GitHubPanel = ({ projectId, onClose }) => {
             {status.connected ? (
               <button
                 onClick={disconnectGitHub}
-                className="flex items-center gap-2 px-3 py-1.5 text-sm text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-3 py-1.5 text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-500/20 rounded-md transition-colors"
               >
                 <Unlink className="w-4 h-4" />
                 Disconnect
@@ -261,7 +261,7 @@ export const GitHubPanel = ({ projectId, onClose }) => {
             ) : (
               <button
                 onClick={connectGitHub}
-                className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-zinc-950 dark:text-white rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:bg-zinc-600 text-zinc-950 dark:text-white rounded-md transition-colors"
               >
                 <Github className="w-4 h-4" />
                 Connect GitHub
@@ -330,7 +330,7 @@ export const GitHubPanel = ({ projectId, onClose }) => {
                     <Github className="w-4 h-4 flex-shrink-0" />
                     <span className="flex-1 truncate text-sm">{repo.full_name}</span>
                     {repo.private && (
-                      <span className="text-xs px-1.5 py-0.5 bg-slate-700 rounded text-zinc-600 dark:text-zinc-400">private</span>
+                      <span className="text-xs px-1.5 py-0.5 bg-zinc-200 dark:bg-zinc-700 rounded text-zinc-600 dark:text-zinc-400">private</span>
                     )}
                   </button>
                 ))}
@@ -384,7 +384,7 @@ export const GitHubPanel = ({ projectId, onClose }) => {
                         }}
                         className={`w-full flex items-center gap-2 px-2 py-1.5 rounded text-left text-sm ${
                           item.type === 'dir' 
-                            ? 'hover:bg-slate-700 text-zinc-700 dark:text-zinc-300' 
+                            ? 'hover:bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300' 
                             : 'text-zinc-500'
                         }`}
                         disabled={item.type !== 'dir'}
@@ -408,7 +408,7 @@ export const GitHubPanel = ({ projectId, onClose }) => {
                   <button
                     onClick={importFromPath}
                     disabled={importing}
-                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-green-600 hover:bg-green-500 disabled:opacity-50 text-zinc-950 dark:text-white text-sm rounded-lg transition-colors"
+                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-brand hover:bg-brand-600 disabled:opacity-50 text-zinc-950 dark:text-white text-sm rounded-md transition-colors"
                   >
                     {importing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                     Import from here
@@ -416,7 +416,7 @@ export const GitHubPanel = ({ projectId, onClose }) => {
                   <button
                     onClick={exportToRepo}
                     disabled={exporting}
-                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-brand hover:bg-brand disabled:opacity-50 text-zinc-950 dark:text-white text-sm rounded-lg transition-colors"
+                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-brand hover:bg-brand-600 disabled:opacity-50 text-zinc-950 dark:text-white text-sm rounded-md transition-colors"
                   >
                     {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                     Export here
@@ -426,7 +426,7 @@ export const GitHubPanel = ({ projectId, onClose }) => {
                 {!link && (
                   <button
                     onClick={linkRepo}
-                    className="w-full flex items-center justify-center gap-2 px-3 py-2 border border-slate-600 hover:border-slate-500 text-zinc-700 dark:text-zinc-300 text-sm rounded-lg transition-colors"
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 border border-zinc-300 dark:border-zinc-600 hover:border-slate-500 text-zinc-700 dark:text-zinc-300 text-sm rounded-md transition-colors"
                   >
                     <Link2 className="w-4 h-4" />
                     Link this repository

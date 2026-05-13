@@ -14,9 +14,9 @@ const API = process.env.REACT_APP_BACKEND_URL;
 const TabButton = ({ active, onClick, children, icon: Icon }) => (
   <button
     onClick={onClick}
-    className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+    className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
       active 
-        ? 'bg-emerald-600 text-zinc-950 dark:text-white' 
+        ? 'bg-brand text-zinc-950 dark:text-white' 
         : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white hover:bg-white/5'
     }`}
   >
@@ -32,7 +32,7 @@ const ImageCard = ({ image, selected, onSelect }) => (
     className={`relative group rounded-lg overflow-hidden border-2 transition-all ${
       selected 
         ? 'border-emerald-500 ring-2 ring-emerald-500/30' 
-        : 'border-transparent hover:border-slate-600'
+        : 'border-transparent hover:border-zinc-300 dark:border-zinc-600'
     }`}
   >
     <img 
@@ -43,7 +43,7 @@ const ImageCard = ({ image, selected, onSelect }) => (
     />
     {selected && (
       <div className="absolute inset-0 bg-brand/20 flex items-center justify-center">
-        <div className="bg-emerald-500 rounded-full p-1">
+        <div className="bg-brand rounded-full p-1">
           <Check className="w-4 h-4 text-zinc-950 dark:text-white" />
         </div>
       </div>
@@ -132,7 +132,7 @@ const GifSearch = ({ onSelect, selectedImage }) => {
         </div>
         <button
           onClick={searchGifs}
-          className="px-4 py-2 bg-emerald-600 hover:bg-brand-600 text-zinc-950 dark:text-white rounded-lg transition-colors"
+          className="px-4 py-2 bg-brand hover:bg-brand-600-600 text-zinc-950 dark:text-white rounded-md transition-colors"
         >
           Search
         </button>
@@ -213,7 +213,7 @@ const StockImageSearch = ({ onSelect, selectedImage }) => {
         </div>
         <button
           onClick={handleSearch}
-          className="px-4 py-2 bg-emerald-600 hover:bg-brand-600 text-zinc-950 dark:text-white rounded-lg transition-colors"
+          className="px-4 py-2 bg-brand hover:bg-brand-600-600 text-zinc-950 dark:text-white rounded-md transition-colors"
         >
           Search
         </button>
@@ -229,7 +229,7 @@ const StockImageSearch = ({ onSelect, selectedImage }) => {
                 setQuery(suggestion);
                 searchImages(suggestion, 1);
               }}
-              className="px-3 py-1 text-sm bg-zinc-100 dark:bg-zinc-800 hover:bg-slate-700 text-zinc-700 dark:text-zinc-300 rounded-full transition-colors"
+              className="px-3 py-1 text-sm bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 rounded-full transition-colors"
             >
               {suggestion}
             </button>
@@ -261,7 +261,7 @@ const StockImageSearch = ({ onSelect, selectedImage }) => {
               <button
                 onClick={() => searchImages(query, page - 1)}
                 disabled={page <= 1}
-                className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ChevronLeft className="w-4 h-4 text-zinc-950 dark:text-white" />
               </button>
@@ -271,7 +271,7 @@ const StockImageSearch = ({ onSelect, selectedImage }) => {
               <button
                 onClick={() => searchImages(query, page + 1)}
                 disabled={page >= totalPages}
-                className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ChevronRight className="w-4 h-4 text-zinc-950 dark:text-white" />
               </button>
@@ -409,7 +409,7 @@ const UploadTab = ({ onSelect, projectId }) => {
           </div>
           <button
             onClick={handleUrlSubmit}
-            className="px-4 py-2 bg-emerald-600 hover:bg-brand-600 text-zinc-950 dark:text-white rounded-lg transition-colors"
+            className="px-4 py-2 bg-brand hover:bg-brand-600-600 text-zinc-950 dark:text-white rounded-md transition-colors"
           >
             Add
           </button>
@@ -426,7 +426,7 @@ const UploadTab = ({ onSelect, projectId }) => {
               alt={uploadedImage.alt}
               className="w-full h-48 object-cover"
             />
-            <div className="absolute top-2 right-2 bg-emerald-500 rounded-full p-1">
+            <div className="absolute top-2 right-2 bg-brand rounded-full p-1">
               <Check className="w-4 h-4 text-zinc-950 dark:text-white" />
             </div>
           </div>
@@ -486,7 +486,7 @@ export const ImagePickerModal = ({ isOpen, onClose, onInsert, projectId, mode = 
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white rounded-lg hover:bg-white/5 transition-colors"
+            className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white rounded-md hover:bg-white/5 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -561,7 +561,7 @@ export const ImagePickerModal = ({ isOpen, onClose, onInsert, projectId, mode = 
             <button
               onClick={handleInsert}
               disabled={!selectedImage}
-              className="px-4 py-2 bg-emerald-600 hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed text-zinc-950 dark:text-white font-medium rounded-lg transition-colors"
+              className="px-4 py-2 bg-brand hover:bg-brand-600-600 disabled:opacity-50 disabled:cursor-not-allowed text-zinc-950 dark:text-white font-medium rounded-md transition-colors"
             >
               Insert Image
             </button>

@@ -158,7 +158,7 @@ const DocsView = () => {
           
           <button
             onClick={() => navigate(`/admin/editor/${projectId}`)}
-            className="h-8 px-3 bg-brand hover:bg-brand text-zinc-950 dark:text-white rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+            className="h-8 px-3 bg-brand hover:bg-brand-600 text-zinc-950 dark:text-white rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
             data-testid="new-doc-button"
           >
             <Plus className="w-4 h-4" />
@@ -210,7 +210,7 @@ const DocsView = () => {
                         
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                            <button className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all">
+                            <button className="p-1 rounded-md opacity-0 group-hover:opacity-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all">
                               <Edit3 className="w-3 h-3" />
                             </button>
                           </DropdownMenuTrigger>
@@ -226,7 +226,7 @@ const DocsView = () => {
                               Edit
                             </DropdownMenuItem>
                             <DropdownMenuItem 
-                              className="text-red-400 focus:text-red-400 focus:bg-zinc-100 dark:bg-zinc-800 cursor-pointer text-sm"
+                              className="text-rose-600 dark:text-rose-400 focus:text-rose-600 dark:text-rose-400 focus:bg-zinc-100 dark:bg-zinc-800 cursor-pointer text-sm"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setDocToDelete(doc);
@@ -298,7 +298,7 @@ const DocsView = () => {
                 <p className="text-zinc-500 text-sm mb-6">Create your first document to get started</p>
                 <button
                   onClick={() => navigate(`/admin/editor/${projectId}`)}
-                  className="h-9 px-4 bg-brand hover:bg-brand text-zinc-950 dark:text-white rounded-lg text-sm font-medium inline-flex items-center gap-2"
+                  className="h-9 px-4 bg-brand hover:bg-brand-600 text-zinc-950 dark:text-white rounded-lg text-sm font-medium inline-flex items-center gap-2"
                   data-testid="create-first-doc"
                 >
                   <Plus className="w-4 h-4" />
@@ -352,7 +352,7 @@ const DocsView = () => {
             <AlertDialogCancel className="bg-transparent border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-950 dark:hover:text-zinc-950 dark:text-white">
               Cancel
             </AlertDialogCancel>
-            <AlertDialogAction onClick={deleteDoc} className="bg-red-600 hover:bg-red-500 text-zinc-950 dark:text-white">
+            <AlertDialogAction onClick={deleteDoc} className="bg-rose-600 hover:bg-rose-500 text-zinc-950 dark:text-white">
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
