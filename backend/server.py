@@ -10,8 +10,14 @@ from typing import List, Optional
 import uuid
 from datetime import datetime, timezone, timedelta
 import httpx
-from supabase import create_client, Client
 import base64
+from storage_service import (
+    init_storage as init_object_storage,
+    put_object as storage_put_object,
+    get_object as storage_get_object,
+    build_path as storage_build_path,
+    public_url as storage_public_url,
+)
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -23,11 +29,6 @@ db = client[os.environ.get('DB_NAME', 'test_database')]
 
 # LLM Key
 EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY', '')
-
-# Supabase client for storage
-SUPABASE_URL = os.environ.get('SUPABASE_URL', '')
-SUPABASE_KEY = os.environ.get('SUPABASE_SERVICE_KEY', '')
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL and SUPABASE_KEY else None
 
 # GitHub OAuth config
 GITHUB_CLIENT_ID = os.environ.get('GITHUB_CLIENT_ID', '')
@@ -924,33 +925,28 @@ async def upload_asset(
     # Read file content
     content = await file.read()
     file_size = len(content)
-    
+
     # Generate unique filename
     ext = Path(file.filename).suffix if file.filename else ""
     unique_name = f"{uuid.uuid4().hex}{ext}"
-    storage_path = f"{project_id}{folder}{unique_name}"
-    
+    # Storage path inside object storage (app-prefixed by storage_build_path).
+    # `folder` is e.g. "/" or "/subdir/" — strip the wrapping slashes.
+    clean_folder = (folder or "/").strip("/")
+    storage_path = storage_build_path(project_id, clean_folder, unique_name)
+
     try:
-        # Upload to Supabase Storage
-        bucket_name = "docs-images"
-        
-        # Try to create bucket if it doesn't exist
-        try:
-            supabase.storage.create_bucket(bucket_name, {"public": True})
-        except:
-            pass  # Bucket may already exist
-        
-        # Upload file
-        result = supabase.storage.from_(bucket_name).upload(
-            path=storage_path,
-            file=content,
-            file_options={"content-type": mime_type}
+        # Upload to Emergent Object Storage (Tigris)
+        result = storage_put_object(storage_path, content, mime_type)
+        canonical_path = result.get("path") or storage_path
+        # Public URL — backend-proxied since storage has no presigned URLs.
+        # Frontend env var REACT_APP_BACKEND_URL will resolve this.
+        public_url = storage_public_url(
+            canonical_path,
+            request_base=os.environ.get("PUBLIC_BACKEND_URL"),
         )
-        
-        # Get public URL
-        public_url = supabase.storage.from_(bucket_name).get_public_url(storage_path)
-        
-        # Create asset record
+
+        # Create asset record. Store the canonical storage_path on the asset
+        # so deletes/migrations have a single source of truth.
         asset = Asset(
             project_id=project_id,
             name=file.filename or unique_name,
@@ -958,15 +954,15 @@ async def upload_asset(
             file_type=file_type,
             mime_type=mime_type,
             size=file_size,
-            url=public_url
+            url=public_url,
         )
-        
         asset_dict = asset.model_dump()
+        asset_dict["storage_path"] = canonical_path
         asset_dict["created_at"] = asset_dict["created_at"].isoformat()
         await db.assets.insert_one(asset_dict)
-        
+
         return asset
-        
+
     except Exception as e:
         logger.error(f"Upload error: {e}")
         raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
@@ -982,15 +978,9 @@ async def delete_asset(project_id: str, asset_id: str, user: User = Depends(get_
     if not asset:
         raise HTTPException(status_code=404, detail="Asset not found")
     
-    # Delete from Supabase
-    if supabase:
-        try:
-            storage_path = f"{project_id}{asset['folder']}{asset['name']}"
-            supabase.storage.from_("docs-images").remove([storage_path])
-        except:
-            pass  # Continue even if storage delete fails
-    
-    # Delete from DB
+    # Soft-delete from object storage: storage has no DELETE API, so we just
+    # mark the asset row deleted. The bytes remain in Tigris but are no longer
+    # served by any public route or referenced in MongoDB.
     await db.assets.delete_one({"id": asset_id})
     return {"message": "Asset deleted"}
 
@@ -2073,6 +2063,30 @@ async def search_stock_images(data: ImageSearchRequest):
             'page': data.page
         }
 
+
+# ==================== PUBLIC FILE SERVING (Tigris-backed) ====================
+
+@api_router.get("/public/files/{path:path}", include_in_schema=False)
+async def serve_public_file(path: str):
+    """Stream an image/asset from object storage. No auth — docs images are public.
+
+    The k8s ingress strips the `/api` prefix when routing to the backend, but
+    the URL clients see is `/api/public/files/<path>` (or via REACT_APP_BACKEND_URL).
+    """
+    try:
+        data, content_type = storage_get_object(path)
+    except Exception as exc:
+        logger.warning(f"public file not found: {path} ({exc})")
+        raise HTTPException(status_code=404, detail="File not found")
+    return Response(
+        content=data,
+        media_type=content_type,
+        headers={
+            "Cache-Control": "public, max-age=31536000, immutable",
+        },
+    )
+
+
 # ==================== SEO ROUTES (NO /api PREFIX) ====================
 
 @api_router.get("/seo/robots.txt", include_in_schema=False)
@@ -2320,3 +2334,13 @@ app.add_middleware(
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
+
+
+
+@app.on_event("startup")
+async def init_object_storage_on_startup():
+    """Initialize Emergent Object Storage session key once at boot."""
+    try:
+        init_object_storage()
+    except Exception as exc:
+        logger.error(f"Object storage init failed at startup: {exc}")
