@@ -19,6 +19,66 @@
         Learn how to configure a non-root public URL by running `npm run build`.
         -->
         <title>Emergent Docs</title>
+        <style>
+            /* --------------------------------------------------------------
+               "Made with Emergent" badge — theme-aware (light & dark mode).
+               Designed to be a minimal pill that recedes into the page chrome
+               instead of competing with content.
+               -------------------------------------------------------------- */
+            #emergent-badge {
+                position: fixed;
+                bottom: 16px;
+                right: 16px;
+                z-index: 9999;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                padding: 6px 12px 6px 8px;
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                font-size: 11px;
+                font-weight: 500;
+                letter-spacing: 0.01em;
+                text-decoration: none;
+                border-radius: 999px;
+                border: 1px solid;
+                backdrop-filter: blur(8px);
+                -webkit-backdrop-filter: blur(8px);
+                transition: transform 0.18s ease, border-color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+            }
+            /* Light mode: white frosted pill with subtle border + dark text */
+            #emergent-badge {
+                background-color: rgba(255, 255, 255, 0.85);
+                border-color: rgba(24, 24, 27, 0.12);
+                color: #18181b;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.04);
+            }
+            #emergent-badge:hover {
+                transform: translateY(-1px);
+                border-color: rgba(24, 24, 27, 0.25);
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08), 0 6px 16px rgba(0, 0, 0, 0.06);
+            }
+            /* Dark mode: dark frosted pill with light border + light text */
+            html.dark #emergent-badge {
+                background-color: rgba(24, 24, 27, 0.7);
+                border-color: rgba(255, 255, 255, 0.12);
+                color: #fafafa;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3);
+            }
+            html.dark #emergent-badge:hover {
+                border-color: rgba(255, 255, 255, 0.28);
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), 0 6px 16px rgba(0, 0, 0, 0.4);
+            }
+            #emergent-badge .emergent-badge-icon {
+                width: 16px;
+                height: 16px;
+                border-radius: 4px;
+                flex-shrink: 0;
+            }
+            #emergent-badge .emergent-badge-label {
+                line-height: 1;
+                white-space: nowrap;
+            }
+        </style>
         <script src="https://assets.emergent.sh/scripts/emergent-main.js"></script>
         <!--
         These two scripts have been added for the Visual Edits, please do not edit or remove them
@@ -97,54 +157,13 @@
             id="emergent-badge"
             target="_blank"
             href="https://app.emergent.sh/?utm_source=emergent-badge"
-            style="
-                display: flex !important;
-                align-items: center !important;
-                position: fixed !important;
-                bottom: 20px;
-                right: 20px;
-                text-decoration: none;
-                padding: 8px 14px;
-                font-family: -apple-system, BlinkMacSystemFont,
-                    &quot;Segoe UI&quot;, Roboto, Oxygen, Ubuntu, Cantarell,
-                    &quot;Open Sans&quot;, &quot;Helvetica Neue&quot;,
-                    sans-serif !important;
-                font-size: 12px !important;
-                font-weight: 500 !important;
-                z-index: 9999 !important;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
-                border-radius: 10px !important;
-                background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
-                border: 1px solid rgba(255, 255, 255, 0.1) !important;
-                transition: all 0.2s ease !important;
-            "
-            onmouseover="this.style.borderColor='rgba(16, 185, 129, 0.5)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(0, 0, 0, 0.3)';"
-            onmouseout="this.style.borderColor='rgba(255, 255, 255, 0.1)'; this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.25)';"
         >
-            <div
-                style="display: flex; flex-direction: row; align-items: center"
-            >
-                <img
-                    style="width: 22px; height: 22px; margin-right: 10px; border-radius: 4px;"
-                    src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4"
-                />
-                <p
-                    style="
-                        color: #e2e8f0;
-                        font-family: -apple-system, BlinkMacSystemFont,
-                            &quot;Segoe UI&quot;, Roboto, Oxygen, Ubuntu,
-                            Cantarell, &quot;Open Sans&quot;,
-                            &quot;Helvetica Neue&quot;, sans-serif !important;
-                        font-size: 12px !important;
-                        font-weight: 500 !important;
-                        align-items: center;
-                        margin-bottom: 0;
-                        letter-spacing: 0.01em;
-                    "
-                >
-                    Made with Emergent
-                </p>
-            </div>
+            <img
+                class="emergent-badge-icon"
+                src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4"
+                alt=""
+            />
+            <span class="emergent-badge-label">Made with Emergent</span>
         </a>
         <script>
             !(function (t, e) {

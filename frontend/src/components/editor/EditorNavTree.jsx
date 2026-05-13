@@ -1,16 +1,21 @@
 /**
  * EditorNavTree — sortable Tab > Group > Page tree for the admin editor sidebar.
  *
- * Drag-and-drop within siblings at every level (tabs, groups inside a tab,
- * pages inside a group). Each page row has a 3-dot menu that opens a
- * metadata dialog (title / slug / icon / description / delete).
+ * Capabilities:
+ *   - Drag-and-drop within siblings at every level (tabs, groups, pages).
+ *   - Inline rename for Tab labels and Group labels (click pencil or label).
+ *   - Add new Tab (top button), new Group (per-tab +), new Page (per-group +).
+ *   - 3-dot menus on Tabs and Groups for Rename / Delete (with confirm).
+ *   - Page rows get a 3-dot button -> PageMetaDialog for full metadata edits.
  *
- * Persistence:
- *   - Reorder              -> PUT /api/projects/{pid}/config (mutate navigation)
- *   - Page metadata change -> PUT /api/projects/{pid}/documents/{did}
- *   - Delete page          -> handled by parent via onDeleteDocument
+ * Persistence (parent-supplied callbacks):
+ *   onSaveNavConfig(newConfig) -> PUT  /projects/{pid}/config
+ *   onSaveDocument(id, updates) -> PUT  /projects/{pid}/documents/{id}
+ *   onDeleteDocument(id)        -> DELETE /projects/{pid}/documents/{id}
+ *   onCreatePage(slug, title, tabIndex, groupIndex)
+ *                              -> POST /projects/{pid}/documents + nav append.
  */
-import { useState, useCallback, useMemo, Fragment } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect, Fragment } from 'react';
 import {
   DndContext, closestCenter, PointerSensor, useSensor, useSensors,
 } from '@dnd-kit/core';
@@ -21,11 +26,43 @@ import { CSS } from '@dnd-kit/utilities';
 import {
   ChevronDown, ChevronRight, FolderOpen, FileText,
   GripVertical, MoreHorizontal, Loader2,
+  Plus, Pencil, Trash2,
 } from 'lucide-react';
 import { getIcon } from '@/components/docs/IconPicker';
 import { PageMetaDialog } from './PageMetaDialog';
+import {
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
+} from '@/components/ui/dropdown-menu';
 
 const cx = (...c) => c.filter(Boolean).join(' ');
+
+// ----- Tiny inline-edit input that swaps in over a label -----
+const InlineEditable = ({ value, onCommit, onCancel, autoFocus = true, placeholder }) => {
+  const ref = useRef(null);
+  const [draft, setDraft] = useState(value || '');
+  useEffect(() => {
+    if (autoFocus && ref.current) {
+      ref.current.focus();
+      ref.current.select();
+    }
+  }, [autoFocus]);
+  const commit = () => onCommit((draft || '').trim() || value);
+  return (
+    <input
+      ref={ref}
+      value={draft}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') { e.preventDefault(); commit(); }
+        if (e.key === 'Escape') { e.preventDefault(); onCancel?.(); }
+      }}
+      placeholder={placeholder}
+      className="flex-1 min-w-0 px-1.5 py-0.5 text-xs bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded text-zinc-950 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-950 dark:focus:ring-white"
+      onClick={(e) => e.stopPropagation()}
+    />
+  );
+};
 
 // ---------- Sortable Page Row ----------
 const SortablePage = ({
@@ -99,7 +136,9 @@ const SortableGroup = ({
   group, groupId, tabPath,
   documents, docId, expanded, setExpanded,
   deletingDocId, onSelect, onOpenMeta, onPagesReorder,
+  onRenameGroup, onDeleteGroup, onCreatePage,
 }) => {
+  const [editing, setEditing] = useState(false);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: groupId });
   const style = {
@@ -124,7 +163,7 @@ const SortableGroup = ({
 
   return (
     <div ref={setNodeRef} style={style} className="mb-1">
-      <div className="group flex items-center gap-1">
+      <div className="group flex items-center gap-1 pr-1">
         <button
           {...attributes}
           {...listeners}
@@ -134,15 +173,69 @@ const SortableGroup = ({
         >
           <GripVertical className="w-3.5 h-3.5" />
         </button>
-        <button
-          onClick={() => setExpanded((prev) => ({ ...prev, [groupId]: !isOpen }))}
-          className="flex-1 flex items-center gap-2 px-1 py-1.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white transition-colors"
-        >
-          {isOpen ? <ChevronDown className="w-3 h-3 flex-shrink-0" /> : <ChevronRight className="w-3 h-3 flex-shrink-0" />}
-          <FolderOpen className="w-3.5 h-3.5 flex-shrink-0 text-zinc-500" />
-          <span className="text-xs font-medium truncate">{group.group || 'Unnamed Group'}</span>
-          <span className="text-[10px] text-zinc-400 dark:text-zinc-600 ml-auto">{pages.length}</span>
-        </button>
+        {editing ? (
+          <div className="flex-1 flex items-center gap-1 py-1">
+            <FolderOpen className="w-3.5 h-3.5 flex-shrink-0 text-zinc-500" />
+            <InlineEditable
+              value={group.group || ''}
+              onCommit={(v) => { setEditing(false); if (v !== group.group) onRenameGroup?.(tabPath, v); }}
+              onCancel={() => setEditing(false)}
+              placeholder="Group name"
+            />
+          </div>
+        ) : (
+          <button
+            onClick={() => setExpanded((prev) => ({ ...prev, [groupId]: !isOpen }))}
+            onDoubleClick={() => setEditing(true)}
+            className="flex-1 flex items-center gap-2 px-1 py-1.5 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white transition-colors min-w-0"
+            data-testid={`group-${group.group || 'unnamed'}`}
+            title="Double-click to rename"
+          >
+            {isOpen ? <ChevronDown className="w-3 h-3 flex-shrink-0" /> : <ChevronRight className="w-3 h-3 flex-shrink-0" />}
+            <FolderOpen className="w-3.5 h-3.5 flex-shrink-0 text-zinc-500" />
+            <span className="text-xs font-medium truncate">{group.group || 'Unnamed Group'}</span>
+            <span className="text-[10px] text-zinc-400 dark:text-zinc-600 ml-auto flex-shrink-0">{pages.length}</span>
+          </button>
+        )}
+        {!editing && (
+          <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+            <button
+              onClick={(e) => { e.stopPropagation(); onCreatePage?.(tabPath); }}
+              className="p-1 text-zinc-500 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded"
+              title="New page in this group"
+              data-testid={`group-add-page-${group.group || 'unnamed'}`}
+            >
+              <Plus className="w-3.5 h-3.5" />
+            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className="p-1 text-zinc-500 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded"
+                  onClick={(e) => e.stopPropagation()}
+                  title="Group menu"
+                  data-testid={`group-menu-${group.group || 'unnamed'}`}
+                >
+                  <MoreHorizontal className="w-3.5 h-3.5" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-40 bg-white dark:bg-zinc-900">
+                <DropdownMenuItem onClick={() => setEditing(true)}>
+                  <Pencil className="w-3.5 h-3.5 mr-2" /> Rename
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="text-rose-600 dark:text-rose-400 focus:text-rose-700"
+                  onClick={() => {
+                    if (window.confirm(`Delete group "${group.group}"? Pages inside it will become unlinked but won't be deleted.`)) {
+                      onDeleteGroup?.(tabPath);
+                    }
+                  }}
+                >
+                  <Trash2 className="w-3.5 h-3.5 mr-2" /> Delete group
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )}
       </div>
 
       {isOpen && (
