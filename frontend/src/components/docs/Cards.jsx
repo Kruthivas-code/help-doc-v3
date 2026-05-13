@@ -63,6 +63,8 @@ export const Card = ({
   const navigate = useNavigate();
   const isExternal = external || href?.startsWith('http');
   const IconComponent = icon ? getIcon(icon) : null;
+  // Note: `color` prop is intentionally ignored — icons are monochrome
+  // (black-on-white in light mode, white-on-black in dark mode) per design.
 
   const handleClick = () => {
     if (isExternal) {
@@ -74,21 +76,13 @@ export const Card = ({
 
   const content = (
     <>
-      {/* Icon — when `color` is provided, fill the badge with that color
-          and render the icon in white for max legibility. Otherwise use a
-          neutral surface with a dark icon. */}
+      {/* Monochrome icon badge — flips between black/white based on theme.
+          No color tinting, no borders. */}
       {IconComponent && (
         <div className="mb-4">
-          <div
-            className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-              color
-                ? 'shadow-sm'
-                : 'bg-zinc-100 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-800'
-            }`}
-            style={color ? { backgroundColor: color } : undefined}
-          >
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-zinc-950 dark:bg-white">
             <IconComponent
-              className={`w-5 h-5 ${color ? 'text-white' : 'text-zinc-700 dark:text-zinc-300'}`}
+              className="w-5 h-5 text-white dark:text-zinc-950"
               strokeWidth={2}
             />
           </div>

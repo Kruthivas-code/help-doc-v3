@@ -2,7 +2,8 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { 
   ListOrdered, AlertCircle, Code, LayoutGrid, MessageSquare,
   ChevronRight, Table, Image, Minus, Quote, List, Hash,
-  Info, Lightbulb, AlertTriangle, XCircle, CheckCircle, Play, Film
+  Info, Lightbulb, AlertTriangle, XCircle, CheckCircle, Play, Film,
+  Palette
 } from 'lucide-react';
 
 /**
@@ -61,6 +62,13 @@ const COMMANDS = [
         icon: Minus,
         description: 'Horizontal rule',
         insert: '\n---\n'
+      },
+      {
+        id: 'color',
+        label: 'Color (hex)',
+        icon: Palette,
+        description: 'Pick a color, insert its hex code',
+        action: 'open-color-picker',
       },
     ]
   },

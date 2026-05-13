@@ -42,12 +42,12 @@ export const Step = ({
     >
       {/* Title row with number circle */}
       <div className="flex items-center gap-4 mb-2">
-        {/* Number circle */}
-        <div className="w-8 h-8 rounded-full bg-brand dark:bg-brand flex items-center justify-center flex-shrink-0">
+        {/* Number circle — monochrome (black-on-white / white-on-black) */}
+        <div className="w-8 h-8 rounded-full bg-zinc-950 dark:bg-white flex items-center justify-center flex-shrink-0">
           {IconComponent ? (
-            <IconComponent className="w-4 h-4 text-zinc-950 dark:text-white" />
+            <IconComponent className="w-4 h-4 text-white dark:text-zinc-950" />
           ) : (
-            <span className="text-sm font-semibold text-zinc-950 dark:text-white">{stepNumber}</span>
+            <span className="text-sm font-semibold text-white dark:text-zinc-950">{stepNumber}</span>
           )}
         </div>
         {/* Title */}
@@ -59,7 +59,7 @@ export const Step = ({
         {/* Line column */}
         <div className="w-8 flex justify-center flex-shrink-0">
           {!isLast && (
-            <div className="w-0.5 h-full bg-brand/20 dark:bg-indigo-400/30 min-h-[40px]" />
+            <div className="w-0.5 h-full bg-zinc-300 dark:bg-zinc-700 min-h-[40px]" />
           )}
         </div>
         {/* Description */}

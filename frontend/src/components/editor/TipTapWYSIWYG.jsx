@@ -20,7 +20,7 @@ import TurndownService from 'turndown';
 import {
     Bold, Italic, Code, Strikethrough, Heading1, Heading2, Heading3,
     List, ListOrdered, Quote, Code2, Link2, Image as ImageIcon, Minus,
-    Undo, Redo,
+    Undo, Redo, Palette,
 } from 'lucide-react';
 
 // Configure markdown parser
@@ -143,6 +143,18 @@ export const TipTapWYSIWYG = ({ content, onChange, placeholder = 'Start writing 
         editor.chain().focus().setImage({ src: url, alt: alt || undefined }).run();
     }, [editor]);
 
+    // Hex color picker — opens a hidden native <input type="color"> and
+    // inserts the picked hex as plain text at the current cursor.
+    const colorInputRef = useRef(null);
+    const insertHexColor = useCallback(() => {
+        colorInputRef.current?.click();
+    }, []);
+    const onColorPicked = useCallback((e) => {
+        const hex = (e.target.value || '').toUpperCase();
+        if (!hex || !editor) return;
+        editor.chain().focus().insertContent(hex).run();
+    }, [editor]);
+
     if (!editor) {
         return (
             <div className="h-full flex items-center justify-center text-zinc-500 text-sm">
@@ -263,6 +275,20 @@ export const TipTapWYSIWYG = ({ content, onChange, placeholder = 'Start writing 
                 <ToolbarButton title="Insert image" onClick={insertImage} testId="tt-image">
                     <ImageIcon className="h-4 w-4" />
                 </ToolbarButton>
+                <ToolbarButton title="Pick a hex color" onClick={insertHexColor} testId="tt-color">
+                    <Palette className="h-4 w-4" />
+                </ToolbarButton>
+                {/* Hidden native picker — clicked programmatically. */}
+                <input
+                    ref={colorInputRef}
+                    type="color"
+                    defaultValue="#1588FC"
+                    onChange={onColorPicked}
+                    style={{ position: 'absolute', left: -9999, top: -9999, opacity: 0, width: 1, height: 1, pointerEvents: 'none' }}
+                    tabIndex={-1}
+                    aria-hidden="true"
+                    data-testid="tt-color-input"
+                />
             </div>
 
             {/* Bubble menu disabled — top toolbar is always visible for inline actions */}

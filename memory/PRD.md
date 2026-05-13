@@ -106,6 +106,13 @@ Build a Mintlify-class documentation platform for **Emergent's Documentation** w
 - Verify Drag-and-Drop navigation reorder feature (P1 — user verification pending)
 - Sync "Deleting Your Account" content into production admin (P1 — user action; preview DB is updated)
 
+## Completed work — Feb 13, 2026 (Monochrome icons + Hex picker)
+- **Removed all blue/colored backgrounds from icon badges**: `Card` (Cards.jsx) and `Step` number circles (Steps.jsx) now use solid black-on-white in light mode and solid white-on-black in dark mode. The `color` prop on `<Card>` is intentionally ignored.
+- Step connecting line desaturated to neutral zinc (was `bg-brand/20`).
+- **Hex color picker** added to authoring tools:
+  - WYSIWYG (TipTap): new Palette button in the toolbar — opens the native OS color picker and inserts the picked hex (uppercase) at the cursor as plain text.
+  - Markdown view: `/color` slash command opens the same picker via a hidden `<input type="color">` and inserts the hex at the previous cursor position.
+
 ## Completed work — Feb 13, 2026 (Supabase → Tigris migration)
 - Resumed failed migration: re-downloaded last image from Supabase and uploaded to Tigris successfully
 - Discovered 3 additional logo URLs in `project_configs` collection that the original script missed; migrated them

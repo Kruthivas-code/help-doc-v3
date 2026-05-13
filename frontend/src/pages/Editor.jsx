@@ -172,6 +172,8 @@ const Editor = () => {
   const [previewDevice, setPreviewDevice] = useState('desktop'); // 'desktop' | 'tablet' | 'mobile'
   const [imagePickerOpen, setImagePickerOpen] = useState(false);
   const [imagePickerMode, setImagePickerMode] = useState('image'); // 'image' | 'gif'
+  const [colorPickerCursor, setColorPickerCursor] = useState(null);
+  const colorInputRef = useRef(null);
   
   // Project & docs state
   const [project, setProject] = useState(null);
@@ -204,10 +206,34 @@ const Editor = () => {
         setImagePickerMode('gif');
         setImagePickerOpen(true);
         break;
+      case 'open-color-picker':
+        // Remember cursor so we can insert the hex at the right spot
+        setColorPickerCursor(textareaRef.current?.selectionStart ?? null);
+        // Trigger native color input
+        setTimeout(() => colorInputRef.current?.click(), 0);
+        break;
       default:
         console.log('Unknown action:', action);
     }
   }, []);
+
+  // Insert hex string at remembered cursor position
+  const handleColorPicked = useCallback((hex) => {
+    if (!hex) return;
+    const cursor = colorPickerCursor;
+    setColorPickerCursor(null);
+    setContent((prev) => {
+      if (cursor == null) return prev + hex;
+      return prev.slice(0, cursor) + hex + prev.slice(cursor);
+    });
+    setTimeout(() => {
+      if (textareaRef.current && cursor != null) {
+        textareaRef.current.focus();
+        const newPos = cursor + hex.length;
+        textareaRef.current.setSelectionRange(newPos, newPos);
+      }
+    }, 0);
+  }, [colorPickerCursor]);
 
   const slashCommands = useSlashCommands(textareaRef, handleInsert, handleSlashAction);
 
@@ -1030,6 +1056,18 @@ const Editor = () => {
         }}
         projectId={projectId}
         mode={imagePickerMode}
+      />
+
+      {/* Hidden native color picker — triggered by /color slash command and TipTap toolbar */}
+      <input
+        ref={colorInputRef}
+        type="color"
+        defaultValue="#1588FC"
+        onChange={(e) => handleColorPicked(e.target.value.toUpperCase())}
+        style={{ position: 'fixed', left: -9999, top: -9999, opacity: 0, width: 1, height: 1, pointerEvents: 'none' }}
+        data-testid="hex-color-input"
+        tabIndex={-1}
+        aria-hidden="true"
       />
 
       {/* Link Document Modal */}
