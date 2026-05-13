@@ -5,7 +5,7 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useState, useMemo, useEffect, Children, isValidElement, Fragment } from 'react';
-import { Copy, Check, Terminal, FileCode, Info, Lightbulb, AlertTriangle, AlertCircle, CheckCircle } from 'lucide-react';
+import { Copy, Check, Info, Lightbulb, AlertTriangle, AlertCircle, CheckCircle } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -42,23 +42,6 @@ const buildCodeTheme = (isDark) => {
 };
 
 // Language display names
-const LANG_NAMES = {
-  js: 'JavaScript', javascript: 'JavaScript',
-  ts: 'TypeScript', typescript: 'TypeScript',
-  jsx: 'JSX', tsx: 'TSX',
-  py: 'Python', python: 'Python',
-  bash: 'Bash', sh: 'Shell', shell: 'Shell',
-  json: 'JSON', yaml: 'YAML', yml: 'YAML',
-  css: 'CSS', html: 'HTML', sql: 'SQL',
-  go: 'Go', rust: 'Rust', java: 'Java',
-  csharp: 'C#', cpp: 'C++', c: 'C',
-  ruby: 'Ruby', php: 'PHP', swift: 'Swift',
-  kotlin: 'Kotlin', scala: 'Scala',
-  graphql: 'GraphQL', dockerfile: 'Dockerfile',
-  markdown: 'Markdown', md: 'Markdown',
-  xml: 'XML', toml: 'TOML', ini: 'INI',
-};
-
 // Callout configurations with CSS variable approach for text colors
 const CALLOUT_CONFIG = {
   NOTE: { icon: Info, bg: 'bg-blue-500/10', border: 'border-blue-500/30', iconColor: 'text-blue-600 dark:text-blue-400', textColorLight: '#1e40af', textColorDark: '#bfdbfe', title: 'Note' },
@@ -78,8 +61,6 @@ const CodeBlockRenderer = ({ children, className }) => {
   const match = /language-(\w+)/.exec(className || '');
   const language = match ? match[1] : '';
   const code = String(children).replace(/\n$/, '');
-  const langName = LANG_NAMES[language] || language?.toUpperCase() || 'CODE';
-  const isTerminal = ['bash', 'sh', 'shell', 'zsh'].includes(language);
   const codeTheme = useMemo(() => buildCodeTheme(isDark), [isDark]);
 
   const handleCopy = async () => {
@@ -93,31 +74,26 @@ const CodeBlockRenderer = ({ children, className }) => {
   }
 
   return (
-    <div className="code-block my-5 rounded-xl overflow-hidden w-full max-w-3xl" data-testid="code-block">
-      <div className="flex items-center justify-between px-4 py-2 bg-zinc-100 dark:bg-zinc-900 rounded-t-xl">
-        <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
-          {isTerminal ? <Terminal className="w-3.5 h-3.5" /> : <FileCode className="w-3.5 h-3.5" />}
-          <span className="text-[11px] font-mono font-medium tracking-wide">{langName}</span>
-        </div>
-        <button
-          onClick={handleCopy}
-          className="btn-press flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white rounded-md transition-colors"
-          data-testid="copy-code-btn"
-        >
-          {copied ? (
-            <><Check className="w-3.5 h-3.5 text-brand" /><span className="text-brand">Copied</span></>
-          ) : (
-            <><Copy className="w-3.5 h-3.5" /><span>Copy</span></>
-          )}
-        </button>
-      </div>
-      <div className="overflow-x-auto w-full rounded-b-xl bg-zinc-50 dark:bg-zinc-950">
+    <div className="code-block group relative my-5 w-full max-w-3xl" data-testid="code-block">
+      <button
+        onClick={handleCopy}
+        className="btn-press absolute top-2 right-2 z-10 flex items-center gap-1.5 px-2 py-1 text-[11px] font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white opacity-0 group-hover:opacity-100 transition-opacity bg-zinc-100/80 dark:bg-zinc-900/80 backdrop-blur rounded-md"
+        data-testid="copy-code-btn"
+      >
+        {copied ? (
+          <><Check className="w-3.5 h-3.5 text-brand" /><span className="text-brand">Copied</span></>
+        ) : (
+          <><Copy className="w-3.5 h-3.5" /><span>Copy</span></>
+        )}
+      </button>
+      <div className="overflow-x-auto w-full">
         <SyntaxHighlighter
           language={language}
           style={codeTheme}
           customStyle={{
             margin: 0,
-            borderRadius: 0,
+            background: 'transparent',
+            padding: '1rem 0',
             whiteSpace: 'pre',
             wordBreak: 'normal',
             overflowWrap: 'normal'
@@ -184,7 +160,7 @@ const YouTubeEmbed = ({ id, title }) => {
   
   return (
     <div className="my-6 relative z-10" data-testid="youtube-embed">
-      <div className="relative w-full rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-lg bg-white dark:bg-zinc-900" style={{ paddingBottom: '56.25%' }}>
+      <div className="relative w-full overflow-hidden" style={{ paddingBottom: '56.25%' }}>
         <iframe
           className="absolute inset-0 w-full h-full"
           src={`https://www.youtube.com/embed/${videoId}`}
@@ -214,7 +190,7 @@ const LoomEmbed = ({ id, title }) => {
   
   return (
     <div className="my-6 relative z-10" data-testid="loom-embed">
-      <div className="relative w-full rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-lg bg-white dark:bg-zinc-900" style={{ paddingBottom: '56.25%' }}>
+      <div className="relative w-full overflow-hidden" style={{ paddingBottom: '56.25%' }}>
         <iframe
           className="absolute inset-0 w-full h-full"
           src={`https://www.loom.com/embed/${loomId}`}
@@ -238,17 +214,15 @@ const VideoEmbed = ({ src, title, poster }) => {
   
   return (
     <div className="my-6 relative z-10" data-testid="video-embed">
-      <div className="relative w-full rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-lg bg-black">
-        <video
-          className="w-full"
-          controls
-          poster={poster}
-          preload="metadata"
-        >
-          <source src={src} type={src.endsWith('.webm') ? 'video/webm' : 'video/mp4'} />
-          Your browser does not support the video tag.
-        </video>
-      </div>
+      <video
+        className="w-full"
+        controls
+        poster={poster}
+        preload="metadata"
+      >
+        <source src={src} type={src.endsWith('.webm') ? 'video/webm' : 'video/mp4'} />
+        Your browser does not support the video tag.
+      </video>
       {title && title.trim() && (
         <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400 text-center">{title}</p>
       )}
@@ -262,14 +236,12 @@ const Figure = ({ src, alt, caption }) => {
   
   return (
     <figure className="my-6 relative z-10" data-testid="figure">
-      <div className="rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-lg bg-white dark:bg-zinc-900">
-        <img 
-          src={src} 
-          alt={alt || caption || 'Image'} 
-          className="w-full h-auto"
-          loading="lazy"
-        />
-      </div>
+      <img 
+        src={src} 
+        alt={alt || caption || 'Image'} 
+        className="w-full h-auto"
+        loading="lazy"
+      />
       {caption && caption.trim() && (
         <figcaption className="mt-2 text-sm text-zinc-500 dark:text-zinc-400 text-center">
           {caption}
@@ -359,7 +331,7 @@ const RenderComponent = ({ type, children: items, props, content, mdComponents }
           {items?.map((item, i) => {
             if (item.type === 'iframe') {
               return (
-                <div key={i} className="relative w-full aspect-video rounded-xl overflow-hidden">
+                <div key={i} className="relative w-full aspect-video overflow-hidden">
                   <iframe
                     src={item.src}
                     title={item.title || 'Embedded video'}
@@ -393,7 +365,7 @@ const RenderComponent = ({ type, children: items, props, content, mdComponents }
     case 'iframe':
       // Standalone iframe embed
       return (
-        <div className="my-6 relative w-full aspect-video rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800">
+        <div className="my-6 relative w-full aspect-video overflow-hidden">
           <iframe
             src={props?.src}
             title={props?.title || 'Embedded content'}
@@ -544,14 +516,12 @@ export const DocContent = ({ content, className = '', onHeadings }) => {
       return <CodeBlockRenderer className={className}>{children}</CodeBlockRenderer>;
     },
 
-    // Pre blocks — wrapper enforces column width + internal horizontal scroll
+    // Pre blocks — no container, just bounded width + horizontal scroll
     pre: ({ children }) => {
       return (
-        <div className="my-4 max-w-full overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800">
-          <pre className="m-0 p-4 bg-zinc-50 dark:bg-zinc-950 overflow-x-auto text-sm whitespace-pre font-mono">
-            {children}
-          </pre>
-        </div>
+        <pre className="my-4 p-0 bg-transparent overflow-x-auto text-sm whitespace-pre font-mono max-w-full">
+          {children}
+        </pre>
       );
     },
 
@@ -637,7 +607,7 @@ export const DocContent = ({ content, className = '', onHeadings }) => {
     },
 
     img: ({ src, alt }) => (
-      <img src={src} alt={alt} className="rounded-lg border border-zinc-200 dark:border-zinc-800 my-6 max-w-full" loading="lazy" />
+      <img src={src} alt={alt} className="my-6 max-w-full h-auto" loading="lazy" />
     ),
     hr: () => <hr className="border-zinc-200 dark:border-zinc-800 my-8" />,
     ul: ({ children }) => <ul className="my-4 ml-6 list-disc space-y-2 text-zinc-700 dark:text-zinc-300">{children}</ul>,
