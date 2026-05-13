@@ -127,7 +127,7 @@ const DocsView = () => {
   const SelectedDocIcon = selectedDoc?.icon ? getIcon(selectedDoc.icon) : null;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col" data-testid="docs-view-page">
+    <div className="h-screen overflow-hidden bg-background flex flex-col" data-testid="docs-view-page">
       {/* Top Bar */}
       <header className="h-14 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between px-4 bg-background sticky top-0 z-50">
         <div className="flex items-center gap-3">

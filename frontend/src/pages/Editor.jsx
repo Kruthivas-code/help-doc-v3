@@ -452,7 +452,7 @@ const Editor = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex" data-testid="editor-page">
+    <div className="h-screen overflow-hidden bg-background flex" data-testid="editor-page">
       {/* Left Sidebar - Mintlify Style */}
       <aside className={`${sidebarCollapsed ? 'w-0' : 'w-72'} flex-shrink-0 border-r border-zinc-200 dark:border-zinc-800/50 bg-white dark:bg-zinc-950 flex flex-col transition-all overflow-hidden`}>
         {/* Sidebar Header */}
@@ -766,7 +766,7 @@ const Editor = () => {
 
       {/* Settings Panels */}
       {activePanel && (
-        <aside className="w-96 bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800/50 flex-shrink-0">
+        <aside className="w-96 bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800/50 flex-shrink-0 h-screen overflow-y-auto">
           <div className="h-full relative">
             {activePanel === 'config' && (
               <ConfigurationsPanel projectId={projectId} onClose={() => setActivePanel(null)} />
@@ -794,9 +794,9 @@ const Editor = () => {
       )}
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Bar */}
-        <header className="h-14 px-4 flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800/50 bg-background">
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+        {/* Top Bar — sticky within column */}
+        <header className="h-14 flex-shrink-0 px-4 flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800/50 bg-background">
           <div className="flex items-center gap-4">
             {/* Document Title */}
             <span className="text-zinc-950 dark:text-white font-medium truncate max-w-[200px]">
