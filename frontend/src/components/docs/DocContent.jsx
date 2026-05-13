@@ -603,13 +603,13 @@ export const DocContent = ({ content, className = '', onHeadings }) => {
       );
     },
 
-    // Tables
+    // Tables — no wrapper container, plain table flow
     table: ({ children }) => (
-      <div className="overflow-x-auto my-6 rounded-lg border border-zinc-200 dark:border-zinc-800">
-        <table className="w-full">{children}</table>
+      <div className="overflow-x-auto my-5">
+        <table className="w-full border-collapse">{children}</table>
       </div>
     ),
-    thead: ({ children }) => <thead className="bg-zinc-100 dark:bg-zinc-900">{children}</thead>,
+    thead: ({ children }) => <thead>{children}</thead>,
     th: ({ children }) => (
       <th className="text-left px-3 py-2 text-xs font-bold tracking-wide uppercase !text-zinc-700 dark:!text-zinc-300 border-b border-zinc-200 dark:border-zinc-800">
         {children}

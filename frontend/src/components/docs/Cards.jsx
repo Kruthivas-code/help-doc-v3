@@ -74,16 +74,22 @@ export const Card = ({
 
   const content = (
     <>
-      {/* Icon */}
+      {/* Icon — when `color` is provided, fill the badge with that color
+          and render the icon in white for max legibility. Otherwise use a
+          neutral surface with a dark icon. */}
       {IconComponent && (
         <div className="mb-4">
-          <div 
-            className="w-10 h-10 rounded-lg bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 flex items-center justify-center"
-            style={color ? { borderColor: `${color}30` } : {}}
+          <div
+            className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+              color
+                ? 'shadow-sm'
+                : 'bg-zinc-100 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-800'
+            }`}
+            style={color ? { backgroundColor: color } : undefined}
           >
-            <IconComponent 
-              className="w-5 h-5 transition-colors text-zinc-700 dark:text-zinc-300"
-              style={color ? { color } : undefined}
+            <IconComponent
+              className={`w-5 h-5 ${color ? 'text-white' : 'text-zinc-700 dark:text-zinc-300'}`}
+              strokeWidth={2}
             />
           </div>
         </div>
