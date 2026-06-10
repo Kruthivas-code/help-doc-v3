@@ -1,3 +1,7 @@
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /admin/
+
 Sitemap: https://help.emergent.sh/sitemap.xml
+Sitemap: https://help.emergent.sh/api/seo/sitemap.xml

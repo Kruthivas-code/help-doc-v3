@@ -160,4 +160,14 @@ Build a Mintlify-class documentation platform for **Emergent's Documentation** w
 **Completed work in this session (January 22, 2025)**
 - **Mobile Nav Icon in Header**: Moved the mobile navigation hamburger menu from a floating button at the bottom-right to the top header, positioned to the right of the CTA buttons. This follows standard mobile UX patterns.
 
+## Completed work — June 10, 2026 (SEO hardening)
+- **Dynamic sitemap**: `/api/seo/sitemap.xml` and root `/sitemap.xml` rebuilt to derive base URL (env `PUBLIC_SITE_URL`, default `https://help.emergent.sh`), include homepage + all doc slugs with `lastmod`, served with `application/xml`. Removed duplicate/triplicated SEO route definitions in `server.py` (consolidated into `_robots_body` / `_build_sitemap` helpers).
+- **Static fallbacks**: `frontend/public/sitemap.xml` is now a `<sitemapindex>` delegating to the always-fresh `/api/seo/sitemap.xml` (never goes stale). `frontend/public/robots.txt` disallows `/admin`, points to both sitemaps.
+- **robots.txt**: backend + static both emit `Disallow: /admin` and `Sitemap:` directives. (Preview domain prepends Cloudflare-managed content-signals block, then appends our rules.)
+- **Per-page meta** (`PublicDocs.jsx` via react-helmet-async): dynamic title, description (prefers doc `description`), canonical, `robots` meta, Open Graph (type article/website), Twitter card, `article:modified/published_time`, og/twitter image fallback chain.
+- **Structured data (JSON-LD)**: `TechArticle` (with publisher/logo) on docs, `WebSite` on homepage, `BreadcrumbList` from nav tree.
+- **index.html**: site-level default description, OG, Twitter, canonical, keywords, author — visible to no-JS social scrapers (per-page values overridden at runtime by Helmet for JS-capable crawlers like Google).
+- Regression: `/app/backend/tests/test_seo.py` — 3/3 pass.
+- **Note**: Full per-page previews for no-JS social scrapers (Twitter/FB/LinkedIn/Slack) require SSR/prerendering, which is not feasible on the current SPA + ingress setup; site-level OG defaults are the pragmatic fallback. Google (renders JS) sees full per-page meta.
+
 **Previously Completed work**

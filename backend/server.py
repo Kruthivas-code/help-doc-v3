@@ -1665,223 +1665,109 @@ async def serve_public_file(path: str):
     )
 
 
-# ==================== SEO ROUTES (NO /api PREFIX) ====================
+# ==================== SEO ROUTES ====================
+# Canonical site URL used in robots.txt / sitemap.xml. Falls back to the
+# production domain; overridable via the PUBLIC_SITE_URL env var.
+PROD_SITE_URL = os.environ.get("PUBLIC_SITE_URL", "https://help.emergent.sh").rstrip("/")
+
+
+def _resolve_base_url(request: Request) -> str:
+    """Prefer the configured production URL, but fall back to the request host
+    so the sitemap is also correct on preview/local environments."""
+    if PROD_SITE_URL:
+        return PROD_SITE_URL
+    return str(request.base_url).rstrip("/")
+
+
+def _robots_body(base_url: str) -> str:
+    return (
+        "User-agent: *\n"
+        "Allow: /\n"
+        "Disallow: /admin\n"
+        "Disallow: /admin/\n"
+        "\n"
+        f"Sitemap: {base_url}/api/seo/sitemap.xml\n"
+    )
+
+
+async def _build_sitemap(base_url: str) -> str:
+    from xml.etree.ElementTree import Element, SubElement, tostring
+
+    empty = "<?xml version='1.0' encoding='UTF-8'?><urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'></urlset>"
+
+    project = await db.projects.find_one({"is_default": True}, {"_id": 0})
+    if not project:
+        project = await db.projects.find_one({}, {"_id": 0})
+    if not project:
+        return empty
+
+    documents = await db.documents.find(
+        {"project_id": project["id"]},
+        {"_id": 0, "slug": 1, "updated_at": 1},
+    ).to_list(1000)
+
+    urlset = Element("urlset")
+    urlset.set("xmlns", "http://www.sitemaps.org/schemas/sitemap/0.9")
+
+    home = SubElement(urlset, "url")
+    SubElement(home, "loc").text = base_url + "/"
+    SubElement(home, "changefreq").text = "daily"
+    SubElement(home, "priority").text = "1.0"
+
+    for doc in documents:
+        slug = (doc.get("slug") or "").strip("/")
+        if not slug:
+            continue
+        url_elem = SubElement(urlset, "url")
+        SubElement(url_elem, "loc").text = f"{base_url}/{slug}"
+        updated = doc.get("updated_at")
+        if updated:
+            if isinstance(updated, str):
+                lastmod_date = updated.split("T")[0]
+            else:
+                lastmod_date = updated.strftime("%Y-%m-%d")
+            SubElement(url_elem, "lastmod").text = lastmod_date
+        SubElement(url_elem, "changefreq").text = "weekly"
+        SubElement(url_elem, "priority").text = "0.8"
+
+    return '<?xml version="1.0" encoding="UTF-8"?>\n' + tostring(urlset, encoding="unicode")
+
 
 @api_router.get("/seo/robots.txt", include_in_schema=False)
-async def api_robots_txt():
-    """API endpoint to serve robots.txt"""
-    content = """User-agent: *
-Allow: /
-Sitemap: https://help.emergent.sh/sitemap.xml
-"""
-    return Response(content=content, media_type="text/plain")
+async def api_robots_txt(request: Request):
+    return Response(content=_robots_body(_resolve_base_url(request)), media_type="text/plain")
 
 
 @api_router.get("/seo/sitemap.xml", include_in_schema=False)
-async def api_sitemap_xml():
-    """API endpoint to serve sitemap.xml"""
-    from xml.etree.ElementTree import Element, SubElement, tostring
-    
+async def api_sitemap_xml(request: Request):
     try:
-        project = await db.projects.find_one({"is_default": True}, {"_id": 0})
-        if not project:
-            project = await db.projects.find_one({}, {"_id": 0})
-        
-        if not project:
-            return Response(
-                content="<?xml version='1.0' encoding='UTF-8'?><urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'></urlset>",
-                media_type="application/xml"
-            )
-        
-        documents = await db.documents.find(
-            {"project_id": project["id"]},
-            {"_id": 0, "slug": 1, "updated_at": 1}
-        ).to_list(1000)
-        
-        base_url = 'https://help.emergent.sh'
-        
-        urlset = Element('urlset')
-        urlset.set('xmlns', 'http://www.sitemaps.org/schemas/sitemap/0.9')
-        
-        url_elem = SubElement(urlset, 'url')
-        SubElement(url_elem, 'loc').text = base_url + '/'
-        SubElement(url_elem, 'changefreq').text = 'daily'
-        SubElement(url_elem, 'priority').text = '1.0'
-        
-        for doc in documents:
-            url_elem = SubElement(urlset, 'url')
-            SubElement(url_elem, 'loc').text = f"{base_url}/{doc['slug']}"
-            
-            if doc.get('updated_at'):
-                updated = doc['updated_at']
-                if isinstance(updated, str):
-                    lastmod_date = updated.split('T')[0]
-                else:
-                    lastmod_date = updated.strftime('%Y-%m-%d')
-                SubElement(url_elem, 'lastmod').text = lastmod_date
-            
-            SubElement(url_elem, 'changefreq').text = 'weekly'
-            SubElement(url_elem, 'priority').text = '0.8'
-        
-        xml_str = '<?xml version="1.0" encoding="UTF-8"?>\n'
-        xml_str += tostring(urlset, encoding='unicode')
-        
+        xml_str = await _build_sitemap(_resolve_base_url(request))
         return Response(content=xml_str, media_type="application/xml")
-        
     except Exception as e:
         logger.error(f"Error generating sitemap: {str(e)}")
         return Response(
             content="<?xml version='1.0' encoding='UTF-8'?><urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'></urlset>",
-            media_type="application/xml"
+            media_type="application/xml",
         )
 
 
-# ==================== NON-API SEO ROUTES (Root Level) ====================
-# These routes work if ingress allows them, otherwise use /api/seo/* endpoints
-
-@api_router.get("/seo/robots.txt", include_in_schema=False)
-async def api_robots_txt():
-    """API endpoint to serve robots.txt"""
-    content = """User-agent: *
-Allow: /
-Sitemap: https://help.emergent.sh/sitemap.xml
-"""
-    return Response(content=content, media_type="text/plain")
-
-
-@api_router.get("/seo/sitemap.xml", include_in_schema=False)
-async def api_sitemap_xml():
-    """API endpoint to serve sitemap.xml"""
-    from xml.etree.ElementTree import Element, SubElement, tostring
-    
-    try:
-        project = await db.projects.find_one({"is_default": True}, {"_id": 0})
-        if not project:
-            project = await db.projects.find_one({}, {"_id": 0})
-        
-        if not project:
-            return Response(
-                content="<?xml version='1.0' encoding='UTF-8'?><urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'></urlset>",
-                media_type="application/xml"
-            )
-        
-        documents = await db.documents.find(
-            {"project_id": project["id"]},
-            {"_id": 0, "slug": 1, "updated_at": 1}
-        ).to_list(1000)
-        
-        base_url = 'https://help.emergent.sh'
-        
-        urlset = Element('urlset')
-        urlset.set('xmlns', 'http://www.sitemaps.org/schemas/sitemap/0.9')
-        
-        url_elem = SubElement(urlset, 'url')
-        SubElement(url_elem, 'loc').text = base_url + '/'
-        SubElement(url_elem, 'changefreq').text = 'daily'
-        SubElement(url_elem, 'priority').text = '1.0'
-        
-        for doc in documents:
-            url_elem = SubElement(urlset, 'url')
-            SubElement(url_elem, 'loc').text = f"{base_url}/{doc['slug']}"
-            
-            if doc.get('updated_at'):
-                updated = doc['updated_at']
-                if isinstance(updated, str):
-                    lastmod_date = updated.split('T')[0]
-                else:
-                    lastmod_date = updated.strftime('%Y-%m-%d')
-                SubElement(url_elem, 'lastmod').text = lastmod_date
-            
-            SubElement(url_elem, 'changefreq').text = 'weekly'
-            SubElement(url_elem, 'priority').text = '0.8'
-        
-        xml_str = '<?xml version="1.0" encoding="UTF-8"?>\n'
-        xml_str += tostring(urlset, encoding='unicode')
-        
-        return Response(content=xml_str, media_type="application/xml")
-        
-    except Exception as e:
-        logger.error(f"Error generating sitemap: {str(e)}")
-        return Response(
-            content="<?xml version='1.0' encoding='UTF-8'?><urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'></urlset>",
-            media_type="application/xml"
-        )
-
-
-# ==================== NON-API SEO ROUTES (Root Level) ====================
-# These routes work if ingress allows them, otherwise use /api/seo/* endpoints
-
+# Root-level routes — used when Kubernetes ingress allows them through to the
+# backend; otherwise the /api/seo/* endpoints above are the canonical source.
 @app.get("/robots.txt", include_in_schema=False)
-async def robots_txt():
-    """Serve robots.txt for SEO"""
-    content = """User-agent: *
-Allow: /
-Sitemap: https://help.emergent.sh/sitemap.xml
-"""
-    return Response(content=content, media_type="text/plain")
+async def robots_txt(request: Request):
+    return Response(content=_robots_body(_resolve_base_url(request)), media_type="text/plain")
 
 
 @app.get("/sitemap.xml", include_in_schema=False)
-async def sitemap_xml():
-    """Generate sitemap.xml for SEO"""
-    from xml.etree.ElementTree import Element, SubElement, tostring
-    
+async def sitemap_xml(request: Request):
     try:
-        # Get the default project and its documents
-        project = await db.projects.find_one({"is_default": True}, {"_id": 0})
-        if not project:
-            # Fallback to any project
-            project = await db.projects.find_one({}, {"_id": 0})
-        
-        if not project:
-            return Response(content="<?xml version='1.0' encoding='UTF-8'?><urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'></urlset>", media_type="application/xml")
-        
-        # Get all documents for this project
-        documents = await db.documents.find(
-            {"project_id": project["id"]},
-            {"_id": 0, "slug": 1, "updated_at": 1}
-        ).to_list(1000)
-        
-        # Build sitemap XML - use production URL
-        base_url = 'https://help.emergent.sh'
-        
-        urlset = Element('urlset')
-        urlset.set('xmlns', 'http://www.sitemaps.org/schemas/sitemap/0.9')
-        
-        # Add homepage
-        url_elem = SubElement(urlset, 'url')
-        SubElement(url_elem, 'loc').text = base_url + '/'
-        SubElement(url_elem, 'changefreq').text = 'daily'
-        SubElement(url_elem, 'priority').text = '1.0'
-        
-        # Add each document
-        for doc in documents:
-            url_elem = SubElement(urlset, 'url')
-            SubElement(url_elem, 'loc').text = f"{base_url}/{doc['slug']}"
-            
-            # Add last modified date if available
-            if doc.get('updated_at'):
-                updated = doc['updated_at']
-                if isinstance(updated, str):
-                    lastmod_date = updated.split('T')[0]
-                else:
-                    lastmod_date = updated.strftime('%Y-%m-%d')
-                SubElement(url_elem, 'lastmod').text = lastmod_date
-            
-            SubElement(url_elem, 'changefreq').text = 'weekly'
-            SubElement(url_elem, 'priority').text = '0.8'
-        
-        # Convert to string
-        xml_str = '<?xml version="1.0" encoding="UTF-8"?>\n'
-        xml_str += tostring(urlset, encoding='unicode')
-        
+        xml_str = await _build_sitemap(_resolve_base_url(request))
         return Response(content=xml_str, media_type="application/xml")
-        
     except Exception as e:
         logger.error(f"Error generating sitemap: {str(e)}")
         return Response(
             content="<?xml version='1.0' encoding='UTF-8'?><urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'></urlset>",
-            media_type="application/xml"
+            media_type="application/xml",
         )
 
 # Include the router in the main app

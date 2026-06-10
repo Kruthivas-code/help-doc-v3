@@ -659,35 +659,72 @@ const PublicDocs = () => {
     const siteTitle = config?.site_title || project?.name || 'Documentation';
     const pageTitle = selectedDoc ? `${selectedDoc.title} | ${siteTitle}` : siteTitle;
     const pageDesc = selectedDoc
-        ? selectedDoc.content?.substring(0, 160).replace(/[#*>`]/g, '').trim() || config?.site_description
+        ? (selectedDoc.description?.trim()
+            || selectedDoc.content?.substring(0, 160).replace(/[#*>`]/g, '').trim()
+            || config?.site_description)
         : config?.site_description || 'Documentation and guides';
     const pageUrl = `${window.location.origin}${selectedDoc ? `/${selectedDoc.slug}` : ''}`;
+    const ogImage = config?.logo_dark_url || config?.logo_light_url || config?.favicon_url;
 
     return (
         <div className="min-h-screen bg-background text-foreground">
             <Helmet>
                 <title>{pageTitle}</title>
                 <meta name="description" content={pageDesc} />
-                <meta property="og:type" content="article" />
+                <meta name="robots" content="index, follow, max-image-preview:large" />
+                <link rel="canonical" href={pageUrl} />
+                <meta property="og:type" content={selectedDoc ? 'article' : 'website'} />
                 <meta property="og:url" content={pageUrl} />
                 <meta property="og:title" content={pageTitle} />
                 <meta property="og:description" content={pageDesc} />
                 <meta property="og:site_name" content={siteTitle} />
-                {config?.logo_dark_url && <meta property="og:image" content={config.logo_dark_url} />}
+                {ogImage && <meta property="og:image" content={ogImage} />}
+                {selectedDoc?.updated_at && (
+                    <meta property="article:modified_time" content={selectedDoc.updated_at} />
+                )}
+                {selectedDoc?.created_at && (
+                    <meta property="article:published_time" content={selectedDoc.created_at} />
+                )}
                 <meta name="twitter:card" content="summary_large_image" />
                 <meta name="twitter:title" content={pageTitle} />
                 <meta name="twitter:description" content={pageDesc} />
-                <link rel="canonical" href={pageUrl} />
-                {selectedDoc && (
+                {ogImage && <meta name="twitter:image" content={ogImage} />}
+                {selectedDoc ? (
                     <script type="application/ld+json">{JSON.stringify({
                         "@context": "https://schema.org",
-                        "@type": "Article",
+                        "@type": "TechArticle",
                         "headline": selectedDoc.title,
                         "description": pageDesc,
                         "url": pageUrl,
                         "datePublished": selectedDoc.created_at,
                         "dateModified": selectedDoc.updated_at,
-                        "publisher": { "@type": "Organization", "name": siteTitle }
+                        "inLanguage": "en",
+                        ...(ogImage ? { "image": ogImage } : {}),
+                        "publisher": {
+                            "@type": "Organization",
+                            "name": siteTitle,
+                            ...(ogImage ? { "logo": { "@type": "ImageObject", "url": ogImage } } : {})
+                        }
+                    })}</script>
+                ) : (
+                    <script type="application/ld+json">{JSON.stringify({
+                        "@context": "https://schema.org",
+                        "@type": "WebSite",
+                        "name": siteTitle,
+                        "url": window.location.origin,
+                        "description": pageDesc
+                    })}</script>
+                )}
+                {selectedDoc && breadcrumb && (
+                    <script type="application/ld+json">{JSON.stringify({
+                        "@context": "https://schema.org",
+                        "@type": "BreadcrumbList",
+                        "itemListElement": [
+                            { "@type": "ListItem", "position": 1, "name": "Home", "item": window.location.origin },
+                            ...(breadcrumb.tab ? [{ "@type": "ListItem", "position": 2, "name": breadcrumb.tab }] : []),
+                            ...(breadcrumb.group ? [{ "@type": "ListItem", "position": 3, "name": breadcrumb.group }] : []),
+                            { "@type": "ListItem", "position": 4, "name": selectedDoc.title, "item": pageUrl }
+                        ]
                     })}</script>
                 )}
             </Helmet>
