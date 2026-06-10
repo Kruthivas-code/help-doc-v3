@@ -1686,6 +1686,7 @@ def _robots_body(base_url: str) -> str:
         "Disallow: /admin\n"
         "Disallow: /admin/\n"
         "\n"
+        f"Sitemap: {base_url}/sitemap_index.xml\n"
         f"Sitemap: {base_url}/api/seo/sitemap.xml\n"
     )
 
@@ -1733,6 +1734,15 @@ async def _build_sitemap(base_url: str) -> str:
     return '<?xml version="1.0" encoding="UTF-8"?>\n' + tostring(urlset, encoding="unicode")
 
 
+def _sitemap_index_body(base_url: str) -> str:
+    return (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        f"  <sitemap>\n    <loc>{base_url}/api/seo/sitemap.xml</loc>\n  </sitemap>\n"
+        "</sitemapindex>"
+    )
+
+
 @api_router.get("/seo/robots.txt", include_in_schema=False)
 async def api_robots_txt(request: Request):
     return Response(content=_robots_body(_resolve_base_url(request)), media_type="text/plain")
@@ -1749,6 +1759,11 @@ async def api_sitemap_xml(request: Request):
             content="<?xml version='1.0' encoding='UTF-8'?><urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'></urlset>",
             media_type="application/xml",
         )
+
+
+@api_router.get("/seo/sitemap_index.xml", include_in_schema=False)
+async def api_sitemap_index_xml(request: Request):
+    return Response(content=_sitemap_index_body(_resolve_base_url(request)), media_type="application/xml")
 
 
 # Root-level routes — used when Kubernetes ingress allows them through to the
@@ -1769,6 +1784,11 @@ async def sitemap_xml(request: Request):
             content="<?xml version='1.0' encoding='UTF-8'?><urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'></urlset>",
             media_type="application/xml",
         )
+
+
+@app.get("/sitemap_index.xml", include_in_schema=False)
+async def sitemap_index_xml(request: Request):
+    return Response(content=_sitemap_index_body(_resolve_base_url(request)), media_type="application/xml")
 
 # Include the router in the main app
 app.include_router(api_router)
