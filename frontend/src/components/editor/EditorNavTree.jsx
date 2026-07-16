@@ -67,7 +67,7 @@ const InlineEditable = ({ value, onCommit, onCancel, autoFocus = true, placehold
 // ---------- Sortable Page Row ----------
 const SortablePage = ({
   page, pageId, doc, isActive, isMissing, isDeleting,
-  onSelect, onOpenMeta,
+  onSelect, onOpenMeta, onRemovePage,
 }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: pageId });
@@ -76,6 +76,7 @@ const SortablePage = ({
     transition,
     opacity: isDragging ? 0.4 : 1,
   };
+  const slug = typeof page === 'string' ? page : page.page;
   const PageIcon = doc?.icon ? getIcon(doc.icon) : (page.icon ? getIcon(page.icon) : FileText);
   const pageTitle = doc?.title || (typeof page === 'string' ? page : page.title) || (typeof page === 'string' ? page : page.page);
 
@@ -127,6 +128,21 @@ const SortablePage = ({
           <Loader2 className="w-3.5 h-3.5 animate-spin text-zinc-500" />
         </div>
       )}
+      {isMissing && onRemovePage && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            if (window.confirm(`Remove "${slug}" from the navigation? There is no document behind this entry, so nothing else is deleted.`)) {
+              onRemovePage();
+            }
+          }}
+          className="p-1.5 text-zinc-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-500/10 rounded transition-all flex-shrink-0"
+          title="Remove missing page from navigation"
+          data-testid={`remove-missing-page-${slug}`}
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+        </button>
+      )}
     </div>
   );
 };
@@ -136,7 +152,7 @@ const SortableGroup = ({
   group, groupId, tabPath,
   documents, docId, expanded, setExpanded,
   deletingDocId, onSelect, onOpenMeta, onPagesReorder,
-  onRenameGroup, onDeleteGroup, onCreatePage,
+  onRenameGroup, onDeleteGroup, onCreatePage, onRemovePage,
 }) => {
   const [editing, setEditing] = useState(false);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -260,6 +276,7 @@ const SortableGroup = ({
                     isDeleting={deletingDocId === doc?.id}
                     onSelect={onSelect}
                     onOpenMeta={onOpenMeta}
+                    onRemovePage={onRemovePage ? () => onRemovePage(tabPath, slug) : undefined}
                   />
                 );
               })}
@@ -277,7 +294,7 @@ const SortableTab = ({
   documents, docId, expanded, setExpanded,
   deletingDocId, onSelect, onOpenMeta, onGroupsReorder, onPagesReorder,
   onRenameTab, onDeleteTab, onAddGroup,
-  onRenameGroup, onDeleteGroup, onCreatePage,
+  onRenameGroup, onDeleteGroup, onCreatePage, onRemovePage,
 }) => {
   const [editing, setEditing] = useState(false);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -402,6 +419,7 @@ const SortableTab = ({
                   onRenameGroup={onRenameGroup}
                   onDeleteGroup={onDeleteGroup}
                   onCreatePage={onCreatePage}
+                  onRemovePage={onRemovePage}
                 />
               );
             })}
@@ -517,6 +535,24 @@ export const EditorNavTree = ({
     onCreatePage?.(tabPath);
   }, [onCreatePage]);
 
+  // Remove a page slug from a specific group (used for "missing" nav entries
+  // that have no backing document). Only mutates the navigation config.
+  const handleRemovePage = useCallback((tabPath, pageSlug) => {
+    const { tabIndex, groupIndex } = tabPath;
+    const newTabs = tabs.map((t, ti) => {
+      if (ti !== tabIndex) return t;
+      const newGroups = (t.groups || []).map((g, gi) => {
+        if (gi !== groupIndex) return g;
+        const newPages = (g.pages || []).filter(
+          (p) => (typeof p === 'string' ? p : p.page) !== pageSlug,
+        );
+        return { ...g, pages: newPages };
+      });
+      return { ...t, groups: newGroups };
+    });
+    onSaveNavConfig({ ...navConfig, tabs: newTabs });
+  }, [tabs, navConfig, onSaveNavConfig]);
+
   return (
     <Fragment>
       {/* + New Tab — always at top so the tree is never an empty dead-end */}
@@ -564,6 +600,7 @@ export const EditorNavTree = ({
                   onRenameGroup={handleRenameGroup}
                   onDeleteGroup={handleDeleteGroup}
                   onCreatePage={handleCreatePage}
+                  onRemovePage={handleRemovePage}
                 />
               );
             })}

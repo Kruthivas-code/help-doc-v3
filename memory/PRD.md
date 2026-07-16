@@ -170,4 +170,10 @@ Build a Mintlify-class documentation platform for **Emergent's Documentation** w
 - Regression: `/app/backend/tests/test_seo.py` — 3/3 pass.
 - **Note**: Full per-page previews for no-JS social scrapers (Twitter/FB/LinkedIn/Slack) require SSR/prerendering, which is not feasible on the current SPA + ingress setup; site-level OG defaults are the pragmatic fallback. Google (renders JS) sees full per-page meta.
 
+## Completed work — June 10, 2026 (Remove missing/orphan nav pages)
+- **Bug**: Nav entries whose backing document doesn't exist ("missing" pages) had no delete/remove control — only linked docs got a 3-dot menu in `EditorNavTree.jsx`. Users couldn't clean up orphan nav slugs.
+- **Fix**: Added a trash button on `SortablePage` when `isMissing`, wired a new `onRemovePage(tabPath, slug)` handler through SortableTab → SortableGroup → SortablePage → top-level `EditorNavTree`. It filters the slug out of that group's `pages` and persists via `onSaveNavConfig` (PUT /config). Does NOT touch any document (there is none).
+- Unlinked *documents* already have a delete button (Trash2) in `Editor.jsx` "Unlinked Documents" section — confirmed present in current code; if not visible on production, prod build is stale and needs a redeploy.
+- Verified via seeded admin session + throwaway project with a missing page: button renders with red "missing" label, click removes the entry from the tree and persists (`pages: ['real-page']`).
+
 **Previously Completed work**
