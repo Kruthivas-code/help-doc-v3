@@ -176,4 +176,9 @@ Build a Mintlify-class documentation platform for **Emergent's Documentation** w
 - Unlinked *documents* already have a delete button (Trash2) in `Editor.jsx` "Unlinked Documents" section — confirmed present in current code; if not visible on production, prod build is stale and needs a redeploy.
 - Verified via seeded admin session + throwaway project with a missing page: button renders with red "missing" label, click removes the entry from the tree and persists (`pages: ['real-page']`).
 
+## Completed work — June 10, 2026 (Fix: hidden delete buttons / clipped sidebar action controls)
+- **Root cause**: Radix `ScrollArea` wraps its content in a `display:table` div, which defeats `min-w-0` flex-shrinking. Long doc titles pushed the row wider than the `w-72` (288px) sidebar, so the right-side action controls (unlinked-doc trash buttons, "Delete All", and nav-tree page 3-dot menus) rendered ~25px outside the sidebar and got clipped by `overflow-hidden`. User reported "no delete button" — controls existed in DOM but were off-screen.
+- **Fix**: Scoped the Editor sidebar `ScrollArea` to force the Radix viewport inner wrapper to `display:block` via `[&_[data-radix-scroll-area-viewport]>div]:!block` (in `Editor.jsx`). Titles now truncate and all action buttons render inside the sidebar. Verified by measurement (button `right=271 ≤ sidebar 288`, insideSidebar:true) + screenshot showing trash icons on all unlinked docs, "Delete All", and page 3-dot menus.
+- Requires redeploy to reach production.
+
 **Previously Completed work**

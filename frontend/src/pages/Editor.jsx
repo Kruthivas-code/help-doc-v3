@@ -591,7 +591,7 @@ const Editor = () => {
             <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Navigation</span>
           </div>
           
-          <ScrollArea className="flex-1 px-2 pr-3">
+          <ScrollArea className="flex-1 px-2 pr-3 [&_[data-radix-scroll-area-viewport]>div]:!block">
             <nav className="space-y-1 pb-4">
               {/* Sortable Tab > Group > Page tree with per-page metadata menu */}
               <EditorNavTree
