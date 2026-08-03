@@ -15,6 +15,16 @@ Build a Mintlify-class documentation platform for **Emergent's Documentation** w
 - GitHub OAuth integration for import/export
 - Manual version control with named snapshots
 
+
+## Public Docs Redesign — Replit-style (June 2026)
+Goal: match https://docs.replit.com/help/overview look & feel while keeping the blue brand (#1588FC), light-default theme, both modes polished.
+Implemented in `/app/frontend/src/pages/PublicDocs.jsx`:
+- **Secondary tab bar** under the header (`SecondaryTabBar`): horizontal top-level tabs with optional monochrome icon, brand-blue underline on active tab, horizontal scroll (`no-scrollbar`). Shown only when >1 tab.
+- **Sidebar scoped to active tab** (`LeftSidebar` now takes a single `activeTab`); groups collapsible, each page link renders a monochrome lucide icon via `getIcon` + brand-blue active state with left indicator bar.
+- **Active tab derivation**: computed from the tab containing `selectedDoc`; clicking a tab navigates to that tab's first available doc (`handleTabSelect`).
+- **Layout offsets**: `--header-h` (logo-driven) + `--nav-h` (header + 48px tab bar) CSS vars set from parent; sidebar/TOC/main offset by `--nav-h`.
+- Self-tested via screenshots: light, dark, and tab-switch all verified working.
+
 ## Design System (Feb 2026 — Full UX Overhaul)
 - **Typography**: Geist (headings, font-heading), Inter (body, font-sans), JetBrains Mono (code)
 - **Palette**: zinc neutrals + brand `#1588FC`; light-first with `html.dark` toggle

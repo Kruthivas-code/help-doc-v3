@@ -205,6 +205,10 @@ html.dark ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); 
 
     .text-balance { text-wrap: balance; }
     .tabular-nums { font-variant-numeric: tabular-nums; }
+
+    /* Hide scrollbar (secondary tab bar horizontal scroll) */
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
 }
 
 /* ========================================================================

@@ -20,6 +20,7 @@ import {
     Copy, Check, ArrowLeft, ArrowRight, Sparkles, Book,
 } from 'lucide-react';
 import { DocContent } from '@/components/docs/DocContent';
+import { getIcon } from '@/components/docs/IconPicker';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { useTheme } from '@/contexts/ThemeContext';
 import { search, initializeSearch } from '@/lib/search';
@@ -29,7 +30,7 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 /* ============================================================
    TOP HEADER — sticky, backdrop-blur, full-width
    ============================================================ */
-const TopHeader = ({ config, project, onSearchOpen, onMobileMenuToggle, mobileMenuOpen }) => {
+const TopHeader = ({ config, project, onSearchOpen, onMobileMenuToggle, mobileMenuOpen, headerMinHeight }) => {
     const { isDark } = useTheme();
     const navbar = config?.navbar || {};
     const links = navbar.links || [{ label: 'Support', href: '#' }];
@@ -38,17 +39,6 @@ const TopHeader = ({ config, project, onSearchOpen, onMobileMenuToggle, mobileMe
     // Admin-configurable logo sizing (defaults match the original h-6 / w-auto)
     const logoHeight = Number(config?.logo_height) || 24;
     const logoMaxWidth = config?.logo_max_width ? Number(config.logo_max_width) : null;
-    // Grow the header bar when the logo is bigger than the default 32px lane
-    const headerMinHeight = Math.max(56, logoHeight + 24);
-
-    // Expose the resolved header height as a CSS variable so the layout
-    // offsets (sidebars, main content top padding) grow with the logo.
-    useEffect(() => {
-        document.documentElement.style.setProperty('--header-h', `${headerMinHeight}px`);
-        return () => {
-            document.documentElement.style.setProperty('--header-h', '56px');
-        };
-    }, [headerMinHeight]);
 
     return (
         <header
@@ -138,11 +128,13 @@ const TopHeader = ({ config, project, onSearchOpen, onMobileMenuToggle, mobileMe
 /* ============================================================
    LEFT SIDEBAR — sticky scroll, tab → groups → pages
    ============================================================ */
-const SidebarLink = ({ active, missing, onClick, children, testId, depth = 0 }) => {
-    const pad = depth === 0 ? 'pl-4' : 'pl-6';
+const SidebarLink = ({ active, missing, onClick, children, testId, depth = 0, icon }) => {
+    const pad = depth === 0 ? 'pl-3' : 'pl-6';
+    const IconComp = getIcon(icon);
     if (missing) {
         return (
-            <span className={`flex items-center ${pad} pr-3 py-1.5 text-[13px] text-zinc-400 dark:text-zinc-600 cursor-not-allowed`}>
+            <span className={`flex items-center gap-2.5 ${pad} pr-3 py-1.5 text-[13px] text-zinc-400 dark:text-zinc-600 cursor-not-allowed`}>
+                <IconComp className="h-3.5 w-3.5 flex-shrink-0 opacity-60" />
                 <span className="truncate flex-1">{children}</span>
                 <span className="text-[10px] text-rose-500 ml-2">missing</span>
             </span>
@@ -153,12 +145,13 @@ const SidebarLink = ({ active, missing, onClick, children, testId, depth = 0 }) 
             type="button"
             onClick={onClick}
             data-testid={testId}
-            className={`btn-press w-full flex items-center ${pad} pr-3 py-1.5 rounded-md text-[13px] text-left transition-colors relative ${
+            className={`btn-press w-full flex items-center gap-2.5 ${pad} pr-3 py-1.5 rounded-md text-[13px] text-left transition-colors relative ${
                 active
-                    ? 'text-brand font-semibold bg-brand/5 dark:bg-brand/10 before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-0.5 before:bg-brand before:rounded-r'
+                    ? 'text-brand font-semibold bg-brand/5 dark:bg-brand/10 before:absolute before:left-0 before:top-1 before:bottom-1 before:w-[3px] before:bg-brand before:rounded-r'
                     : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-100 hover:bg-zinc-100/70 dark:hover:bg-zinc-900'
             }`}
         >
+            <IconComp className="h-3.5 w-3.5 flex-shrink-0" strokeWidth={2} />
             <span className="truncate flex-1">{children}</span>
         </button>
     );
@@ -193,6 +186,7 @@ const GroupSection = ({ group, groupId, documents, activeSlug, onDocSelect, defa
                         const slug = typeof page === 'string' ? page : page.page;
                         const doc = documents.find(d => d.slug?.toLowerCase() === slug?.toLowerCase());
                         const title = typeof page === 'string' ? (doc?.title || page) : (page.title || doc?.title || page.page);
+                        const pageIcon = typeof page === 'string' ? doc?.icon : (page.icon || doc?.icon);
                         const active = slug?.toLowerCase() === activeSlug?.toLowerCase();
                         return (
                             <SidebarLink
@@ -202,6 +196,7 @@ const GroupSection = ({ group, groupId, documents, activeSlug, onDocSelect, defa
                                 onClick={() => onDocSelect(slug)}
                                 testId={`page-${slug}`}
                                 depth={depth}
+                                icon={pageIcon}
                             >
                                 {title}
                             </SidebarLink>
@@ -225,7 +220,46 @@ const GroupSection = ({ group, groupId, documents, activeSlug, onDocSelect, defa
     );
 };
 
-const LeftSidebar = ({ tabs, documents, activeSlug, onDocSelect, mobileOpen, onMobileClose }) => {
+/* ============================================================
+   SECONDARY TAB BAR — horizontal top-level nav (Replit-style)
+   ============================================================ */
+const SecondaryTabBar = ({ tabs, activeTabId, onTabSelect }) => {
+    if (!tabs || tabs.length < 2) return null;
+    return (
+        <div
+            className="fixed left-0 right-0 z-30 border-b border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md"
+            style={{ top: 'var(--header-h, 56px)' }}
+            data-testid="secondary-tab-bar"
+        >
+            <div className="px-4 sm:px-6 lg:px-10">
+                <nav className="flex items-center gap-6 h-12 overflow-x-auto no-scrollbar">
+                    {tabs.map((tab) => {
+                        const IconComp = getIcon(tab.icon);
+                        const active = tab.id === activeTabId;
+                        return (
+                            <button
+                                key={tab.id}
+                                type="button"
+                                onClick={() => onTabSelect(tab.id)}
+                                data-testid={`tab-${tab.id}`}
+                                className={`btn-press relative flex items-center gap-2 h-full text-[13px] font-medium whitespace-nowrap transition-colors ${
+                                    active
+                                        ? 'text-zinc-950 dark:text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-brand after:rounded-t'
+                                        : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
+                                }`}
+                            >
+                                {tab.icon && <IconComp className="h-3.5 w-3.5 flex-shrink-0" strokeWidth={2} />}
+                                <span>{tab.label}</span>
+                            </button>
+                        );
+                    })}
+                </nav>
+            </div>
+        </div>
+    );
+};
+
+const LeftSidebar = ({ activeTab, documents, activeSlug, onDocSelect, mobileOpen, onMobileClose }) => {
     return (
         <>
             {mobileOpen && (
@@ -242,32 +276,22 @@ const LeftSidebar = ({ tabs, documents, activeSlug, onDocSelect, mobileOpen, onM
                     transform transition-transform duration-300 ease-out
                     ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
                 `}
-                style={{ top: 'var(--header-h, 56px)' }}
+                style={{ top: 'var(--nav-h, 56px)' }}
                 data-testid="left-sidebar"
             >
-                <nav className="px-3 pb-12 pt-2">
-                    {tabs.map((tab, ti) => (
-                        <section key={tab.id || ti} className={ti === 0 ? 'pt-4' : 'pt-7'}>
-                            <h3
-                                className="px-3 mb-1.5 text-[11px] font-bold tracking-[0.14em] uppercase text-zinc-950 dark:text-white"
-                                data-testid={`sidebar-tab-${tab.id}`}
-                            >
-                                {tab.label}
-                            </h3>
-                            <div className="space-y-0.5">
-                                {(tab.groups || []).map((g, gi) => (
-                                    <GroupSection
-                                        key={gi}
-                                        group={g}
-                                        groupId={`${tab.id}-${gi}`}
-                                        documents={documents}
-                                        activeSlug={activeSlug}
-                                        onDocSelect={(slug) => { onDocSelect(slug); onMobileClose(); }}
-                                    />
-                                ))}
-                            </div>
-                        </section>
-                    ))}
+                <nav className="px-3 pb-12 pt-4">
+                    <div className="space-y-0.5">
+                        {(activeTab?.groups || []).map((g, gi) => (
+                            <GroupSection
+                                key={gi}
+                                group={g}
+                                groupId={`${activeTab?.id || 't'}-${gi}`}
+                                documents={documents}
+                                activeSlug={activeSlug}
+                                onDocSelect={(slug) => { onDocSelect(slug); onMobileClose(); }}
+                            />
+                        ))}
+                    </div>
                 </nav>
             </aside>
         </>
@@ -290,7 +314,7 @@ const RightTOC = ({ headings }) => {
         if (valid.length === 0) return;
         // Read the live header height (set by TopHeader via --header-h)
         const headerH = parseInt(
-          getComputedStyle(document.documentElement).getPropertyValue('--header-h') || '56',
+          getComputedStyle(document.documentElement).getPropertyValue('--nav-h') || '104',
           10,
         );
         const observer = new IntersectionObserver(
@@ -313,7 +337,7 @@ const RightTOC = ({ headings }) => {
     return (
         <aside
             className="hidden xl:block fixed right-0 bottom-0 w-60 overflow-y-auto z-10 px-6 py-8"
-            style={{ top: 'var(--header-h, 56px)' }}
+            style={{ top: 'var(--nav-h, 104px)' }}
         >
             <p className="eyebrow text-zinc-500 mb-4">On this page</p>
             <nav className="space-y-1">
@@ -501,6 +525,7 @@ const PublicDocs = () => {
     const [searchOpen, setSearchOpen] = useState(false);
     const [toc, setToc] = useState([]);
     const [isNavigating, setIsNavigating] = useState(false);
+    const [activeTabId, setActiveTabId] = useState(null);
 
     const tabs = useMemo(() => {
         const rawTabs = config?.navigation?.tabs || [];
@@ -520,6 +545,21 @@ const PublicDocs = () => {
                 groups: config?.navigation?.groups?.length > 0 ? config.navigation.groups : autoGroups,
             }];
     }, [config?.navigation, documents]);
+
+    // Header height grows with logo; secondary tab bar adds 48px when >1 tab.
+    const headerMinHeight = Math.max(56, (Number(config?.logo_height) || 24) + 24);
+    const showTabBar = tabs.length > 1;
+    const navHeight = headerMinHeight + (showTabBar ? 48 : 0);
+
+    useEffect(() => {
+        const root = document.documentElement;
+        root.style.setProperty('--header-h', `${headerMinHeight}px`);
+        root.style.setProperty('--nav-h', `${navHeight}px`);
+        return () => {
+            root.style.setProperty('--header-h', '56px');
+            root.style.setProperty('--nav-h', '56px');
+        };
+    }, [headerMinHeight, navHeight]);
 
     const fetchPublic = useCallback(async () => {
         try {
@@ -590,6 +630,38 @@ const PublicDocs = () => {
             });
         }
     }, [documents, navigate, selectedDoc, isNavigating]);
+
+    // Which tab contains the current doc → active tab in the secondary bar.
+    useEffect(() => {
+        if (!selectedDoc || tabs.length === 0) return;
+        for (const t of tabs) {
+            for (const g of (t.groups || [])) {
+                const found = (g.pages || []).some(
+                    p => (typeof p === 'string' ? p : p.page)?.toLowerCase() === selectedDoc.slug?.toLowerCase()
+                );
+                if (found) { setActiveTabId(t.id); return; }
+            }
+        }
+        setActiveTabId(prev => prev || tabs[0]?.id);
+    }, [selectedDoc, tabs]);
+
+    const activeTab = useMemo(
+        () => tabs.find(t => t.id === activeTabId) || tabs[0] || null,
+        [tabs, activeTabId]
+    );
+
+    const handleTabSelect = useCallback((tabId) => {
+        setActiveTabId(tabId);
+        const tab = tabs.find(t => t.id === tabId);
+        if (!tab) return;
+        for (const g of (tab.groups || [])) {
+            for (const p of (g.pages || [])) {
+                const slug = typeof p === 'string' ? p : p.page;
+                const doc = documents.find(d => d.slug?.toLowerCase() === slug?.toLowerCase());
+                if (doc) { handleDocSelect(slug); return; }
+            }
+        }
+    }, [tabs, documents, handleDocSelect]);
 
     // Auto-scroll to URL hash once content is rendered. Two trigger paths:
     //   (1) Initial landing on /page#section — toc gets populated, hash is present.
@@ -735,7 +807,16 @@ const PublicDocs = () => {
                 onSearchOpen={() => setSearchOpen(true)}
                 onMobileMenuToggle={() => setMobileMenuOpen(o => !o)}
                 mobileMenuOpen={mobileMenuOpen}
+                headerMinHeight={headerMinHeight}
             />
+
+            {showTabBar && (
+                <SecondaryTabBar
+                    tabs={tabs}
+                    activeTabId={activeTabId}
+                    onTabSelect={handleTabSelect}
+                />
+            )}
 
             <SearchDialog
                 open={searchOpen}
@@ -745,7 +826,7 @@ const PublicDocs = () => {
             />
 
             <LeftSidebar
-                tabs={tabs}
+                activeTab={activeTab}
                 documents={documents}
                 activeSlug={selectedDoc?.slug}
                 onDocSelect={handleDocSelect}
@@ -755,7 +836,7 @@ const PublicDocs = () => {
 
             <main
                 className="lg:ml-64 xl:mr-60 min-h-screen"
-                style={{ paddingTop: 'var(--header-h, 56px)' }}
+                style={{ paddingTop: 'var(--nav-h, 56px)' }}
             >
                 {selectedDoc ? (
                     <article
