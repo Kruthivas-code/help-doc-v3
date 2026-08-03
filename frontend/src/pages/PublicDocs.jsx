@@ -27,6 +27,11 @@ import { search, initializeSearch } from '@/lib/search';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
+// Canonical production origin for SEO tags (canonical, OG, JSON-LD). Falls back
+// to the runtime origin so preview/dev still work. Using a fixed value ensures
+// build-time prerendered pages emit correct absolute URLs (not localhost).
+const SITE_ORIGIN = (process.env.REACT_APP_SITE_URL || (typeof window !== 'undefined' ? window.location.origin : '')).replace(/\/$/, '');
+
 /* ============================================================
    TOP HEADER — sticky, backdrop-blur, full-width
    ============================================================ */
@@ -735,7 +740,7 @@ const PublicDocs = () => {
             || selectedDoc.content?.substring(0, 160).replace(/[#*>`]/g, '').trim()
             || config?.site_description)
         : config?.site_description || 'Documentation and guides';
-    const pageUrl = `${window.location.origin}${selectedDoc ? `/${selectedDoc.slug}` : ''}`;
+    const pageUrl = `${SITE_ORIGIN}${selectedDoc ? `/${selectedDoc.slug}` : ''}`;
     const ogImage = config?.logo_dark_url || config?.logo_light_url || config?.favicon_url;
 
     return (
@@ -783,7 +788,7 @@ const PublicDocs = () => {
                         "@context": "https://schema.org",
                         "@type": "WebSite",
                         "name": siteTitle,
-                        "url": window.location.origin,
+                        "url": SITE_ORIGIN,
                         "description": pageDesc
                     })}</script>
                 )}
@@ -792,7 +797,7 @@ const PublicDocs = () => {
                         "@context": "https://schema.org",
                         "@type": "BreadcrumbList",
                         "itemListElement": [
-                            { "@type": "ListItem", "position": 1, "name": "Home", "item": window.location.origin },
+                            { "@type": "ListItem", "position": 1, "name": "Home", "item": SITE_ORIGIN },
                             ...(breadcrumb.tab ? [{ "@type": "ListItem", "position": 2, "name": breadcrumb.tab }] : []),
                             ...(breadcrumb.group ? [{ "@type": "ListItem", "position": 3, "name": breadcrumb.group }] : []),
                             { "@type": "ListItem", "position": 4, "name": selectedDoc.title, "item": pageUrl }
@@ -841,6 +846,8 @@ const PublicDocs = () => {
                 {selectedDoc ? (
                     <article
                         key={selectedDoc.id}
+                        data-testid="doc-article"
+                        data-prerender-ready="true"
                         className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-10 py-10 lg:py-14 fade-up"
                     >
                         {/* Eyebrow breadcrumb */}

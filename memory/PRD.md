@@ -34,6 +34,13 @@ Source: user-provided "User Education Gaps Tracker.csv" (219 rows) → complete 
 - Verified: content scan (no raw-tag leaks; all placeholder `<...>` tokens are inside code fences so rehype-raw is safe) + testing_agent frontend pass (~95%, retest_needed:false, zero functional bugs).
 - Known non-blocking: `GET /api/auth/me` 401 console noise on public pages (pre-existing global admin-session check in App.js).
 
+## Changelog removed + SEO/SSR hardening (June 2026)
+- **Removed the Changelog tab** — now 5 tabs (Build, Integrations, Troubleshooting, Data Trust & Support, Wingman), 106 docs.
+- **AI / LLM discoverability**: `robots.txt` now explicitly allows AI crawlers (GPTBot, OAI-SearchBot, ChatGPT-User, ClaudeBot, anthropic-ai, PerplexityBot, Google-Extended, Applebot-Extended, CCBot, Amazonbot, Meta-ExternalAgent, etc.). Added `llms.txt` (curated index) + `llms-full.txt` (full content) per the llmstxt.org standard — served at both `/api/seo/*` and root `/llms.txt`, `/llms-full.txt`, generated dynamically from nav + documents (`_build_llms_txt` in server.py).
+- **SEO meta cleanup**: removed the duplicate static SEO tags from `public/index.html` so react-helmet-async is the single source (no more double `<meta description>` / canonical). Added `REACT_APP_SITE_URL=https://help.emergent.sh`; `PublicDocs.jsx` now uses `SITE_ORIGIN` for canonical / og:url / JSON-LD (absolute prod URLs, not localhost).
+- **Build-time prerendering (SSR-equivalent)**: react-snap is incompatible with React 19, so wrote a custom Puppeteer prerender at `frontend/scripts/prerender.js`. It boots the built SPA on a local static server, snapshots fully-rendered HTML (content + per-page meta + JSON-LD) for every doc route into `build/<slug>/index.html`, so non-JS crawlers get real content. Hardened: blocks analytics (PostHog), `domcontentloaded` + `data-prerender-ready` selector wait, 35s hard per-route timeout, non-fatal. Wired into `yarn build`: `craco build && (node scripts/prerender.js || echo 'prerender skipped')`. Verified full run: 105/105 pages, ~3 min, clean exit. Requires puppeteer (devDependency, pinned `23.11.1` for Node 20) + a Chromium at `/usr/bin/chromium`.
+- **Renderer fix**: `<Tab title="...">` now accepted as an alias for `<Tab label="...">` (parser + validator) — fixed spurious "Validation Warnings" on 17 integration pages.
+
 ## Design System (Feb 2026 — Full UX Overhaul)
 - **Typography**: Geist (headings, font-heading), Inter (body, font-sans), JetBrains Mono (code)
 - **Palette**: zinc neutrals + brand `#1588FC`; light-first with `html.dark` toggle

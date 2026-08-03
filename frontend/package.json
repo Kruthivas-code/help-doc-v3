@@ -90,7 +90,7 @@
   },
   "scripts": {
     "start": "craco start",
-    "build": "craco build",
+    "build": "craco build && (node scripts/prerender.js || echo 'prerender skipped')",
     "test": "craco test"
   },
   "browserslist": {
@@ -117,6 +117,7 @@
     "eslint-plugin-react-hooks": "5.2.0",
     "globals": "15.15.0",
     "postcss": "^8.4.49",
+    "puppeteer": "23.11.1",
     "serve": "^14.2.5",
     "tailwindcss": "^3.4.17"
   },

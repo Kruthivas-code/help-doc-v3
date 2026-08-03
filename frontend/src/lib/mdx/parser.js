@@ -193,9 +193,14 @@ function validateComponentProps(componentName, props, errors, position) {
   };
 
   const required = requiredProps[componentName];
+  // Some components accept interchangeable label/title props (e.g. <Tab title>
+  // and <Tab label> are both valid); treat them as aliases so we don't emit
+  // spurious "missing prop" warnings.
+  const aliases = { label: ['title'], title: ['label'] };
   if (required) {
     for (const prop of required) {
-      if (!props[prop]) {
+      const alt = aliases[prop] || [];
+      if (!props[prop] && !alt.some((a) => props[a])) {
         errors.push({
           type: ValidationError.MISSING_REQUIRED_PROP,
           message: `<${componentName}> requires "${prop}" prop`,
@@ -415,11 +420,11 @@ function extractInnerComponents(content, parentType) {
   const patterns = {
     Steps: /<Step\s+title="([^"]*)"(?:\s+icon="([^"]*)")?>([\s\S]*?)<\/Step>/gi,
     CardGroup: /<Card\s+title="([^"]*)"(?:\s+icon="([^"]*)")?(?:\s+href="([^"]*)")?>([\s\S]*?)<\/Card>/gi,
-    Tabs: /<Tab\s+label="([^"]*)">([\s\S]*?)<\/Tab>/gi,
+    Tabs: /<Tab\s+(?:label|title)="([^"]*)">([\s\S]*?)<\/Tab>/gi,
     Accordion: /<AccordionItem\s+title="([^"]*)"(?:\s+defaultOpen)?>([\s\S]*?)<\/AccordionItem>/gi,
     // AccordionGroup uses <Accordion title="..." icon="..."> as children (Mintlify style)
     AccordionGroup: /<Accordion\s+title="([^"]*)"(?:\s+icon="([^"]*)")?(?:\s+defaultOpen)?>([\s\S]*?)<\/Accordion>/gi,
-    CodeGroup: /<Tab\s+label="([^"]*)">([\s\S]*?)<\/Tab>/gi,
+    CodeGroup: /<Tab\s+(?:label|title)="([^"]*)">([\s\S]*?)<\/Tab>/gi,
   };
 
   const pattern = patterns[parentType];

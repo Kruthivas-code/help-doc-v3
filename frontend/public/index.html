@@ -5,44 +5,15 @@
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#000000" />
 
-        <!-- Primary SEO meta (per-page values are overridden at runtime via react-helmet) -->
-        <meta
-            name="description"
-            content="Official Emergent documentation — guides, quickstarts, integrations and API references to help you build, ship and scale with Emergent."
-        />
-        <meta name="robots" content="index, follow, max-image-preview:large" />
+        <!-- Site-level meta. Per-page SEO (title, description, canonical, OG,
+             Twitter, JSON-LD) is owned exclusively by react-helmet-async in the
+             app and captured into static HTML by the build-time prerender step,
+             so we intentionally do NOT hardcode duplicating tags here. -->
         <meta
             name="keywords"
             content="Emergent, documentation, docs, guides, quickstart, API reference, integrations, tutorials"
         />
         <meta name="author" content="Emergent" />
-        <link rel="canonical" href="https://help.emergent.sh/" />
-
-        <!-- Open Graph (Facebook, LinkedIn, Slack, etc.) -->
-        <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="Emergent Docs" />
-        <meta property="og:title" content="Emergent Docs" />
-        <meta
-            property="og:description"
-            content="Official Emergent documentation — guides, quickstarts, integrations and API references."
-        />
-        <meta property="og:url" content="https://help.emergent.sh/" />
-        <meta
-            property="og:image"
-            content="https://avatars.githubusercontent.com/in/1201222?s=400&v=4"
-        />
-
-        <!-- Twitter Card -->
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Emergent Docs" />
-        <meta
-            name="twitter:description"
-            content="Official Emergent documentation — guides, quickstarts, integrations and API references."
-        />
-        <meta
-            name="twitter:image"
-            content="https://avatars.githubusercontent.com/in/1201222?s=400&v=4"
-        />
         <!--
         manifest.json provides metadata used when your web app is installed on a
         user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
