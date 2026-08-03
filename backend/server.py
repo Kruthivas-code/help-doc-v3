@@ -1680,15 +1680,105 @@ def _resolve_base_url(request: Request) -> str:
 
 
 def _robots_body(base_url: str) -> str:
-    return (
-        "User-agent: *\n"
-        "Allow: /\n"
-        "Disallow: /admin\n"
-        "Disallow: /admin/\n"
-        "\n"
-        f"Sitemap: {base_url}/sitemap_index.xml\n"
-        f"Sitemap: {base_url}/api/seo/sitemap.xml\n"
-    )
+    # Explicitly welcome AI / LLM crawlers and search assistants in addition to
+    # the standard wildcard rule, and advertise the llms.txt index.
+    ai_bots = [
+        "GPTBot", "OAI-SearchBot", "ChatGPT-User",
+        "ClaudeBot", "anthropic-ai", "Claude-Web",
+        "PerplexityBot", "Perplexity-User",
+        "Google-Extended", "Applebot-Extended",
+        "CCBot", "Amazonbot", "Meta-ExternalAgent",
+        "cohere-ai", "YouBot", "DuckAssistBot", "Bytespider",
+    ]
+    lines = [
+        "# Emergent Docs",
+        "User-agent: *",
+        "Allow: /",
+        "Disallow: /admin",
+        "Disallow: /admin/",
+        "",
+        "# AI / LLM crawlers and answer engines are explicitly allowed",
+    ]
+    for bot in ai_bots:
+        lines += [f"User-agent: {bot}", "Allow: /", ""]
+    lines += [
+        "# LLM-friendly docs indexes (see https://llmstxt.org)",
+        f"# {base_url}/llms.txt",
+        f"# {base_url}/llms-full.txt",
+        f"Sitemap: {base_url}/sitemap_index.xml",
+        f"Sitemap: {base_url}/api/seo/sitemap.xml",
+        "",
+    ]
+    return "\n".join(lines)
+
+
+async def _build_llms_txt(base_url: str, full: bool = False) -> str:
+    """Generate an llms.txt (curated index) or llms-full.txt (full content)
+    following the https://llmstxt.org convention, ordered by the docs navigation."""
+    project = await db.projects.find_one({"is_default": True}, {"_id": 0})
+    if not project:
+        project = await db.projects.find_one({}, {"_id": 0})
+    if not project:
+        return "# Documentation\n"
+
+    config = await db.project_configs.find_one({"project_id": project["id"]}, {"_id": 0}) or {}
+    docs = await db.documents.find(
+        {"project_id": project["id"]},
+        {"_id": 0, "slug": 1, "title": 1, "description": 1, "content": 1},
+    ).to_list(1000)
+    by_slug = {d.get("slug"): d for d in docs if d.get("slug")}
+
+    site_title = config.get("site_title") or project.get("name") or "Documentation"
+    site_desc = config.get("site_description") or "Official documentation, guides and references."
+    tabs = (config.get("navigation") or {}).get("tabs") or []
+
+    def slug_of(pg):
+        return pg.get("page") if isinstance(pg, dict) else pg
+
+    out = [f"# {site_title}", "", f"> {site_desc}", ""]
+    used = set()
+
+    for tab in tabs:
+        section_lines = []
+        for group in tab.get("groups", []):
+            def emit(pg, sub=False):
+                slug = slug_of(pg)
+                d = by_slug.get(slug)
+                if not d:
+                    return
+                used.add(slug)
+                desc = (d.get("description") or "").strip().replace("\n", " ")
+                if full:
+                    section_lines.append(f"### {d.get('title') or slug}")
+                    section_lines.append(f"Source: {base_url}/{slug}")
+                    section_lines.append("")
+                    section_lines.append((d.get("content") or "").strip())
+                    section_lines.append("")
+                    section_lines.append("---")
+                    section_lines.append("")
+                else:
+                    line = f"- [{d.get('title') or slug}]({base_url}/{slug})"
+                    if desc and desc.lower() != (d.get("title") or "").lower():
+                        line += f": {desc}"
+                    section_lines.append(line)
+
+            gl = group.get("group")
+            if gl and not full:
+                section_lines.append(f"\n**{gl}**\n")
+            for pg in group.get("pages", []):
+                emit(pg)
+            for sub in group.get("groups", []):
+                sgl = sub.get("group")
+                if sgl and not full:
+                    section_lines.append(f"\n_{sgl}_\n")
+                for pg in sub.get("pages", []):
+                    emit(pg, sub=True)
+        if section_lines:
+            out.append(f"## {tab.get('label')}")
+            out.extend(section_lines)
+            out.append("")
+
+    return "\n".join(out).strip() + "\n"
 
 
 async def _build_sitemap(base_url: str) -> str:
@@ -1766,6 +1856,18 @@ async def api_sitemap_index_xml(request: Request):
     return Response(content=_sitemap_index_body(_resolve_base_url(request)), media_type="application/xml")
 
 
+@api_router.get("/seo/llms.txt", include_in_schema=False)
+async def api_llms_txt(request: Request):
+    body = await _build_llms_txt(_resolve_base_url(request), full=False)
+    return Response(content=body, media_type="text/plain; charset=utf-8")
+
+
+@api_router.get("/seo/llms-full.txt", include_in_schema=False)
+async def api_llms_full_txt(request: Request):
+    body = await _build_llms_txt(_resolve_base_url(request), full=True)
+    return Response(content=body, media_type="text/plain; charset=utf-8")
+
+
 # Root-level routes — used when Kubernetes ingress allows them through to the
 # backend; otherwise the /api/seo/* endpoints above are the canonical source.
 @app.get("/robots.txt", include_in_schema=False)
@@ -1789,6 +1891,18 @@ async def sitemap_xml(request: Request):
 @app.get("/sitemap_index.xml", include_in_schema=False)
 async def sitemap_index_xml(request: Request):
     return Response(content=_sitemap_index_body(_resolve_base_url(request)), media_type="application/xml")
+
+
+@app.get("/llms.txt", include_in_schema=False)
+async def llms_txt(request: Request):
+    body = await _build_llms_txt(_resolve_base_url(request), full=False)
+    return Response(content=body, media_type="text/plain; charset=utf-8")
+
+
+@app.get("/llms-full.txt", include_in_schema=False)
+async def llms_full_txt(request: Request):
+    body = await _build_llms_txt(_resolve_base_url(request), full=True)
+    return Response(content=body, media_type="text/plain; charset=utf-8")
 
 # Include the router in the main app
 app.include_router(api_router)
