@@ -25,6 +25,15 @@ Implemented in `/app/frontend/src/pages/PublicDocs.jsx`:
 - **Layout offsets**: `--header-h` (logo-driven) + `--nav-h` (header + 48px tab bar) CSS vars set from parent; sidebar/TOC/main offset by `--nav-h`.
 - Self-tested via screenshots: light, dark, and tab-switch all verified working.
 
+## Full Content Rebuild from CSV Blueprint (June 2026)
+Source: user-provided "User Education Gaps Tracker.csv" (219 rows) → complete new IA + AI-generated prose.
+- **Navigation rebuilt into 6 tabs**: Build (54 pages), Integrations (34), Troubleshooting (8), Data, Trust & Support (6), Wingman (4), Changelog (1). Replaces the old 6 tabs.
+- **107 documentation pages** generated with Claude Sonnet (Universal Key) from the CSV briefs; type-aware output (Comparison→tables, FAQ→AccordionGroup, Guide→Steps, Warning→Callout), cross-page relative links, per-page + per-tab lucide icons.
+- Pipeline in `/app/backend/scripts_edu/`: `build_tree.py` (CSV→tree.json), `generate.py` (per-page Claude gen → gen_pages/*.json, sharded multi-process for parallelism, resumable), `apply.py` (wipes old docs, inserts 107 new Documents + writes navigation config to project_configs for the "Emergent" project).
+- **Renderer fixes** (needed for generated content): `parser.js` now extracts shorthand callouts `<Note>/<Info>/<Tip>/<Warning>/<Caution>/<Error>/<Danger>/<Success>` (previously only `<Callout type=...>` rendered); `DocContent.jsx` enables `rehype-raw` so `<br>` inside table cells renders as line breaks; detection regex updated.
+- Verified: content scan (no raw-tag leaks; all placeholder `<...>` tokens are inside code fences so rehype-raw is safe) + testing_agent frontend pass (~95%, retest_needed:false, zero functional bugs).
+- Known non-blocking: `GET /api/auth/me` 401 console noise on public pages (pre-existing global admin-session check in App.js).
+
 ## Design System (Feb 2026 — Full UX Overhaul)
 - **Typography**: Geist (headings, font-heading), Inter (body, font-sans), JetBrains Mono (code)
 - **Palette**: zinc neutrals + brand `#1588FC`; light-first with `html.dark` toggle
