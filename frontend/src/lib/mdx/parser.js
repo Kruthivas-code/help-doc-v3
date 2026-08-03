@@ -227,6 +227,8 @@ export function extractComponents(content) {
     { regex: /<Columns\s+cols=\{(\d+)\}>([\s\S]*?)<\/Columns>/gi, type: 'columns' },
     // Callout with type and optional title
     { regex: /<Callout\s+type="([^"]*)"(?:\s+title="([^"]*)")?>([\s\S]*?)<\/Callout>/gi, type: 'callout' },
+    // Shorthand callouts: <Note>, <Info>, <Tip>, <Warning>, <Caution>, <Error>, <Danger>, <Success>
+    { regex: /<(Note|Info|Tip|Warning|Caution|Error|Danger|Success)(?:\s+([^>]*?))?>([\s\S]*?)<\/\1>/gi, type: 'callout-shorthand' },
     // Self-closing media components (YouTube, Loom, Video, Figure)
     { regex: /<(YouTube|Loom|Video|Figure)\s+([^>]*?)\/>/gi, type: 'media' },
     // Self-closing action components (DeleteAccountButton)
@@ -297,6 +299,15 @@ export function extractComponents(content) {
         type: 'component',
         component: 'Callout',
         props: { type: item.match[1], title: item.match[2] },
+        content: item.match[3].trim(),
+      });
+    } else if (item.type === 'callout-shorthand') {
+      const attrs = item.match[2] || '';
+      const titleM = attrs.match(/title="([^"]*)"/);
+      result.push({
+        type: 'component',
+        component: 'Callout',
+        props: { type: item.match[1], title: titleM ? titleM[1] : undefined },
         content: item.match[3].trim(),
       });
     } else if (item.type === 'media') {

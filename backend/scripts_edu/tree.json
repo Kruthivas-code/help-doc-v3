@@ -1,0 +1,1718 @@
+[
+ {
+  "label": "Build",
+  "sections": [
+   {
+    "label": "Introduction",
+    "type": "Info",
+    "brief": "",
+    "status": "To Update",
+    "pages": [
+     {
+      "title": "What is Emergent?",
+      "type": "Info",
+      "brief": "Emergent is an agentic vibecoding platform: you describe what you want, and AI agents build, test, and deploy it. Positioning vs traditional coding.",
+      "status": "To Update",
+      "children": [],
+      "slug": "what-is-emergent"
+     },
+     {
+      "title": "What kind of apps you can build?",
+      "type": "Info",
+      "brief": "Full-stack web apps, mobile apps, landing pages, MVPs, dashboards, internal tools, e-commerce - projects of any scale.",
+      "status": "To Update",
+      "children": [
+       {
+        "title": "For Individuals",
+        "type": "Info",
+        "brief": "Personal apps, trackers, portfolios, side projects.",
+        "status": "New",
+        "kind": "Topic"
+       },
+       {
+        "title": "For Small & Medium Businesses",
+        "type": "Info",
+        "brief": "Internal tools, dashboards, customer-facing apps.",
+        "status": "New",
+        "kind": "Topic"
+       },
+       {
+        "title": "For Enterprises",
+        "type": "Info",
+        "brief": "Complex multi-user platforms at scale.",
+        "status": "New",
+        "kind": "Topic"
+       }
+      ],
+      "slug": "what-kind-of-apps-you-can-build"
+     },
+     {
+      "title": "The chat-to-deployment flow",
+      "type": "Info",
+      "brief": "The big-picture arc of building on Emergent: prompt -> build -> preview -> iterate -> deploy. A map of the whole journey before diving in.",
+      "status": "To Update",
+      "children": [],
+      "slug": "the-chat-to-deployment-flow"
+     },
+     {
+      "title": "How apps work here (mental model)",
+      "type": "Info",
+      "brief": "",
+      "status": "To Update",
+      "children": [
+       {
+        "title": "You describe, the agent builds",
+        "type": "Info",
+        "brief": "What the agent handles (code, structure, best practices, bug fixes) vs what you decide (vision, features, UX).",
+        "status": "To Update",
+        "kind": "Topic"
+       },
+       {
+        "title": "What's under the hood",
+        "type": "Info",
+        "brief": "Full-stack = FastAPI + React + MongoDB; why knowing this helps when debugging or migrating.",
+        "status": "To Update",
+        "kind": "Topic"
+       },
+       {
+        "title": "What the AI knows vs what you think it knows",
+        "type": "User Concern",
+        "brief": "The agent isn't omniscient about your intent - be explicit. A common source of frustration.",
+        "status": "To Update",
+        "kind": "Topic"
+       }
+      ],
+      "slug": "how-apps-work-here-mental-model"
+     },
+     {
+      "title": "A tour of the workspace",
+      "type": "Info",
+      "brief": "1. Chat panel: where you talk to the agent.\n2. Preview panel: live view of your app; auto-updates.\n3. Secrets / env area: where API keys & env vars live (separate from deployment).\n4. GitHub controls: where save/pull lives.\n5. Deploy controls: where deploy/redeploy/replace live.\n6. Uploading files/images to the agent: attach a screenshot, design, or CSV as build input.",
+      "status": "New",
+      "children": [],
+      "slug": "a-tour-of-the-workspace"
+     }
+    ],
+    "subsections": []
+   },
+   {
+    "label": "Getting Started",
+    "type": "Guide",
+    "brief": "",
+    "status": "To Update",
+    "pages": [
+     {
+      "title": "Which prompt window should I use?",
+      "type": "Info",
+      "brief": "1. Why the choice matters up front: each window has different capabilities & limitations; wrong choice = rework.\n2. Quick decision guide: a short 'if you want X, pick Y' chooser before the comparison table.",
+      "status": "New",
+      "children": [],
+      "slug": "which-prompt-window-should-i-use"
+     },
+     {
+      "title": "Compare the 4 windows",
+      "type": "Comparison",
+      "brief": "1. SINGLE TABLE PAGE. Columns = Fullstack Builder / Mobile App / Landing Page / Brainstorm; Rows = What it's for / What it CAN do / What it CAN'T do / Pick it when.\n2. Key mobile note: a native Mobile App runs on a different language/stack underneath - NOT a web URL in a wrapper (drives later domain/bundle-ID/publication behaviour).",
+      "status": "New",
+      "children": [],
+      "slug": "compare-the-4-windows"
+     },
+     {
+      "title": "Template- fullsatck vs base python (advanced)",
+      "type": "Comparison",
+      "brief": "",
+      "status": "",
+      "children": [],
+      "slug": "template-fullsatck-vs-base-python-advanced"
+     },
+     {
+      "title": "What is a Job?",
+      "type": "FAQ",
+      "brief": "1. What a Job is: a single build/app/project in Emergent - the term you'll see across the platform.\n2. How a job maps to the app you're building.\n3. Managing multiple jobs: working across and switching between projects.\n4. Forking a job to branch off from existing work.",
+      "status": "New",
+      "children": [
+       {
+        "title": "Projects",
+        "type": "Info",
+        "brief": "Organising work into projects: what they are and how to use them.",
+        "status": "To Update",
+        "kind": "Topic"
+       }
+      ],
+      "slug": "what-is-a-job"
+     },
+     {
+      "title": "Team roles, permissions & collaboration",
+      "type": "Info",
+      "brief": "Four project roles (Owner/Admin/Member/Viewer) with a capability matrix, a shared credit pool, inviting members, changing roles, and transferring ownership.",
+      "status": "New",
+      "children": [],
+      "slug": "team-roles-permissions-collaboration"
+     },
+     {
+      "title": "Your first build (walkthrough)",
+      "type": "Guide",
+      "brief": "1. Pick a simple idea (e.g. book tracker); keep it small.\n2. Write the first prompt: purpose + features + design hint + UX hint.\n3. Answer the agent's clarifying questions: Universal Key vs own key, auth?, design prefs, start-vs-discuss.\n4. Watch it build: real-time steps; ~5-15 min; read the explanations.",
+      "status": "To Update",
+      "children": [
+       {
+        "title": "How long builds take & working while you wait",
+        "type": "Info",
+        "brief": "Typical build durations and what happens during a build; what you can do while waiting.",
+        "status": "New",
+        "kind": "Topic"
+       },
+       {
+        "title": "Prompting basics",
+        "type": "Info",
+        "brief": "1. Be specific and detailed: the agent rewards clarity.\n2. Concise features beat mega-prompts: lowers credit burn and confusion.\n3. Ask the agent to explain before building: 'explain, don't build yet'.\n4. Why pasting a ChatGPT plan underperforms: an external spec often doesn't map to Emergent's flow.",
+        "status": "To Update",
+        "kind": "Topic"
+       },
+       {
+        "title": "Voice mode",
+        "type": "Info",
+        "brief": "Building via voice input.",
+        "status": "To Update",
+        "kind": "Topic"
+       }
+      ],
+      "slug": "your-first-build-walkthrough"
+     },
+     {
+      "title": "Understanding models (E1/E2/E3 & Maxx)",
+      "type": "Info",
+      "brief": "",
+      "status": "To Update",
+      "children": [
+       {
+        "title": "What E1, E2, E3 etc. are",
+        "type": "Info",
+        "brief": "The model/agent tiers, how they differ, and when to use which.",
+        "status": "To Update",
+        "kind": "Topic"
+       },
+       {
+        "title": "Maxx mode & its credit impact",
+        "type": "Warning",
+        "brief": "What Maxx mode does and why it consumes more credits.",
+        "status": "To Update",
+        "kind": "Topic"
+       }
+      ],
+      "slug": "understanding-models-e1-e2-e3-maxx"
+     },
+     {
+      "title": "Previewing & iterating",
+      "type": "Info",
+      "brief": "",
+      "status": "To Update",
+      "children": [
+       {
+        "title": "Using the preview",
+        "type": "Info",
+        "brief": "Preview auto-updates; test each feature; how to give change requests for iterative improvements.",
+        "status": "To Update",
+        "kind": "Topic"
+       },
+       {
+        "title": "Preview is NOT your deployed app",
+        "type": "Warning",
+        "brief": "Preview and deployment are separate environments - a key misconception to flag early.",
+        "status": "To Update",
+        "kind": "Topic"
+       }
+      ],
+      "slug": "previewing-iterating"
+     },
+     {
+      "title": "Debugging & testing with the agent",
+      "type": "Guide",
+      "brief": "1. Paste the full error: copy complete text; 'please solve this error'.\n2. Screenshot the issue: upload a screenshot + description for UI bugs.\n3. Adding context for stubborn bugs: when/where it occurs.\n4. Testing your app: the platform auto-tests; reading test results.\n5. Testing a mobile app before publishing: internal/test builds before store submission.",
+      "status": "To Update",
+      "children": [],
+      "slug": "debugging-testing-with-the-agent"
+     },
+     {
+      "title": "Building from the Emergent mobile app",
+      "type": "Info",
+      "brief": "Build and manage apps from Emergent's own iOS/Android/PWA app - navigation tabs, in-app previews, OTA updates, deep linking. Note feature limits vs web (no project creation; no Maxx/Fork/Clone/GitHub push/HIM/VS Code).",
+      "status": "New",
+      "children": [],
+      "slug": "building-from-the-emergent-mobile-app"
+     }
+    ],
+    "subsections": []
+   },
+   {
+    "label": "Useful Tools while building",
+    "type": "Info",
+    "brief": "",
+    "status": "To Update",
+    "pages": [
+     {
+      "title": "Rollback when the agent goes wrong",
+      "type": "Info",
+      "brief": "1. Use rollback to revert to an earlier state when the agent breaks a working feature.\n2. How rollback differs from a GitHub push/pull.\n3. Rollback vs forking: when to revert in place vs branch into a new app (forking lives in Features).",
+      "status": "New",
+      "children": [],
+      "slug": "rollback-when-the-agent-goes-wrong"
+     },
+     {
+      "title": "Forking",
+      "type": "Info",
+      "brief": "Forking an app to branch off into a separate app (with its own build/DB). See also Rollback in Build.",
+      "status": "To Update",
+      "children": [
+       {
+        "title": "Context limits",
+        "type": "Info",
+        "brief": "What context limits are and how to work within them (smaller scope, projects).",
+        "status": "To Update",
+        "kind": "Topic"
+       },
+       {
+        "title": "Infinite Chat (auto context compaction)",
+        "type": "Info",
+        "brief": "Automatic staged context compaction keeps long chats working: squash at ~70%, auto-compact at ~82.5%, truncation near 275K tokens.",
+        "status": "New",
+        "kind": "Topic"
+       }
+      ],
+      "slug": "forking"
+     },
+     {
+      "title": "HIM (Human in middle) mode",
+      "type": "Info",
+      "brief": "What the mode is, how it is different from default, when to use it",
+      "status": "New",
+      "children": [],
+      "slug": "him-human-in-middle-mode"
+     },
+     {
+      "title": "Clone environment",
+      "type": "Info",
+      "brief": "What the button does, when to use it, when not to",
+      "status": "",
+      "children": [],
+      "slug": "clone-environment"
+     },
+     {
+      "title": "The Universal LLM Key",
+      "type": "Info",
+      "brief": "",
+      "status": "To Update",
+      "children": [
+       {
+        "title": "What the Universal Key is",
+        "type": "Info",
+        "brief": "One key for GPT-5/Claude/Gemini via Emergent Credits; no API setup to start.",
+        "status": "To Update",
+        "kind": "Topic"
+       },
+       {
+        "title": "Universal Key vs your own API key",
+        "type": "Comparison",
+        "brief": "When to use the Universal Key vs bringing your own API key; tradeoffs.",
+        "status": "To Update",
+        "kind": "Topic"
+       },
+       {
+        "title": "Recharging & credit types",
+        "type": "Info",
+        "brief": "How recharging works; the different credit types.",
+        "status": "To Update",
+        "kind": "Topic"
+       },
+       {
+        "title": "Using the key outside the platform",
+        "type": "Info",
+        "brief": "Use the Universal Key as a LiteLLM proxy outside Emergent (paid plans only; NAT/IP restrictions); auto-recharge behaviour.",
+        "status": "New",
+        "kind": "Topic"
+       },
+       {
+        "title": "Regenerating the key breaks live apps",
+        "type": "Warning",
+        "brief": "Regenerating the Universal Key breaks deployed apps that use it - you must update Secrets and redeploy.",
+        "status": "New",
+        "kind": "Topic"
+       }
+      ],
+      "slug": "the-universal-llm-key"
+     }
+    ],
+    "subsections": []
+   },
+   {
+    "label": "Deployments",
+    "type": "Info",
+    "brief": "",
+    "status": "To Update",
+    "pages": [],
+    "subsections": [
+     {
+      "label": "Common",
+      "brief": "Applies to both web and mobile deployments.",
+      "pages": [
+       {
+        "title": "Pre-deploy / pre-publish health check",
+        "type": "Info",
+        "brief": "1. Preview & test thoroughly first (features, responsiveness, interactivity / on-device for mobile).\n2. Readiness checklist before you ship - web or mobile.",
+        "status": "To Update",
+        "children": [],
+        "slug": "pre-deploy-pre-publish-health-check"
+       },
+       {
+        "title": "Secrets & env variables",
+        "type": "Info",
+        "brief": "1. Where secrets go: use the secrets manager, not files in the repo.\n2. Saving is not enough - you must redeploy: a saved secret won't take effect in a deployed app until you replace-deploy.",
+        "status": "New",
+        "children": [],
+        "slug": "secrets-env-variables"
+       },
+       {
+        "title": "Deployment types",
+        "type": "Info",
+        "brief": "The different deployment types available and when each applies.",
+        "status": "To Update",
+        "children": [],
+        "slug": "deployment-types"
+       },
+       {
+        "title": "Database (MongoDB)",
+        "type": "Info",
+        "brief": "Your app's database is a MongoDB connection string (a URL), not a file.",
+        "status": "New",
+        "children": [
+         {
+          "title": "Where it's stored",
+          "type": "Info",
+          "brief": "Hosted on Emergent's managed infrastructure by default.",
+          "status": "New",
+          "kind": "Topic"
+         },
+         {
+          "title": "Preview vs Production database",
+          "type": "Warning",
+          "brief": "Preview and deployed apps use SEPARATE databases; data does not auto-flow between them - a common gotcha.",
+          "status": "New",
+          "kind": "Topic"
+         },
+         {
+          "title": "DB options on redeploy vs replace",
+          "type": "Info",
+          "brief": "Redeploy keeps the existing production DB; replace can take a fresh prod DB (from preview) or keep the existing one.",
+          "status": "New",
+          "kind": "Topic"
+         },
+         {
+          "title": "Inspecting & exporting your database",
+          "type": "Guide",
+          "brief": "Browse collections/documents in the built-in Database Manager (mongoview.emergent.host) and export the preview DB via mongodump in VS Code.",
+          "status": "New",
+          "kind": "Topic"
+         }
+        ],
+        "slug": "database-mongodb"
+       },
+       {
+        "title": "Deployment plan levels",
+        "type": "Info",
+        "brief": "1. What the plan levels are: CPU/memory tiers.\n2. Which plan your app needs: how to judge required CPU/memory.",
+        "status": "New",
+        "children": [],
+        "slug": "deployment-plan-levels"
+       },
+       {
+        "title": "Migrate to your own database",
+        "type": "Info",
+        "brief": "",
+        "status": "New",
+        "children": [
+         {
+          "title": "When & why to migrate",
+          "type": "Info",
+          "brief": "Move live DB to your own external DB; deployed apps only.",
+          "status": "New",
+          "kind": "Topic"
+         },
+         {
+          "title": "The migration process",
+          "type": "Guide",
+          "brief": "Add a new env var for your DB; a background process migrates from Emergent DB to yours; app keeps running.",
+          "status": "New",
+          "kind": "Topic"
+         }
+        ],
+        "slug": "migrate-to-your-own-database"
+       },
+       {
+        "title": "File storage (Emergent Object Store)",
+        "type": "Info",
+        "brief": "S3-compatible file storage powered by Tigris (5GB/org quota, no AWS account) for user uploads; requested via the agent, and storage operations do not consume credits.",
+        "status": "New",
+        "children": [],
+        "slug": "file-storage-emergent-object-store"
+       },
+       {
+        "title": "Scheduled tasks & background jobs in your app",
+        "type": "Warning",
+        "brief": "In-process schedulers (APScheduler/Celery/threading) can silently die under scale-to-zero on lower tiers; use external cron trigger endpoints, an always-on tier, or decoupled async workers.",
+        "status": "New",
+        "children": [],
+        "slug": "scheduled-tasks-background-jobs-in-your-app"
+       }
+      ]
+     },
+     {
+      "label": "Web flow",
+      "brief": "Deploying and running a web app.",
+      "pages": [
+       {
+        "title": "Deploying (web)",
+        "type": "Info",
+        "brief": "1. What deploy does: creates a public URL; production infra live 24/7.\n2. Time & cost: ~15 min; 50 credits/month per deployed app.\n3. Sharing & shutting down: share the URL; shut down anytime to stop charges.\n4. Monitoring a deployed app: checking it's up, logs, production errors.",
+        "status": "To Update",
+        "children": [],
+        "slug": "deploying-web"
+       },
+       {
+        "title": "Preview vs Deployed (separate)",
+        "type": "Info",
+        "brief": "",
+        "status": "New",
+        "children": [
+         {
+          "title": "They are different environments",
+          "type": "Info",
+          "brief": "Deployed app is separate from preview.",
+          "status": "New",
+          "kind": "Topic"
+         },
+         {
+          "title": "Why preview changes don't appear live",
+          "type": "Warning",
+          "brief": "Changes in preview do NOT auto-propagate until you redeploy/replace.",
+          "status": "New",
+          "kind": "Topic"
+         },
+         {
+          "title": "Redeploy vs Replace",
+          "type": "Info",
+          "brief": "",
+          "status": "New",
+          "kind": "Topic"
+         },
+         {
+          "title": "Redeploy: push latest code",
+          "type": "Info",
+          "brief": "Update the live app with new code; no extra charge.",
+          "status": "New",
+          "kind": "Topic"
+         },
+         {
+          "title": "Replace: also swaps the database",
+          "type": "Warning",
+          "brief": "DB only changes when you REPLACE; affects your data.",
+          "status": "New",
+          "kind": "Topic"
+         },
+         {
+          "title": "Updating a live app safely",
+          "type": "Info",
+          "brief": "Making changes after real users are on it; touches the DB options on replace (see Database page in Common for full detail).",
+          "status": "New",
+          "kind": "Topic"
+         }
+        ],
+        "slug": "preview-vs-deployed-separate"
+       },
+       {
+        "title": "Custom domain",
+        "type": "Info",
+        "brief": "",
+        "status": "To Update",
+        "children": [
+         {
+          "title": "DNS: A record + Emergent IP",
+          "type": "Guide",
+          "brief": "Add an A record pointing to the Emergent IP from the Custom Domain flow (web apps only).",
+          "status": "To Update",
+          "kind": "Topic"
+         },
+         {
+          "title": "CNAME (www) entry",
+          "type": "Guide",
+          "brief": "Add a CNAME 'www' entry with your custom domain value.",
+          "status": "To Update",
+          "kind": "Topic"
+         },
+         {
+          "title": "Troubleshooting a stuck domain",
+          "type": "Info",
+          "brief": "Domain not loading -> verify the IP/records; propagation.",
+          "status": "To Update",
+          "kind": "Topic"
+         },
+         {
+          "title": "What the emergent subdomain is",
+          "type": "Info",
+          "brief": "www.app... explained; will it work as-is.",
+          "status": "To Update",
+          "kind": "Topic"
+         },
+         {
+          "title": "Changing the app name & Google-auth label",
+          "type": "FAQ",
+          "brief": "Renaming on the emergent domain; why Google auth shows 'login to xyz'.",
+          "status": "To Update",
+          "kind": "Topic"
+         }
+        ],
+        "slug": "custom-domain"
+       },
+       {
+        "title": "Web <-> Mobile conversion (canonical)",
+        "type": "Info",
+        "brief": "1. What conversion does: how converting between web and mobile works. CANONICAL page.\n2. Will I lose data/functionality? reassurance + reality on what carries over.",
+        "status": "To Update",
+        "children": [],
+        "slug": "web-mobile-conversion-canonical"
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "label": "Mobile Apps",
+    "type": "Info",
+    "brief": "",
+    "status": "To Update",
+    "pages": [
+     {
+      "title": "Starting the process",
+      "type": "Info",
+      "brief": "",
+      "status": "",
+      "children": [
+       {
+        "title": "What can be built?",
+        "type": "FAQ",
+        "brief": "Native Android & iOS apps, and installable web apps. Note: Apple Watch / iPad (Swift) apps can be coded but not published yet.",
+        "status": "To Update",
+        "kind": "Topic"
+       },
+       {
+        "title": "Requirements",
+        "type": "Info",
+        "brief": "An Emergent account; for testing, the Expo Go app on your phone; for publishing, Apple Developer and/or Google Play Console accounts (create early - Apple approval takes 24-48h).",
+        "status": "To Update",
+        "kind": "Topic"
+       },
+       {
+        "title": "What is Expo?",
+        "type": "FAQ",
+        "brief": "Expo is the framework/toolchain behind Emergent mobile apps. Expo Go is a free phone app: scan a QR code and your app runs live on your device - no APK or store publish needed to test.",
+        "status": "To Update",
+        "kind": "Topic"
+       },
+       {
+        "title": "Development workflow",
+        "type": "Guide",
+        "brief": "1. Open the Mobile Agent and describe your app.\n2. Answer clarifying questions.\n3. Preview live on your phone via Expo Go (scan QR).\n4. Iterate/debug with the agent.\n5. When ready, move to publishing.",
+        "status": "To Update",
+        "kind": "Topic"
+       }
+      ],
+      "slug": "starting-the-process"
+     },
+     {
+      "title": "Pre-publish health check",
+      "type": "Info",
+      "brief": "",
+      "status": "To Update",
+      "children": [
+       {
+        "title": "Preview & test the mobile app first",
+        "type": "Info",
+        "brief": "Check the app behaves correctly on-device before generating a build / publishing.",
+        "status": "To Update",
+        "kind": "Topic"
+       },
+       {
+        "title": "Local testing & testing on your phone with Expo Go",
+        "type": "Guide",
+        "brief": "Install Expo Go, scan the QR code, and the app runs instantly on your device; iterate here before any store submission.",
+        "status": "To Update",
+        "kind": "Topic"
+       },
+       {
+        "title": "EAS price & plan comparison",
+        "type": "Comparison",
+        "brief": "Comparison table of EAS (Expo Application Services) build plans/pricing tiers.",
+        "status": "To Update",
+        "kind": "Topic"
+       }
+      ],
+      "slug": "pre-publish-health-check"
+     },
+     {
+      "title": "Database & data on mobile",
+      "type": "Info",
+      "brief": "Mobile data flow - see canonical Database (MongoDB) page for shared fundamentals.",
+      "status": "To Update",
+      "children": [
+       {
+        "title": "Shared fundamentals",
+        "type": "Info",
+        "brief": "Mobile uses the same backend database - see the canonical Database (MongoDB) page for the URL model and storage.",
+        "status": "To Update",
+        "kind": "Topic"
+       },
+       {
+        "title": "Republish as an update",
+        "type": "Info",
+        "brief": "No 'redeploy vs replace' on mobile: to change the backend/DB of a published app, rebuild and REPUBLISH to the stores as a new version.",
+        "status": "To Update",
+        "kind": "Topic"
+       },
+       {
+        "title": "Fork into a new app",
+        "type": "Info",
+        "brief": "Fork to a separate app with its own build/bundle ID and its own database, instead of updating the published one.",
+        "status": "To Update",
+        "kind": "Topic"
+       },
+       {
+        "title": "What carries over",
+        "type": "Info",
+        "brief": "How data/DB is affected when you update vs fork.",
+        "status": "To Update",
+        "kind": "Topic"
+       }
+      ],
+      "slug": "database-data-on-mobile"
+     },
+     {
+      "title": "Package name, Bundle ID & App ID",
+      "type": "Info",
+      "brief": "",
+      "status": "New",
+      "children": [
+       {
+        "title": "What they are",
+        "type": "Info",
+        "brief": "Android package name, iOS bundle ID, app ID; generated at first build/publish.",
+        "status": "New",
+        "kind": "Topic"
+       },
+       {
+        "title": "Can't change after first build; align with integrations",
+        "type": "Warning",
+        "brief": "Locked once the first build/publish happens - plan ahead. Any integration (e.g. Apple Music) must use the SAME bundle ID; a mismatch breaks it.",
+        "status": "New",
+        "kind": "Topic"
+       },
+       {
+        "title": "No domain needed for mobile",
+        "type": "Info",
+        "brief": "Native mobile apps have no domain attached; you don't need to buy one.",
+        "status": "New",
+        "kind": "Bytes"
+       }
+      ],
+      "slug": "package-name-bundle-id-app-id"
+     },
+     {
+      "title": "Publishing to the stores",
+      "type": "Guide",
+      "brief": "",
+      "status": "To Update",
+      "children": [
+       {
+        "title": "Expo & developer accounts",
+        "type": "Info",
+        "brief": "Create your Expo account, Apple Developer account (approval 24-48h), and Google Play Console account. Create early to avoid timeline slips.",
+        "status": "To Update",
+        "kind": "Topic"
+       },
+       {
+        "title": "Setting up EAS account",
+        "type": "Guide",
+        "brief": "Set up Expo Application Services (EAS) for producing store-ready builds.",
+        "status": "To Update",
+        "kind": "Topic"
+       },
+       {
+        "title": "iOS vs Android flow",
+        "type": "Comparison",
+        "brief": "Side-by-side table of the iOS vs Android publishing flow. Include per-platform: store listing & compliance (data-safety / privacy nutrition labels, declare third-party SDKs, write listing after build is locked) and submit & review + rejection handling (Apple 1-3 days; Google usually same-day).",
+        "status": "To Update",
+        "kind": "Topic"
+       },
+       {
+        "title": "Signing & keystore",
+        "type": "Warning",
+        "brief": "Google Play needs a signed .aab; you generate a keystore that is your app's identity. Once published with a keystore, every future update must use the SAME one. Losing the keystore means you can NEVER update the app - store it in two secure places; consider Google Play App Signing as backup.",
+        "status": "To Update",
+        "kind": "Topic"
+       },
+       {
+        "title": "App updates after publishing",
+        "type": "Info",
+        "brief": "Push a new version through the same build/publish flow, signed with the same keystore.",
+        "status": "To Update",
+        "kind": "Topic"
+       }
+      ],
+      "slug": "publishing-to-the-stores"
+     },
+     {
+      "title": "Monetisation: in-app purchases & subscriptions",
+      "type": "Info",
+      "brief": "Monetise mobile apps via Apple IAP (30%/15% fees), Google Play Billing, cross-platform entitlements through RevenueCat, and Razorpay links for India.",
+      "status": "New",
+      "children": [],
+      "slug": "monetisation-in-app-purchases-subscriptions"
+     },
+     {
+      "title": "Push notifications",
+      "type": "Info",
+      "brief": "Push for the Emergent app itself (deploy/credit/agent alerts with deep links) and enabling push in apps you build via SuprSend (Android service-account.json, iOS .p8).",
+      "status": "New",
+      "children": [],
+      "slug": "push-notifications"
+     },
+     {
+      "title": "Build generation for a pre-existing Play Store app",
+      "type": "Info",
+      "brief": "",
+      "status": "To Update",
+      "children": [
+       {
+        "title": "Generate a .pem file from your signing key",
+        "type": "Guide",
+        "brief": "Steps to produce a .pem file from your existing signing key for a pre-existing Play Store app.",
+        "status": "To Update",
+        "kind": "Topic"
+       },
+       {
+        "title": "Generate a .p8 key from Apple Developer account",
+        "type": "Guide",
+        "brief": "Steps to generate a .p8 key from your Apple Developer account.",
+        "status": "To Update",
+        "kind": "Topic"
+       }
+      ],
+      "slug": "build-generation-for-a-pre-existing-play-store-app"
+     },
+     {
+      "title": "Troubleshooting",
+      "type": "Info",
+      "brief": "",
+      "status": "To Update",
+      "children": [
+       {
+        "title": "Build failures",
+        "type": "Info",
+        "brief": "Common mobile build failures and fixes.",
+        "status": "To Update",
+        "kind": "Topic"
+       },
+       {
+        "title": "Submission rejected",
+        "type": "Info",
+        "brief": "Why store submissions get rejected and how to resolve.",
+        "status": "To Update",
+        "kind": "Topic"
+       },
+       {
+        "title": "Updates not appearing",
+        "type": "Info",
+        "brief": "Why a published update isn't showing and how to fix.",
+        "status": "To Update",
+        "kind": "Topic"
+       },
+       {
+        "title": "Icons show as boxes on Android (Expo Go)",
+        "type": "Info",
+        "brief": "Vector icons render as \"tofu\" boxes in Android Expo Go - cause and fix.",
+        "status": "New",
+        "kind": "Topic"
+       },
+       {
+        "title": "Sign in with Apple rejection",
+        "type": "Info",
+        "brief": "App Store rejection from Sign in with Apple caused by wrong bundle-ID audience validation - how to resolve.",
+        "status": "New",
+        "kind": "Topic"
+       },
+       {
+        "title": "Quick reference",
+        "type": "Info",
+        "brief": "At-a-glance checklist/reference for mobile publishing and commonly used commands",
+        "status": "To Update",
+        "kind": "Topic"
+       }
+      ],
+      "slug": "troubleshooting"
+     },
+     {
+      "title": "Best Practices",
+      "type": "Info",
+      "brief": "Best practices for building, testing, and publishing mobile apps on Emergent.",
+      "status": "To Update",
+      "children": [
+       {
+        "title": "Device permission best practices (Expo)",
+        "type": "Guide",
+        "brief": "Contextual permission prompts, the four permission states / canAskAgain (deep-link to Settings when blocked), and iOS usage-description strings in app.json.",
+        "status": "New",
+        "kind": "Topic"
+       }
+      ],
+      "slug": "best-practices"
+     },
+     {
+      "title": "Web <-> Mobile conversion (ref)",
+      "type": "Info",
+      "brief": "Same topics as the canonical Web <-> Mobile conversion page in Going Live - Web. Referenced here for mobile builders.",
+      "status": "To Update",
+      "children": [],
+      "slug": "web-mobile-conversion-ref"
+     }
+    ],
+    "subsections": []
+   },
+   {
+    "label": "Credits, Plans & Billing",
+    "type": "Info",
+    "brief": "",
+    "status": "To Update",
+    "pages": [
+     {
+      "title": "Plans & the free tier",
+      "type": "Info",
+      "brief": "",
+      "status": "To Update",
+      "children": [
+       {
+        "title": "Free tier (10 credits, no deploy) vs Standard vs Pro",
+        "type": "Comparison",
+        "brief": "Comparison of Free (10 credits/month, cannot deploy) vs Standard vs Pro: what each gives, who needs which.",
+        "status": "To Update",
+        "kind": "Topic"
+       },
+       {
+        "title": "Bulk credits & custom pricing",
+        "type": "Info",
+        "brief": "Bulk credit purchases with custom pricing are available to non-Enterprise customers via sales.",
+        "status": "New",
+        "kind": "Bytes"
+       }
+      ],
+      "slug": "plans-the-free-tier"
+     },
+     {
+      "title": "How credits work",
+      "type": "Info",
+      "brief": "",
+      "status": "To Update",
+      "children": [
+       {
+        "title": "What consumes credits",
+        "type": "Info",
+        "brief": "Generation, testing, cloud deploys, integrations; complexity and Maxx mode drive more usage.",
+        "status": "To Update",
+        "kind": "Topic"
+       },
+       {
+        "title": "Credits per prompt, can set a limit",
+        "type": "Info",
+        "brief": "you can set a limit to cap consumption.",
+        "status": "To Update",
+        "kind": "Bytes"
+       }
+      ],
+      "slug": "how-credits-work"
+     },
+     {
+      "title": "Credit expiry & recharging",
+      "type": "Info",
+      "brief": "",
+      "status": "To Update",
+      "children": [
+       {
+        "title": "Monthly reset",
+        "type": "Info",
+        "brief": "Credits reset each billing cycle.",
+        "status": "To Update",
+        "kind": "Topic"
+       },
+       {
+        "title": "Expiry (users get surprised)",
+        "type": "Warning",
+        "brief": "Credits can expire - make this explicit so users aren't caught out.",
+        "status": "To Update",
+        "kind": "Topic"
+       },
+       {
+        "title": "Topping up & the two credit types",
+        "type": "Info",
+        "brief": "How to add credits anytime; clarify Emergent Credits vs Universal LLM Key credits so users don't confuse them.",
+        "status": "To Update",
+        "kind": "Topic"
+       }
+      ],
+      "slug": "credit-expiry-recharging"
+     },
+     {
+      "title": "Running low / out of credits",
+      "type": "Info",
+      "brief": "",
+      "status": "To Update",
+      "children": [
+       {
+        "title": "What happens mid-prompt when low credit",
+        "type": "Info",
+        "brief": "Behaviour when credits run out during a build.",
+        "status": "To Update",
+        "kind": "Topic"
+       },
+       {
+        "title": "Renewal & negative balance",
+        "type": "Warning",
+        "brief": "If <50 credits on renewal, balance can go negative; app may be taken down after a later check.",
+        "status": "To Update",
+        "kind": "Topic"
+       },
+       {
+        "title": "Estimating cost before building",
+        "type": "Info",
+        "brief": "Budgeting mindset before a big build.",
+        "status": "To Update",
+        "kind": "Topic"
+       }
+      ],
+      "slug": "running-low-out-of-credits"
+     },
+     {
+      "title": "Referrals & Partners program",
+      "type": "Info",
+      "brief": "Referral program (50 credits per referral, referee gets 5, paid users only, with caps), the separate Partners program (20% cash commission via Wise), and Pro-only Secret Perks.",
+      "status": "New",
+      "children": [],
+      "slug": "referrals-partners-program"
+     },
+     {
+      "title": "Streaks & rewards",
+      "type": "Info",
+      "brief": "Paid-user daily-streak system counting days with a job submission; credit rewards (day-7 bonus, mystery boxes), repair tokens, and eligibility rules.",
+      "status": "New",
+      "children": [],
+      "slug": "streaks-rewards"
+     },
+     {
+      "title": "Payment methods & regional billing",
+      "type": "Info",
+      "brief": "How payment routing works across Stripe/Razorpay/PagBrasil/Paddle/RevenueCat, currency-specific credit rates (USD/INR/BRL/KRW), no stored cards, legal entity names on statements, and crypto/stablecoins.",
+      "status": "New",
+      "children": [],
+      "slug": "payment-methods-regional-billing"
+     },
+     {
+      "title": "Cancellation & refunds",
+      "type": "Info",
+      "brief": "How to cancel (web/mobile/Stripe), what happens to credits and apps after cancelling, refund eligibility (prorated subscription credits only; top-ups non-refundable), disputes/chargebacks, and retention offers.",
+      "status": "New",
+      "children": [],
+      "slug": "cancellation-refunds"
+     },
+     {
+      "title": "Enterprise plan & features",
+      "type": "Info",
+      "brief": "SAML 2.0 SSO (Okta/Azure AD/Google Workspace), dedicated Kubernetes clusters / tenant isolation, audit logs (12-month retention, CSV/JSON export), cumulative credit caps, and custom terms/DPA/SLA.",
+      "status": "New",
+      "children": [],
+      "slug": "enterprise-plan-features"
+     }
+    ],
+    "subsections": []
+   },
+   {
+    "label": "Agents",
+    "type": "Info",
+    "brief": "",
+    "status": "To Update",
+    "pages": [
+     {
+      "title": "Custom agents",
+      "type": "Info",
+      "brief": "",
+      "status": "To Update",
+      "children": [
+       {
+        "title": "Agent architecture",
+        "type": "Info",
+        "brief": "How agents are structured.",
+        "status": "To Update",
+        "kind": "Topic"
+       },
+       {
+        "title": "Main agents",
+        "type": "Info",
+        "brief": "The primary agent role.",
+        "status": "To Update",
+        "kind": "Topic"
+       },
+       {
+        "title": "Sub-agents",
+        "type": "Info",
+        "brief": "Delegated agents for sub-tasks.",
+        "status": "To Update",
+        "kind": "Topic"
+       },
+       {
+        "title": "Custom tools",
+        "type": "Guide",
+        "brief": "Giving agents custom tools.",
+        "status": "To Update",
+        "kind": "Topic"
+       }
+      ],
+      "slug": "custom-agents"
+     },
+     {
+      "title": "How the agent runs (workflow & stop reasons)",
+      "type": "Info",
+      "brief": "The agent Temporal workflow loop, iteration/time caps, and stop reasons (context_overflow, max_iterations, insufficient_credits, handoff, etc.); E-3 autonomous phases, subagents and Auto-HITL.",
+      "status": "New",
+      "children": [
+       {
+        "title": "Agent tools & their credit cost",
+        "type": "Info",
+        "brief": "The agent built-in tool suite (sandbox MCP tools, Codex code review, testing/design agents); some server-side tools (search, media generation) add credit cost.",
+        "status": "New",
+        "kind": "Topic"
+       }
+      ],
+      "slug": "how-the-agent-runs-workflow-stop-reasons"
+     }
+    ],
+    "subsections": []
+   }
+  ]
+ },
+ {
+  "label": "Integrations",
+  "sections": [
+   {
+    "label": "Overview",
+    "type": "Info",
+    "brief": "",
+    "status": "To Update",
+    "pages": [
+     {
+      "title": "What and How",
+      "type": "Info",
+      "brief": "1. What integrations are: how Emergent connects your app to third-party services.\n2. How auth & keys are handled: what Emergent does for you vs what you supply.",
+      "status": "To Update",
+      "children": [],
+      "slug": "what-and-how"
+     },
+     {
+      "title": "MCPs & connectors",
+      "type": "Info",
+      "brief": "1. What MCP is: Model Context Protocol basics.\n2. Using an MCP connector: connecting external tools/data.\n3. Emergent as an MCP: using Emergent itself as an MCP from other clients.",
+      "status": "To Update",
+      "children": [
+       {
+        "title": "Registering a custom MCP server",
+        "type": "Guide",
+        "brief": "Register custom MCP servers for the build agent (port 8012, JSON config, public/private servers, tool discovery/caching).",
+        "status": "New",
+        "kind": "Topic"
+       }
+      ],
+      "slug": "mcps-connectors"
+     },
+     {
+      "title": "Key integrations catalogue",
+      "type": "Info",
+      "brief": "Directory of supported integrations, grouped by category.",
+      "status": "To Update",
+      "children": [],
+      "slug": "key-integrations-catalogue"
+     }
+    ],
+    "subsections": []
+   },
+   {
+    "label": "Payments",
+    "type": "Info",
+    "brief": "",
+    "status": "To Update",
+    "pages": [
+     {
+      "title": "Stripe",
+      "type": "Guide",
+      "brief": "",
+      "status": "To Update",
+      "children": [],
+      "slug": "stripe"
+     },
+     {
+      "title": "Razorpay",
+      "type": "Guide",
+      "brief": "",
+      "status": "To Update",
+      "children": [],
+      "slug": "razorpay"
+     },
+     {
+      "title": "Paystack",
+      "type": "Guide",
+      "brief": "",
+      "status": "New",
+      "children": [],
+      "slug": "paystack"
+     },
+     {
+      "title": "PayPal",
+      "type": "Guide",
+      "brief": "",
+      "status": "New",
+      "children": [],
+      "slug": "paypal"
+     },
+     {
+      "title": "Paddle",
+      "type": "Guide",
+      "brief": "",
+      "status": "New",
+      "children": [],
+      "slug": "paddle"
+     },
+     {
+      "title": "Lemon Squeezy",
+      "type": "Guide",
+      "brief": "",
+      "status": "New",
+      "children": [],
+      "slug": "lemon-squeezy"
+     }
+    ],
+    "subsections": []
+   },
+   {
+    "label": "Data & auth",
+    "type": "Info",
+    "brief": "",
+    "status": "To Update",
+    "pages": [
+     {
+      "title": "Supabase",
+      "type": "Guide",
+      "brief": "",
+      "status": "To Update",
+      "children": [],
+      "slug": "supabase"
+     },
+     {
+      "title": "Google auth",
+      "type": "Guide",
+      "brief": "",
+      "status": "To Update",
+      "children": [],
+      "slug": "google-auth"
+     },
+     {
+      "title": "Pinecone",
+      "type": "Guide",
+      "brief": "",
+      "status": "New",
+      "children": [],
+      "slug": "pinecone"
+     },
+     {
+      "title": "Emergent Auth (built-in)",
+      "type": "Info",
+      "brief": "",
+      "status": "New",
+      "children": [],
+      "slug": "emergent-auth-built-in"
+     },
+     {
+      "title": "Firebase",
+      "type": "Guide",
+      "brief": "",
+      "status": "New",
+      "children": [],
+      "slug": "firebase"
+     },
+     {
+      "title": "Auth0",
+      "type": "Guide",
+      "brief": "",
+      "status": "New",
+      "children": [],
+      "slug": "auth0"
+     },
+     {
+      "title": "Clerk",
+      "type": "Guide",
+      "brief": "",
+      "status": "New",
+      "children": [],
+      "slug": "clerk"
+     }
+    ],
+    "subsections": []
+   },
+   {
+    "label": "AI",
+    "type": "Info",
+    "brief": "",
+    "status": "To Update",
+    "pages": [
+     {
+      "title": "OpenAI",
+      "type": "Guide",
+      "brief": "",
+      "status": "To Update",
+      "children": [],
+      "slug": "openai"
+     },
+     {
+      "title": "Claude",
+      "type": "Guide",
+      "brief": "",
+      "status": "To Update",
+      "children": [],
+      "slug": "claude"
+     },
+     {
+      "title": "Gemini",
+      "type": "Guide",
+      "brief": "",
+      "status": "To Update",
+      "children": [],
+      "slug": "gemini"
+     }
+    ],
+    "subsections": []
+   },
+   {
+    "label": "Messaging & email",
+    "type": "Info",
+    "brief": "",
+    "status": "To Update",
+    "pages": [
+     {
+      "title": "Slack",
+      "type": "Guide",
+      "brief": "",
+      "status": "To Update",
+      "children": [],
+      "slug": "slack"
+     },
+     {
+      "title": "Twilio",
+      "type": "Guide",
+      "brief": "",
+      "status": "To Update",
+      "children": [],
+      "slug": "twilio"
+     },
+     {
+      "title": "Resend",
+      "type": "Guide",
+      "brief": "",
+      "status": "To Update",
+      "children": [],
+      "slug": "resend"
+     },
+     {
+      "title": "SendGrid",
+      "type": "Guide",
+      "brief": "",
+      "status": "To Update",
+      "children": [],
+      "slug": "sendgrid"
+     }
+    ],
+    "subsections": []
+   },
+   {
+    "label": "Media & productivity",
+    "type": "Info",
+    "brief": "",
+    "status": "To Update",
+    "pages": [
+     {
+      "title": "Giphy",
+      "type": "Guide",
+      "brief": "Setting up Giphy.",
+      "status": "To Update",
+      "children": [],
+      "slug": "giphy"
+     },
+     {
+      "title": "ElevenLabs",
+      "type": "Guide",
+      "brief": "Setting up ElevenLabs.",
+      "status": "To Update",
+      "children": [],
+      "slug": "elevenlabs"
+     },
+     {
+      "title": "Google Suite",
+      "type": "Guide",
+      "brief": "Setting up Google Suite.",
+      "status": "To Update",
+      "children": [],
+      "slug": "google-suite"
+     },
+     {
+      "title": "Figma (design-to-code)",
+      "type": "Guide",
+      "brief": "Convert Figma designs to code.",
+      "status": "New",
+      "children": [],
+      "slug": "figma-design-to-code"
+     },
+     {
+      "title": "Cloudinary",
+      "type": "Guide",
+      "brief": "Media management and CDN via Cloudinary.",
+      "status": "New",
+      "children": [],
+      "slug": "cloudinary"
+     },
+     {
+      "title": "AI media generation (image/video/audio)",
+      "type": "Info",
+      "brief": "AI image/video/audio generation models with credit multipliers (Imagen 4, GPT Image 1, Sora 2, Veo-3, ElevenLabs, Suno).",
+      "status": "New",
+      "children": [],
+      "slug": "ai-media-generation-image-video-audio"
+     },
+     {
+      "title": "Notion",
+      "type": "Guide",
+      "brief": "Setting up Notion integration.",
+      "status": "New",
+      "children": [],
+      "slug": "notion"
+     },
+     {
+      "title": "Airtable",
+      "type": "Guide",
+      "brief": "Setting up Airtable integration.",
+      "status": "New",
+      "children": [],
+      "slug": "airtable"
+     },
+     {
+      "title": "Shopify",
+      "type": "Guide",
+      "brief": "Setting up Shopify integration.",
+      "status": "New",
+      "children": [],
+      "slug": "shopify"
+     }
+    ],
+    "subsections": []
+   },
+   {
+    "label": "GitHub integration",
+    "type": "Info",
+    "brief": "",
+    "status": "To Update",
+    "pages": [
+     {
+      "title": "Save to GitHub",
+      "type": "Guide",
+      "brief": "Push code to a repo/branch.",
+      "status": "To Update",
+      "children": [
+       {
+        "title": "Don't expose credentials",
+        "type": "Warning",
+        "brief": "Never push .env/secrets outside the secrets manager; admin creds can leak.",
+        "status": "New",
+        "kind": "Topic"
+       }
+      ],
+      "slug": "save-to-github"
+     },
+     {
+      "title": "Pull from GitHub (with caution)",
+      "type": "Warning",
+      "brief": "Agent may change/overwrite your core code - keep a backup elsewhere before pulling.",
+      "status": "To Update",
+      "children": [],
+      "slug": "pull-from-github-with-caution"
+     }
+    ],
+    "subsections": []
+   }
+  ]
+ },
+ {
+  "label": "Troubleshooting",
+  "sections": [
+   {
+    "label": "Common Issues",
+    "type": "User Concern",
+    "brief": "",
+    "status": "To Update",
+    "pages": [
+     {
+      "title": "Design inconsistencies",
+      "type": "Info",
+      "brief": "Fixing common design/layout issues via the agent.",
+      "status": "To Update",
+      "children": [],
+      "slug": "design-inconsistencies"
+     },
+     {
+      "title": "Missing functionality",
+      "type": "Info",
+      "brief": "Diagnosing and requesting a feature that's missing or didn't build as expected.",
+      "status": "To Update",
+      "children": [],
+      "slug": "missing-functionality"
+     },
+     {
+      "title": "Deployment issues",
+      "type": "Info",
+      "brief": "Common deployment failures and how to fix them.",
+      "status": "To Update",
+      "children": [],
+      "slug": "deployment-issues"
+     },
+     {
+      "title": "Deployment pipeline failures",
+      "type": "Info",
+      "brief": "Specific failure modes: build errors (TS/ESLint/dependency), DB migration timeouts, secret-export issues, CrashLoopBackOff/OOM kills, Telegram 409, health-check failures.",
+      "status": "New",
+      "children": [],
+      "slug": "deployment-pipeline-failures"
+     },
+     {
+      "title": "Works in preview but breaks in production",
+      "type": "Info",
+      "brief": "Why an app works in preview but breaks live: separate env vars, hardcoded localhost, CORS, ephemeral filesystem losing runtime files, missing system tools (ffmpeg/Playwright), webhooks still pointing to preview.",
+      "status": "New",
+      "children": [],
+      "slug": "works-in-preview-but-breaks-in-production"
+     },
+     {
+      "title": "App slow, crashing or cold-starting",
+      "type": "Info",
+      "brief": "KEDA event-driven auto-scaling, scale-to-zero cold starts, Pod Disruption Budgets by tier, and performance optimisation for slow/crashing deployed apps.",
+      "status": "New",
+      "children": [],
+      "slug": "app-slow-crashing-or-cold-starting"
+     }
+    ],
+    "subsections": []
+   },
+   {
+    "label": "Reference",
+    "type": "Info",
+    "brief": "",
+    "status": "To Update",
+    "pages": [
+     {
+      "title": "Glossary of Emergent terms",
+      "type": "Info",
+      "brief": "Plain-language definitions users can return to: ECU, Job, Redeploy vs Replace, Universal Key, Maxx mode, Preview vs Deployed, Bundle ID, Custom domain, MCP, Expo/EAS, keystore, and more.",
+      "status": "New",
+      "children": [],
+      "slug": "glossary-of-emergent-terms"
+     },
+     {
+      "title": "FAQs",
+      "type": "FAQ",
+      "brief": "As compiled in the FAQ Master tab of this workbook.",
+      "status": "To Update",
+      "children": [],
+      "slug": "faqs"
+     }
+    ],
+    "subsections": []
+   }
+  ]
+ },
+ {
+  "label": "Data, Trust & Support",
+  "sections": [
+   {
+    "label": "Data & Trust",
+    "type": "User Concern",
+    "brief": "",
+    "status": "New",
+    "pages": [
+     {
+      "title": "Data privacy",
+      "type": "User Concern",
+      "brief": "Where your data is stored and who can access it; addressing privacy worries.",
+      "status": "New",
+      "children": [],
+      "slug": "data-privacy"
+     },
+     {
+      "title": "Data leakage",
+      "type": "User Concern",
+      "brief": "Safeguards against leakage; what is / isn't exposed and how it's protected.",
+      "status": "New",
+      "children": [],
+      "slug": "data-leakage"
+     },
+     {
+      "title": "Your data & ownership",
+      "type": "Info",
+      "brief": "",
+      "status": "New",
+      "children": [
+       {
+        "title": "What happens if you stop paying",
+        "type": "User Concern",
+        "brief": "Data retention and whether you can get your app/data back if you stop paying.",
+        "status": "New",
+        "kind": "Topic"
+       },
+       {
+        "title": "Who owns the code / portability",
+        "type": "User Concern",
+        "brief": "IP and portability - taking your code elsewhere (via GitHub export).",
+        "status": "New",
+        "kind": "Topic"
+       },
+       {
+        "title": "Backups & data safety",
+        "type": "User Concern",
+        "brief": "Can you back up your database; what if you lose data.",
+        "status": "New",
+        "kind": "Topic"
+       },
+       {
+        "title": "Platform stability / uptime",
+        "type": "User Concern",
+        "brief": "Setting uptime expectations; where to check platform status.",
+        "status": "New",
+        "kind": "Topic"
+       }
+      ],
+      "slug": "your-data-ownership"
+     }
+    ],
+    "subsections": []
+   },
+   {
+    "label": "Support",
+    "type": "Info",
+    "brief": "",
+    "status": "To Update",
+    "pages": [
+     {
+      "title": "Getting help, support & community",
+      "type": "Info",
+      "brief": "1. Where to get help: Discord community, support email.\n2. How to file a good bug report: include your Job ID and error screenshots.",
+      "status": "To Update",
+      "children": [],
+      "slug": "getting-help-support-community"
+     },
+     {
+      "title": "Account security & login",
+      "type": "Info",
+      "brief": "Sign-in methods (email/Google/Apple/phone-OTP/SSO), password reset, why email can't be changed (+ GitHub workaround), account deletion with 45-day grace, and session/token security.",
+      "status": "New",
+      "children": [],
+      "slug": "account-security-login"
+     },
+     {
+      "title": "App takedown & content moderation",
+      "type": "User Concern",
+      "brief": "Deployed apps can be taken offline by automated content-policy/phishing screening; how to dispute and remedy via fork/replace.",
+      "status": "New",
+      "children": [],
+      "slug": "app-takedown-content-moderation"
+     }
+    ],
+    "subsections": []
+   }
+  ]
+ },
+ {
+  "label": "Wingman",
+  "sections": [
+   {
+    "label": "Wingman",
+    "type": "Info",
+    "brief": "",
+    "status": "",
+    "pages": [
+     {
+      "title": "What is Wingman",
+      "type": "Info",
+      "brief": "Emergent's standalone personal AI assistant with persistent memory - separate from the app builder; available on web (getwingman.com), the Play Store and the App Store.",
+      "status": "New",
+      "children": [],
+      "slug": "what-is-wingman"
+     },
+     {
+      "title": "Channels (Web, Telegram, WhatsApp, iMessage, Slack)",
+      "type": "Info",
+      "brief": "Use Wingman across messaging channels; per-channel message/voice limits (voice up to 10MB / 2min), connection flows, in-channel payments, the WhatsApp 24-hour window, and per-channel permission prompts.",
+      "status": "New",
+      "children": [],
+      "slug": "channels-web-telegram-whatsapp-imessage-slack"
+     },
+     {
+      "title": "Integrations & scheduled tasks",
+      "type": "Info",
+      "brief": "300+ OAuth integrations per Wingman (via Composio), built-in capabilities (web search, file analysis, code execution, memory), and recurring/one-time scheduled tasks with delivery channels; tasks pause and auto-resume on low credits.",
+      "status": "New",
+      "children": [],
+      "slug": "integrations-scheduled-tasks"
+     },
+     {
+      "title": "Custom & MCP integrations",
+      "type": "Guide",
+      "brief": "Add first-party and custom third-party MCP servers to Wingman via endpoint/JSON config; credential handling and supported vs unsupported server types.",
+      "status": "New",
+      "children": [],
+      "slug": "custom-mcp-integrations"
+     }
+    ],
+    "subsections": []
+   }
+  ]
+ },
+ {
+  "label": "Changelog",
+  "sections": [
+   {
+    "label": "Changelog",
+    "type": "Info",
+    "brief": "",
+    "status": "",
+    "pages": [
+     {
+      "title": "Changelog",
+      "type": "Info",
+      "brief": "",
+      "status": "New",
+      "children": [],
+      "slug": "changelog"
+     }
+    ],
+    "subsections": []
+   }
+  ]
+ }
+]

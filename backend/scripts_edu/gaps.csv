@@ -1,0 +1,257 @@
+Topic,Structure,Type,Content,Status,Owner,Temp Notes
+Build,Tab,Info,,,,
+ -Introduction,Section,Info,,To Update,,
+      What is Emergent?,Page,Info,"Emergent is an agentic vibecoding platform: you describe what you want, and AI agents build, test, and deploy it. Positioning vs traditional coding.",To Update,,
+      What kind of apps you can build?,Page,Info,"Full-stack web apps, mobile apps, landing pages, MVPs, dashboards, internal tools, e-commerce - projects of any scale.",To Update,,
+            For Individuals,Topic,Info,"Personal apps, trackers, portfolios, side projects.",New,,
+            For Small & Medium Businesses,Topic,Info,"Internal tools, dashboards, customer-facing apps.",New,,
+            For Enterprises,Topic,Info,Complex multi-user platforms at scale.,New,,
+      The chat-to-deployment flow,Page,Info,The big-picture arc of building on Emergent: prompt -> build -> preview -> iterate -> deploy. A map of the whole journey before diving in.,To Update,,
+      How apps work here (mental model),Page,Info,,To Update,,Ticket theme: the line between what AI knows and what user assumes.
+"            You describe, the agent builds",Topic,Info,"What the agent handles (code, structure, best practices, bug fixes) vs what you decide (vision, features, UX).",To Update,,
+            What's under the hood,Topic,Info,Full-stack = FastAPI + React + MongoDB; why knowing this helps when debugging or migrating.,To Update,,
+            What the AI knows vs what you think it knows,Topic,User Concern,The agent isn't omniscient about your intent - be explicit. A common source of frustration.,To Update,,
+      A tour of the workspace,Page,Info,"1. Chat panel: where you talk to the agent.
+2. Preview panel: live view of your app; auto-updates.
+3. Secrets / env area: where API keys & env vars live (separate from deployment).
+4. GitHub controls: where save/pull lives.
+5. Deploy controls: where deploy/redeploy/replace live.
+6. Uploading files/images to the agent: attach a screenshot, design, or CSV as build input.",New,,Includes file/image upload as build input (new).
+ -Getting Started,Section,Guide,,To Update,,
+      Which prompt window should I use?,Page,Info,"1. Why the choice matters up front: each window has different capabilities & limitations; wrong choice = rework.
+2. Quick decision guide: a short 'if you want X, pick Y' chooser before the comparison table.",New,,Ticket: users realise mid-build they had job-type-specific limitations.
+      Compare the 4 windows,Page,Comparison,"1. SINGLE TABLE PAGE. Columns = Fullstack Builder / Mobile App / Landing Page / Brainstorm; Rows = What it's for / What it CAN do / What it CAN'T do / Pick it when.
+2. Key mobile note: a native Mobile App runs on a different language/stack underneath - NOT a web URL in a wrapper (drives later domain/bundle-ID/publication behaviour).",New,,Ticket: which template to use. Render as a scannable comparison table.
+      Template- fullsatck vs base python (advanced),Page,Comparison,,,,
+      What is a Job?,Page,FAQ,"1. What a Job is: a single build/app/project in Emergent - the term you'll see across the platform.
+2. How a job maps to the app you're building.
+3. Managing multiple jobs: working across and switching between projects.
+4. Forking a job to branch off from existing work.",New,,'Job' terminology used in-product but never explained. Each path creates a job.
+            Projects,Topic,Info,Organising work into projects: what they are and how to use them.,To Update,,
+"      Team roles, permissions & collaboration",Page,Info,"Four project roles (Owner/Admin/Member/Viewer) with a capability matrix, a shared credit pool, inviting members, changing roles, and transferring ownership.",New,,
+      Your first build (walkthrough),Page,Guide,"1. Pick a simple idea (e.g. book tracker); keep it small.
+2. Write the first prompt: purpose + features + design hint + UX hint.
+3. Answer the agent's clarifying questions: Universal Key vs own key, auth?, design prefs, start-vs-discuss.
+4. Watch it build: real-time steps; ~5-15 min; read the explanations.",To Update,,
+            How long builds take & working while you wait,Topic,Info,Typical build durations and what happens during a build; what you can do while waiting.,New,,VERIFY details with product team.
+            Prompting basics,Topic,Info,"1. Be specific and detailed: the agent rewards clarity.
+2. Concise features beat mega-prompts: lowers credit burn and confusion.
+3. Ask the agent to explain before building: 'explain, don't build yet'.
+4. Why pasting a ChatGPT plan underperforms: an external spec often doesn't map to Emergent's flow.",To Update,,"Ticket (Prompting): user pastes from ChatGPT, doesn't meet expectation."
+            Voice mode,Topic,Info,Building via voice input.,To Update,,
+      Understanding models (E1/E2/E3 & Maxx),Page,Info,,To Update,,"Ticket (Agent quality): differences b/w E1,E2,E3."
+"            What E1, E2, E3 etc. are",Topic,Info,"The model/agent tiers, how they differ, and when to use which.",To Update,,
+            Maxx mode & its credit impact,Topic,Warning,What Maxx mode does and why it consumes more credits.,To Update,,
+      Previewing & iterating,Page,Info,,To Update,,
+            Using the preview,Topic,Info,Preview auto-updates; test each feature; how to give change requests for iterative improvements.,To Update,,
+            Preview is NOT your deployed app,Topic,Warning,Preview and deployment are separate environments - a key misconception to flag early.,To Update,,
+      Debugging & testing with the agent,Page,Guide,"1. Paste the full error: copy complete text; 'please solve this error'.
+2. Screenshot the issue: upload a screenshot + description for UI bugs.
+3. Adding context for stubborn bugs: when/where it occurs.
+4. Testing your app: the platform auto-tests; reading test results.
+5. Testing a mobile app before publishing: internal/test builds before store submission.",To Update,,Build-phase testing (mobile pre-publish testing lives in the mobile section too).
+      Building from the Emergent mobile app,Page,Info,"Build and manage apps from Emergent's own iOS/Android/PWA app - navigation tabs, in-app previews, OTA updates, deep linking. Note feature limits vs web (no project creation; no Maxx/Fork/Clone/GitHub push/HIM/VS Code).",New,,
+ -Useful Tools while building,Section,Info,,To Update,,
+      Rollback when the agent goes wrong,Page,Info,"1. Use rollback to revert to an earlier state when the agent breaks a working feature.
+2. How rollback differs from a GitHub push/pull.
+3. Rollback vs forking: when to revert in place vs branch into a new app (forking lives in Features).",New,,In-platform rollback; distinct from GitHub. Forking cross-referenced in Features.
+      Forking,Page,Info,Forking an app to branch off into a separate app (with its own build/DB). See also Rollback in Build.,To Update,,
+             Context limits,Topic,Info,"What context limits are and how to work within them (smaller scope, projects).",To Update,,
+              Infinite Chat (auto context compaction),Topic,Info,"Automatic staged context compaction keeps long chats working: squash at ~70%, auto-compact at ~82.5%, truncation near 275K tokens.",New,,
+      HIM (Human in middle) mode,Page,Info,"What the mode is, how it is different from default, when to use it",New,,
+      Clone environment,Page,Info,"What the button does, when to use it, when not to",,,
+      The Universal LLM Key,Page,Info,,To Update,,"Ticket (Universal Key): recharging, difference b/w credit types."
+            What the Universal Key is,Topic,Info,One key for GPT-5/Claude/Gemini via Emergent Credits; no API setup to start.,To Update,,
+            Universal Key vs your own API key,Topic,Comparison,When to use the Universal Key vs bringing your own API key; tradeoffs.,To Update,,
+            Recharging & credit types,Topic,Info,How recharging works; the different credit types.,To Update,,
+            Using the key outside the platform,Topic,Info,Use the Universal Key as a LiteLLM proxy outside Emergent (paid plans only; NAT/IP restrictions); auto-recharge behaviour.,New,,
+            Regenerating the key breaks live apps,Topic,Warning,Regenerating the Universal Key breaks deployed apps that use it - you must update Secrets and redeploy.,New,,
+ -Deployments,Section,Info,,To Update,,
+   Common,Sub-section,Info,Applies to both web and mobile deployments.,To Update,,
+      Pre-deploy / pre-publish health check,Page,Info,"1. Preview & test thoroughly first (features, responsiveness, interactivity / on-device for mobile).
+2. Readiness checklist before you ship - web or mobile.",To Update,,
+      Secrets & env variables,Page,Info,"1. Where secrets go: use the secrets manager, not files in the repo.
+2. Saving is not enough - you must redeploy: a saved secret won't take effect in a deployed app until you replace-deploy.",New,,Moved from Connect & Extend.
+      Deployment types,Page,Info,The different deployment types available and when each applies.,To Update,,Moved from Other Features - shared across web & mobile.
+      Database (MongoDB),Page,Info,"Your app's database is a MongoDB connection string (a URL), not a file. ",New,,Canonical DB page.
+            Where it's stored,Topic,Info,Hosted on Emergent's managed infrastructure by default.,New,,
+            Preview vs Production database,Topic,Warning,Preview and deployed apps use SEPARATE databases; data does not auto-flow between them - a common gotcha.,New,,
+            DB options on redeploy vs replace,Topic,Info,Redeploy keeps the existing production DB; replace can take a fresh prod DB (from preview) or keep the existing one.,New,,
+            Inspecting & exporting your database,Topic,Guide,Browse collections/documents in the built-in Database Manager (mongoview.emergent.host) and export the preview DB via mongodump in VS Code.,New,,
+      Deployment plan levels,Page,Info,"1. What the plan levels are: CPU/memory tiers.
+2. Which plan your app needs: how to judge required CPU/memory.",New,,FLAG: moved to Common - CONFIRM with team whether web-only or shared. Ticket: users don't know which plan.
+      Migrate to your own database,Page,Info,,New,,FLAG: moved to Common - CONFIRM with team whether web-only or shared. Ticket (2.5/day): live DB -> own DB.
+            When & why to migrate,Topic,Info,Move live DB to your own external DB; deployed apps only.,New,,
+            The migration process,Topic,Guide,Add a new env var for your DB; a background process migrates from Emergent DB to yours; app keeps running.,New,,
+      File storage (Emergent Object Store),Page,Info,"S3-compatible file storage powered by Tigris (5GB/org quota, no AWS account) for user uploads; requested via the agent, and storage operations do not consume credits.",New,,
+      Scheduled tasks & background jobs in your app,Page,Warning,"In-process schedulers (APScheduler/Celery/threading) can silently die under scale-to-zero on lower tiers; use external cron trigger endpoints, an always-on tier, or decoupled async workers.",New,,
+   Web flow,Sub-section,Info,Deploying and running a web app.,To Update,,
+      Deploying (web),Page,Info,"1. What deploy does: creates a public URL; production infra live 24/7.
+2. Time & cost: ~15 min; 50 credits/month per deployed app.
+3. Sharing & shutting down: share the URL; shut down anytime to stop charges.
+4. Monitoring a deployed app: checking it's up, logs, production errors.",To Update,,
+      Preview vs Deployed (separate),Page,Info,,New,,Ticket (2.5/day): why no change in deployment after preview changes.
+            They are different environments,Topic,Info,Deployed app is separate from preview.,New,,
+            Why preview changes don't appear live,Topic,Warning,Changes in preview do NOT auto-propagate until you redeploy/replace.,New,,
+            Redeploy vs Replace,Topic,Info,,New,,"Ticket (8.5/day - biggest gap): redeploy vs replace, DB behaviour."
+            Redeploy: push latest code,Topic,Info,Update the live app with new code; no extra charge.,New,,
+            Replace: also swaps the database,Topic,Warning,DB only changes when you REPLACE; affects your data.,New,,
+            Updating a live app safely,Topic,Info,Making changes after real users are on it; touches the DB options on replace (see Database page in Common for full detail).,New,,
+      Custom domain,Page,Info,,To Update,,Ticket (41/day - highest): domain stuck/not loading; correct IP mostly solves it.
+            DNS: A record + Emergent IP,Topic,Guide,Add an A record pointing to the Emergent IP from the Custom Domain flow (web apps only).,To Update,,
+            CNAME (www) entry,Topic,Guide,Add a CNAME 'www' entry with your custom domain value.,To Update,,
+            Troubleshooting a stuck domain,Topic,Info,Domain not loading -> verify the IP/records; propagation.,To Update,,
+            What the emergent subdomain is,Topic,Info,www.app... explained; will it work as-is.,To Update,,
+            Changing the app name & Google-auth label,Topic,FAQ,Renaming on the emergent domain; why Google auth shows 'login to xyz'.,To Update,,
+      Web <-> Mobile conversion (canonical),Page,Info,"1. What conversion does: how converting between web and mobile works. CANONICAL page.
+2. Will I lose data/functionality? reassurance + reality on what carries over.",To Update,,Ticket (9/day): fear of losing data/functionality. Verify.
+ -Mobile Apps,Section,Info,,To Update,,
+      Starting the process,Page,Info,,,, 
+            What can be built?,Topic,FAQ,"Native Android & iOS apps, and installable web apps. Note: Apple Watch / iPad (Swift) apps can be coded but not published yet.",To Update,,
+            Requirements,Topic,Info,"An Emergent account; for testing, the Expo Go app on your phone; for publishing, Apple Developer and/or Google Play Console accounts (create early - Apple approval takes 24-48h).",To Update,,VERIFY exact requirements against docs.
+            What is Expo?,Topic,FAQ,Expo is the framework/toolchain behind Emergent mobile apps. Expo Go is a free phone app: scan a QR code and your app runs live on your device - no APK or store publish needed to test.,To Update,,VERIFY against mobile-app-development doc.
+            Development workflow,Topic,Guide,"1. Open the Mobile Agent and describe your app.
+2. Answer clarifying questions.
+3. Preview live on your phone via Expo Go (scan QR).
+4. Iterate/debug with the agent.
+5. When ready, move to publishing.",To Update,,
+      Pre-publish health check,Page,Info,,To Update,, 
+            Preview & test the mobile app first,Topic,Info,Check the app behaves correctly on-device before generating a build / publishing.,To Update,,
+            Local testing & testing on your phone with Expo Go,Topic,Guide,"Install Expo Go, scan the QR code, and the app runs instantly on your device; iterate here before any store submission.",To Update,,
+            EAS price & plan comparison,Topic,Comparison,Comparison table of EAS (Expo Application Services) build plans/pricing tiers.,To Update,,VERIFY EAS pricing/plan details against docs - do not assert numbers unconfirmed.
+      Database & data on mobile,Page,Info,Mobile data flow - see canonical Database (MongoDB) page for shared fundamentals.,To Update,,Cross-refs web Database page.
+            Shared fundamentals,Topic,Info,Mobile uses the same backend database - see the canonical Database (MongoDB) page for the URL model and storage.,To Update,,
+            Republish as an update,Topic,Info,"No 'redeploy vs replace' on mobile: to change the backend/DB of a published app, rebuild and REPUBLISH to the stores as a new version.",To Update,,
+            Fork into a new app,Topic,Info,"Fork to a separate app with its own build/bundle ID and its own database, instead of updating the published one.",To Update,,
+            What carries over,Topic,Info,How data/DB is affected when you update vs fork.,To Update,,
+"      Package name, Bundle ID & App ID",Page,Info,,New,, 
+            What they are,Topic,Info,"Android package name, iOS bundle ID, app ID; generated at first build/publish.",New,,
+            Can't change after first build; align with integrations,Topic,Warning,Locked once the first build/publish happens - plan ahead. Any integration (e.g. Apple Music) must use the SAME bundle ID; a mismatch breaks it.,New,,Ticket (5/day): bundle IDs; integration mismatch.
+               No domain needed for mobile,Bytes,Info,Native mobile apps have no domain attached; you don't need to buy one.,New,,Ticket (2.5/day).
+      Publishing to the stores,Page,Guide,,To Update,, 
+            Expo & developer accounts,Topic,Info,"Create your Expo account, Apple Developer account (approval 24-48h), and Google Play Console account. Create early to avoid timeline slips.",To Update,,
+            Setting up EAS account,Topic,Guide,Set up Expo Application Services (EAS) for producing store-ready builds.,To Update,,VERIFY EAS setup steps against docs.
+            iOS vs Android flow,Topic,Comparison,"Side-by-side table of the iOS vs Android publishing flow. Include per-platform: store listing & compliance (data-safety / privacy nutrition labels, declare third-party SDKs, write listing after build is locked) and submit & review + rejection handling (Apple 1-3 days; Google usually same-day).",To Update,,Store listing/compliance & submit/review folded into this comparison per structure.
+            Signing & keystore,Topic,Warning,"Google Play needs a signed .aab; you generate a keystore that is your app's identity. Once published with a keystore, every future update must use the SAME one. Losing the keystore means you can NEVER update the app - store it in two secure places; consider Google Play App Signing as backup.",To Update,,
+            App updates after publishing,Topic,Info,"Push a new version through the same build/publish flow, signed with the same keystore.",To Update,,
+      Monetisation: in-app purchases & subscriptions,Page,Info,"Monetise mobile apps via Apple IAP (30%/15% fees), Google Play Billing, cross-platform entitlements through RevenueCat, and Razorpay links for India.",New,,
+      Push notifications,Page,Info,"Push for the Emergent app itself (deploy/credit/agent alerts with deep links) and enabling push in apps you build via SuprSend (Android service-account.json, iOS .p8).",New,,
+      Build generation for a pre-existing Play Store app,Page,Info,,To Update,, 
+            Generate a .pem file from your signing key,Topic,Guide,Steps to produce a .pem file from your existing signing key for a pre-existing Play Store app.,To Update,,VERIFY against mobile-app-development doc.
+            Generate a .p8 key from Apple Developer account,Topic,Guide,Steps to generate a .p8 key from your Apple Developer account.,To Update,,VERIFY against mobile-app-development doc.
+      Troubleshooting,Page,Info,,To Update,, 
+            Build failures,Topic,Info,Common mobile build failures and fixes.,To Update,,
+            Submission rejected,Topic,Info,Why store submissions get rejected and how to resolve.,To Update,,
+            Updates not appearing,Topic,Info,Why a published update isn't showing and how to fix.,To Update,,
+            Icons show as boxes on Android (Expo Go),Topic,Info,"Vector icons render as ""tofu"" boxes in Android Expo Go - cause and fix.",New,,
+            Sign in with Apple rejection,Topic,Info,App Store rejection from Sign in with Apple caused by wrong bundle-ID audience validation - how to resolve.,New,,
+            Quick reference,Topic,Info,At-a-glance checklist/reference for mobile publishing and commonly used commands,To Update,,
+      Best Practices,Page,Info,"Best practices for building, testing, and publishing mobile apps on Emergent.",To Update,,
+            Device permission best practices (Expo),Topic,Guide,"Contextual permission prompts, the four permission states / canAskAgain (deep-link to Settings when blocked), and iOS usage-description strings in app.json.",New,,
+      Web <-> Mobile conversion (ref),Page,Info,Same topics as the canonical Web <-> Mobile conversion page in Going Live - Web. Referenced here for mobile builders.,To Update,,Pointer to canonical page.
+" -Credits, Plans & Billing",Section,Info,,To Update,,
+      Plans & the free tier,Page,Info,,To Update,,"Free tier (10 credits, no deploy) is new."
+"            Free tier (10 credits, no deploy) vs Standard vs Pro",Topic,Comparison,"Comparison of Free (10 credits/month, cannot deploy) vs Standard vs Pro: what each gives, who needs which.",To Update,,Ticket: what is Pro vs Standard.
+               Bulk credits & custom pricing,Bytes,Info,Bulk credit purchases with custom pricing are available to non-Enterprise customers via sales.,New,,
+      How credits work,Page,Info,,To Update,,Ticket: how credits deduced; per-prompt cost.
+            What consumes credits,Topic,Info,"Generation, testing, cloud deploys, integrations; complexity and Maxx mode drive more usage.",To Update,,
+"            Credits per prompt, can set a limit",Bytes,Info, you can set a limit to cap consumption.,To Update,,
+      Credit expiry & recharging,Page,Info,,To Update,,Ticket: users don't know credits expire; confuse Universal Key vs Emergent credits.
+            Monthly reset,Topic,Info,Credits reset each billing cycle.,To Update,,
+            Expiry (users get surprised),Topic,Warning,Credits can expire - make this explicit so users aren't caught out.,To Update,,
+            Topping up & the two credit types,Topic,Info,How to add credits anytime; clarify Emergent Credits vs Universal LLM Key credits so users don't confuse them.,To Update,,
+      Running low / out of credits,Page,Info,,To Update,,NOTE: -ve balance flagged 'Not User Education' - confirm.
+            What happens mid-prompt when low credit,Topic,Info,Behaviour when credits run out during a build.,To Update,,
+            Renewal & negative balance,Topic,Warning,"If <50 credits on renewal, balance can go negative; app may be taken down after a later check.",To Update,,
+            Estimating cost before building,Topic,Info,Budgeting mindset before a big build.,To Update,,Cost-estimation is new.
+      Referrals & Partners program,Page,Info,"Referral program (50 credits per referral, referee gets 5, paid users only, with caps), the separate Partners program (20% cash commission via Wise), and Pro-only Secret Perks.",New,,
+      Streaks & rewards,Page,Info,"Paid-user daily-streak system counting days with a job submission; credit rewards (day-7 bonus, mystery boxes), repair tokens, and eligibility rules.",New,,
+      Payment methods & regional billing,Page,Info,"How payment routing works across Stripe/Razorpay/PagBrasil/Paddle/RevenueCat, currency-specific credit rates (USD/INR/BRL/KRW), no stored cards, legal entity names on statements, and crypto/stablecoins.",New,,
+      Cancellation & refunds,Page,Info,"How to cancel (web/mobile/Stripe), what happens to credits and apps after cancelling, refund eligibility (prorated subscription credits only; top-ups non-refundable), disputes/chargebacks, and retention offers.",New,,
+      Enterprise plan & features,Page,Info,"SAML 2.0 SSO (Okta/Azure AD/Google Workspace), dedicated Kubernetes clusters / tenant isolation, audit logs (12-month retention, CSV/JSON export), cumulative credit caps, and custom terms/DPA/SLA.",New,,
+ -Agents,Section,Info,,To Update,,
+      Custom agents,Page,Info,,To Update,,
+            Agent architecture,Topic,Info,How agents are structured.,To Update,,
+            Main agents,Topic,Info,The primary agent role.,To Update,,
+            Sub-agents,Topic,Info,Delegated agents for sub-tasks.,To Update,,
+            Custom tools,Topic,Guide,Giving agents custom tools.,To Update,,
+      How the agent runs (workflow & stop reasons),Page,Info,"The agent Temporal workflow loop, iteration/time caps, and stop reasons (context_overflow, max_iterations, insufficient_credits, handoff, etc.); E-3 autonomous phases, subagents and Auto-HITL.",New,,
+            Agent tools & their credit cost,Topic,Info,"The agent built-in tool suite (sandbox MCP tools, Codex code review, testing/design agents); some server-side tools (search, media generation) add credit cost.",New,,
+Integrations,Tab,Info,,,,
+  -Overview,Section,Info,,To Update,,
+      What and How,Section,Info,"1. What integrations are: how Emergent connects your app to third-party services.
+2. How auth & keys are handled: what Emergent does for you vs what you supply.",To Update,,"Ticket (Integrations): third-party API setup, auth & keys."
+      MCPs & connectors,Page,Info,"1. What MCP is: Model Context Protocol basics.
+2. Using an MCP connector: connecting external tools/data.
+3. Emergent as an MCP: using Emergent itself as an MCP from other clients.",To Update,,
+            Registering a custom MCP server,Topic,Guide,"Register custom MCP servers for the build agent (port 8012, JSON config, public/private servers, tool discovery/caching).",New,,
+      Key integrations catalogue,Page,Info,"Directory of supported integrations, grouped by category.",To Update,,Audit which are current.
+  -Payments,Section,Info,,To Update,,
+            Stripe,Page,Guide,,To Update,,
+            Razorpay,Page,Guide,,To Update,,
+            Paystack,Page,Guide,,New,,
+            PayPal,Page,Guide,,New,,
+            Paddle,Page,Guide,,New,,
+            Lemon Squeezy,Page,Guide,,New,,
+  -Data & auth,Section,Info,,To Update,,
+            Supabase,Page,Guide,,To Update,,
+            Google auth,Page,Guide,,To Update,,
+            Pinecone,Page,Guide,,New,,
+            Emergent Auth (built-in),Page,Info,,New,,
+            Firebase,Page,Guide,,New,,
+            Auth0,Page,Guide,,New,,
+            Clerk,Page,Guide,,New,,
+  -AI,Section,Info,,To Update,,
+            OpenAI,Page,Guide,,To Update,,
+            Claude,Page,Guide,,To Update,,
+            Gemini,Page,Guide,,To Update,,
+  -Messaging & email,Section,Info,,To Update,,
+            Slack,Page,Guide,,To Update,,
+            Twilio,Page,Guide,,To Update,,
+            Resend,Page,Guide,,To Update,,
+            SendGrid,Page,Guide,,To Update,,
+  -Media & productivity,Section,Info,,To Update,,
+            Giphy,Page,Guide,Setting up Giphy.,To Update,,
+            ElevenLabs,Page,Guide,Setting up ElevenLabs.,To Update,,
+            Google Suite,Page,Guide,Setting up Google Suite.,To Update,,
+            Figma (design-to-code),Page,Guide,Convert Figma designs to code.,New,,
+            Cloudinary,Page,Guide,Media management and CDN via Cloudinary.,New,,
+             AI media generation (image/video/audio),Page,Info,"AI image/video/audio generation models with credit multipliers (Imagen 4, GPT Image 1, Sora 2, Veo-3, ElevenLabs, Suno).",New,,
+             Notion,Page,Guide,Setting up Notion integration.,New,,
+             Airtable,Page,Guide,Setting up Airtable integration.,New,,
+             Shopify,Page,Guide,Setting up Shopify integration.,New,,
+  -GitHub integration,Section,Info,,To Update,,Tickets: agent messes up GitHub core code; exposed credentials (5/day).
+            Save to GitHub,Page,Guide,Push code to a repo/branch.,To Update,,
+                Don't expose credentials,Topic,Warning,Never push .env/secrets outside the secrets manager; admin creds can leak.,New,,
+            Pull from GitHub (with caution),Page,Warning,Agent may change/overwrite your core code - keep a backup elsewhere before pulling.,To Update,,
+Troubleshooting,Tab,User Concern,,,,
+ -Common Issues,Section,User Concern,,To Update,,
+      Design inconsistencies,Page,Info,Fixing common design/layout issues via the agent.,To Update,,
+      Missing functionality,Page,Info,Diagnosing and requesting a feature that's missing or didn't build as expected.,To Update,,
+      Deployment issues,Page,Info,Common deployment failures and how to fix them.,To Update,,
+      Deployment pipeline failures,Page,Info,"Specific failure modes: build errors (TS/ESLint/dependency), DB migration timeouts, secret-export issues, CrashLoopBackOff/OOM kills, Telegram 409, health-check failures.",New,,
+      Works in preview but breaks in production,Page,Info,"Why an app works in preview but breaks live: separate env vars, hardcoded localhost, CORS, ephemeral filesystem losing runtime files, missing system tools (ffmpeg/Playwright), webhooks still pointing to preview.",New,,
+"      App slow, crashing or cold-starting",Page,Info,"KEDA event-driven auto-scaling, scale-to-zero cold starts, Pod Disruption Budgets by tier, and performance optimisation for slow/crashing deployed apps.",New,,
+ -Reference,Section,Info,,To Update,,
+      Glossary of Emergent terms,Page,Info,"Plain-language definitions users can return to: ECU, Job, Redeploy vs Replace, Universal Key, Maxx mode, Preview vs Deployed, Bundle ID, Custom domain, MCP, Expo/EAS, keystore, and more.",New,,Single glossary users keep returning to.
+      FAQs,Page,FAQ,As compiled in the FAQ Master tab of this workbook.,To Update,,Footer in every section.
+"Data, Trust & Support",Tab,User Concern,,,,
+ -Data & Trust,Section,User Concern,,New,,
+      Data privacy,Page,User Concern,Where your data is stored and who can access it; addressing privacy worries.,New,,User-concerns (Curriculum tab). Confirm official stance.
+      Data leakage,Page,User Concern,Safeguards against leakage; what is / isn't exposed and how it's protected.,New,,User-concerns. Confirm official stance.
+      Your data & ownership,Page,Info,,New,,New grouped topic.
+            What happens if you stop paying,Topic,User Concern,Data retention and whether you can get your app/data back if you stop paying.,New,,
+            Who owns the code / portability,Topic,User Concern,IP and portability - taking your code elsewhere (via GitHub export).,New,,
+            Backups & data safety,Topic,User Concern,Can you back up your database; what if you lose data.,New,,
+            Platform stability / uptime,Topic,User Concern,Setting uptime expectations; where to check platform status.,New,,
+ -Support,Section,Info,,To Update,,
+"      Getting help, support & community",Page,Info,"1. Where to get help: Discord community, support email.
+2. How to file a good bug report: include your Job ID and error screenshots.",To Update,,New topic. From docs FAQ: include Job ID + screenshots.
+      Account security & login,Page,Info,"Sign-in methods (email/Google/Apple/phone-OTP/SSO), password reset, why email can't be changed (+ GitHub workaround), account deletion with 45-day grace, and session/token security.",New,,
+      App takedown & content moderation,Page,User Concern,Deployed apps can be taken offline by automated content-policy/phishing screening; how to dispute and remedy via fork/replace.,New,,
+Wingman,Tab,Info,,,shreyas,
+      What is Wingman,Page,Info,"Emergent's standalone personal AI assistant with persistent memory - separate from the app builder; available on web (getwingman.com), the Play Store and the App Store.",New,,
+"      Channels (Web, Telegram, WhatsApp, iMessage, Slack)",Page,Info,"Use Wingman across messaging channels; per-channel message/voice limits (voice up to 10MB / 2min), connection flows, in-channel payments, the WhatsApp 24-hour window, and per-channel permission prompts.",New,,
+      Integrations & scheduled tasks,Page,Info,"300+ OAuth integrations per Wingman (via Composio), built-in capabilities (web search, file analysis, code execution, memory), and recurring/one-time scheduled tasks with delivery channels; tasks pause and auto-resume on low credits.",New,,
+      Custom & MCP integrations,Page,Guide,Add first-party and custom third-party MCP servers to Wingman via endpoint/JSON config; credential handling and supported vs unsupported server types.,New,,
+Changelog,Tab,Info,Changes documented as they go live,New,,

@@ -1,0 +1,31 @@
+{
+  "summary": "Frontend-only regression of the public docs redesign (Replit-style secondary tab bar + 107 AI-generated pages). Verified 6 top tabs, per-tab sidebar scoping, sample rendering across representative pages, callouts, cross-page links, search, theme toggle, prev/next, and TOC. No raw-tag leaks or <br/> literals detected on any sampled page. Renderer bug fixes for shorthand callouts and rehypeRaw for <br> are working.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Secondary tab bar", "issues": ["Only 6 tabs present but original spec listed 7 (Data, Trust & Support are merged into a single tab 'tab-data-trust-support'). If the intent was to have Data and Trust & Support as separate tabs, this needs a config split; otherwise the merged label is fine."]}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Decide whether 'Data' and 'Trust & Support' should be split into two tabs (currently merged as tab-data-trust-support). Original request text lists both separately but also says '6 tabs'.",
+    "Investigate the recurring 'Failed to load resource: 401' console errors on every public docs page (likely a stray fetch to an auth-protected endpoint from the public renderer — non-blocking but noisy)."
+  ],
+  "critical_code_review_comments": [
+    "DocContent.jsx has a duplicate case 'DeleteAccountButton' in the RenderComponent switch (lines ~441 and ~451). The second is unreachable dead code — remove it.",
+    "PublicDocs.jsx: `documents` is used as the source-of-truth for prev/next order (line 719) but sidebar order is derived from `tabs`; this means prev/next may not follow the visible reading order of the current tab. Consider ordering prev/next by the current tab's flattened page list.",
+    "PublicDocs.jsx: `handleDocSelect` re-navigates via requestAnimationFrame with a 100ms guard flag `isNavigating`. Race-prone; the effect that syncs `docSlug` -> `selectedDoc` at line 605 skips while navigating and could leave state stale if the timeout is swallowed. A URL-driven single source of truth (derive selectedDoc from docSlug only) would be simpler and more reliable.",
+    "PublicDocs.jsx: `RightTOC` reads `--nav-h` but its useEffect only re-runs when `valid` changes; if the header height changes (e.g. logo config swap) the IntersectionObserver rootMargin becomes stale.",
+    "PublicDocs.jsx is 926 lines — split TopHeader, LeftSidebar, RightTOC, SearchDialog, SecondaryTabBar into their own files."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "n/a", "frontend": "~95%" },
+  "test_credentials": "none required (public docs)",
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Tabs observed: tab-build (54 pages), tab-integrations (34), tab-troubleshooting (8), tab-data-trust-support (6), tab-wingman (4), tab-changelog (1). Sampled pages verified free of raw component tag leakage: what-is-emergent, compare-the-4-windows, what-is-a-job, the-universal-llm-key, custom-domain, database-mongodb, twilio, clerk, glossary-of-emergent-terms, what-and-how. Search returns >0 results for 'deploy' and result click navigates correctly. Theme toggle flips document.documentElement.dark class. Cross-page relative links (/emergent-auth-built-in, /key-integrations-catalogue, /a-tour-of-the-workspace) are present on /what-and-how. Console shows repeated 401s across pages — worth investigating but not blocking.",
+  "rca of the issue": "n/a — no bugs reproduced this iteration"
+}

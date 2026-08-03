@@ -4,6 +4,7 @@
  */
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
 import { useState, useMemo, useEffect, Children, isValidElement, Fragment } from 'react';
 import { Copy, Check, Hash, Info, Lightbulb, AlertTriangle, AlertCircle, CheckCircle } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -285,7 +286,7 @@ const NestedContent = ({ content, mdComponents }) => {
   if (!content) return null;
   
   // Check if content has custom components that need parsing
-  const hasCustomComponents = /<(Steps|CardGroup|Columns|Card|Tabs|Accordion|Callout|YouTube|Loom|Video|Figure|DeleteAccountButton)/i.test(content) ||
+  const hasCustomComponents = /<(Steps|CardGroup|Columns|Card|Tabs|Accordion|Callout|Note|Info|Tip|Warning|Caution|Error|Danger|Success|YouTube|Loom|Video|Figure|DeleteAccountButton)/i.test(content) ||
     />\s*\[!(NOTE|TIP|WARNING|CAUTION|ERROR|INFO|SUCCESS)\]/i.test(content);
   
   if (hasCustomComponents) {
@@ -296,7 +297,7 @@ const NestedContent = ({ content, mdComponents }) => {
         {parsed.map((block, i) => {
           if (block.type === 'markdown') {
             return (
-              <ReactMarkdown key={i} remarkPlugins={[remarkGfm]} components={mdComponents}>
+              <ReactMarkdown key={i} remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} components={mdComponents}>
                 {block.content}
               </ReactMarkdown>
             );
@@ -318,7 +319,7 @@ const NestedContent = ({ content, mdComponents }) => {
   
   // Simple markdown, no custom components
   return (
-    <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
+    <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} components={mdComponents}>
       {content}
     </ReactMarkdown>
   );
@@ -679,7 +680,7 @@ export const DocContent = ({ content, className = '', onHeadings }) => {
       {sections.map((section, index) => (
         <Fragment key={index}>
           {section.type === 'markdown' ? (
-            <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdComponents}>
+            <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} components={mdComponents}>
               {section.content}
             </ReactMarkdown>
           ) : (
