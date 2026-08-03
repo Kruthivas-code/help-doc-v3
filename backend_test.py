@@ -6,7 +6,7 @@ import json
 from datetime import datetime
 
 class DocuMintAPITester:
-    def __init__(self, base_url="https://mdx-editor-2.preview.emergentagent.com"):
+    def __init__(self, base_url="https://cms-admin-3.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.session_token = "test_session_1768642715563"

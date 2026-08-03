@@ -1795,7 +1795,7 @@ app.include_router(api_router)
 
 # CORS configuration - must specify exact origins when credentials are enabled
 ALLOWED_ORIGINS = [
-    "https://mdx-editor-2.preview.emergentagent.com",
+    "https://cms-admin-3.preview.emergentagent.com",
     "https://devdocs-engine.emergent.host",
     "https://help.emergent.sh",
     "http://localhost:3000",

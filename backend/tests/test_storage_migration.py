@@ -16,7 +16,7 @@ import re
 import pytest
 import requests
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://mdx-editor-2.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://cms-admin-3.preview.emergentagent.com").rstrip("/")
 
 # Paths supplied by main agent — known to be migrated to Tigris
 MIGRATED_PATHS = [
