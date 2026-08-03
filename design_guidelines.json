@@ -1,137 +1,120 @@
 {
-  "design_system": {
-    "identity": {
-      "name": "Emergent Docs - Mintlify Clone",
-      "aesthetic": "Technical, Precision, Deep Dark Mode",
-      "inspiration": "Mintlify (docs.base44.com)",
-      "primary_theme": "dark"
+  "typography": {
+    "fonts": {
+      "headings": "Geist, sans-serif",
+      "body": "Inter, sans-serif",
+      "code": "JetBrains Mono, monospace"
     },
-    "colors": {
-      "palette": {
-        "primary": {
-          "DEFAULT": "#188455",
-          "hover": "#157149",
-          "foreground": "#ffffff",
-          "glow": "rgba(24, 132, 85, 0.5)"
-        },
-        "background": {
-          "main": "#020617",
-          "secondary": "#0f172a",
-          "tertiary": "#1e293b",
-          "glass": "rgba(2, 6, 23, 0.8)"
-        },
-        "text": {
-          "primary": "#f8fafc",
-          "secondary": "#94a3b8",
-          "muted": "#64748b"
-        },
-        "border": {
-          "subtle": "rgba(255, 255, 255, 0.08)",
-          "default": "rgba(255, 255, 255, 0.12)",
-          "active": "#188455"
-        }
-      },
-      "gradients": {
-        "hero_glow": "radial-gradient(circle at 50% -20%, rgba(24, 132, 85, 0.25) 0%, rgba(2, 6, 23, 0) 50%)",
-        "card_hover": "linear-gradient(180deg, rgba(30, 41, 59, 0.5) 0%, rgba(30, 41, 59, 0) 100%)"
-      }
-    },
-    "typography": {
-      "font_family": {
-        "sans": "Inter, -apple-system, BlinkMacSystemFont, sans-serif",
-        "mono": "JetBrains Mono, Fira Code, monospace"
-      },
-      "scale": {
-        "h1": "text-4xl font-bold tracking-tight lg:text-5xl",
-        "h2": "text-2xl font-semibold tracking-tight mt-10 mb-4",
-        "h3": "text-xl font-semibold tracking-tight mt-8 mb-3",
-        "body": "text-base leading-7 text-slate-400",
-        "small": "text-sm leading-6 text-slate-500"
-      }
-    },
-    "visual_enhancers": {
-      "grid_pattern": {
-        "css": "background-size: 40px 40px; background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);",
-        "usage": "Apply to the main background <body> or a fixed <div> behind content."
-      },
-      "glassmorphism": {
-        "nav": "backdrop-blur-xl bg-[#020617]/80 border-b border-white/5",
-        "sidebar": "backdrop-blur-lg bg-[#020617]/50 border-r border-white/5"
-      },
-      "shadows": {
-        "glow": "0 0 40px -10px rgba(24, 132, 85, 0.3)",
-        "card": "0 1px 2px 0 rgba(0, 0, 0, 0.05)"
-      }
-    },
-    "layout": {
-      "max_width": "max-w-[1600px]",
-      "content_width": "max-w-3xl",
-      "sidebar_width": "w-72",
-      "toc_width": "w-64",
-      "spacing": {
-        "section": "py-12",
-        "element": "mb-6"
-      }
-    },
-    "components": {
-      "buttons": {
-        "primary": "bg-[#188455] hover:bg-[#157149] text-white shadow-lg shadow-emerald-900/20 rounded-lg px-4 py-2 font-medium transition-all",
-        "secondary": "bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-lg px-4 py-2 font-medium transition-all"
-      },
-      "cards": {
-        "base": "group relative rounded-xl border border-white/10 bg-slate-900/20 p-6 hover:bg-slate-900/40 transition-all duration-300",
-        "hover_effect": "hover:border-[#188455]/50 hover:shadow-[0_0_30px_-10px_rgba(24,132,85,0.3)]"
-      },
-      "inputs": {
-        "base": "bg-slate-900/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#188455]/50"
-      },
-      "sidebar_link": {
-        "base": "flex items-center gap-2 px-3 py-2 text-sm text-slate-400 rounded-md transition-colors hover:text-white hover:bg-white/5",
-        "active": "text-[#188455] bg-[#188455]/10 font-medium"
-      }
-    },
-    "assets": {
-      "images": [
-        {
-          "category": "hero_background",
-          "url": "https://images.pexels.com/photos/28428587/pexels-photo-28428587.jpeg",
-          "description": "Abstract dark gradient for hero section background (optional overlay)"
-        }
-      ],
-      "icons": "Lucide React (already installed)"
+    "scale": {
+      "h1": "text-3xl sm:text-4xl font-semibold tracking-tight text-foreground font-geist",
+      "h2": "text-2xl sm:text-3xl font-semibold tracking-tight text-foreground font-geist mt-10 mb-4 border-b border-border pb-2",
+      "h3": "text-xl sm:text-2xl font-medium tracking-tight text-foreground font-geist mt-8 mb-3",
+      "body": "text-base leading-7 text-muted-foreground font-inter",
+      "small": "text-sm text-muted-foreground",
+      "code": "font-mono text-sm px-1.5 py-0.5 rounded-md bg-muted text-foreground"
     }
   },
-  "implementation_steps": [
-    {
-      "step": 1,
-      "file": "/app/frontend/src/index.css",
-      "action": "Update CSS variables",
-      "details": "Replace root variables with the new Deep Dark palette. Add the .bg-grid-pattern utility class."
+  "colors": {
+    "brand": {
+      "primary": "#1588FC",
+      "light": "#4FA8FF",
+      "dark": "#0B5AB0"
     },
-    {
-      "step": 2,
-      "file": "/app/frontend/src/App.css",
-      "action": "Refine Global Styles",
-      "details": "Update typography to use 'Inter' with tight tracking. Add the radial gradient background to the body."
+    "light": {
+      "background": "#FFFFFF",
+      "foreground": "#09090B",
+      "muted": "#F4F4F5",
+      "muted_foreground": "#71717A",
+      "border": "#E4E4E7",
+      "card": "#FFFFFF",
+      "sidebar_active_bg": "#F0F7FF",
+      "sidebar_hover_bg": "#F4F4F5"
     },
-    {
-      "step": 3,
-      "file": "/app/frontend/src/pages/PublicDocs.jsx",
-      "action": "Update Layout & Theme",
-      "details": "Modify the THEMES object to use the new #188455 primary color. Update the SidebarNav to use the new active states. Add the grid pattern background div."
-    },
-    {
-      "step": 4,
-      "file": "/app/frontend/src/components/ui/card.jsx",
-      "action": "Enhance Cards",
-      "details": "Ensure cards support the new hover effects and border styles defined in design_system.components.cards."
+    "dark": {
+      "background": "#09090B",
+      "foreground": "#FAFAFA",
+      "muted": "#27272A",
+      "muted_foreground": "#A1A1AA",
+      "border": "#27272A",
+      "card": "#09090B",
+      "sidebar_active_bg": "#152438",
+      "sidebar_hover_bg": "#27272A"
     }
+  },
+  "layouts": {
+    "structure": "min-h-screen bg-background flex flex-col font-inter text-foreground",
+    "header": "sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-xl h-16 flex items-center",
+    "secondary_nav": "sticky top-16 z-40 w-full border-b border-border bg-background/95 backdrop-blur-md overflow-x-auto",
+    "main_container": "container max-w-[1440px] mx-auto flex-1 items-start md:grid md:grid-cols-[240px_minmax(0,1fr)] lg:grid-cols-[256px_minmax(0,1fr)_220px] gap-6 lg:gap-10 px-4 md:px-8",
+    "sidebar": "fixed top-[113px] z-30 -ml-2 hidden h-[calc(100vh-113px)] w-full shrink-0 md:sticky md:block overflow-y-auto pb-10 pr-4",
+    "content_area": "relative py-8 lg:py-12 mx-auto w-full max-w-3xl lg:max-w-4xl xl:max-w-5xl",
+    "toc": "hidden text-sm xl:block sticky top-[113px] h-[calc(100vh-113px)] overflow-y-auto pt-10 pb-10 pl-4 border-l border-border"
+  },
+  "components": {
+    "secondary_tab_bar": {
+      "container": "flex h-12 items-center px-4 md:px-8 space-x-8 text-sm font-medium text-muted-foreground max-w-[1440px] mx-auto",
+      "tab": "relative flex items-center h-full hover:text-foreground transition-colors cursor-pointer whitespace-nowrap",
+      "active_tab": "text-foreground after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-primary after:rounded-t-sm"
+    },
+    "sidebar_nav": {
+      "group_heading": "font-semibold font-geist text-sm text-foreground mb-2 mt-6 first:mt-0 px-3 flex items-center justify-between",
+      "item": "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer",
+      "active_item": "bg-primary/10 text-primary border-l-[3px] border-primary ml-[-1px] rounded-none rounded-r-md hover:bg-primary/20",
+      "icon": "h-4 w-4 shrink-0"
+    },
+    "cards": {
+      "grid": "grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-8",
+      "card": "group relative rounded-xl border border-border p-6 hover:border-primary/50 hover:shadow-md transition-all bg-card flex flex-col gap-3 cursor-pointer",
+      "card_icon": "h-6 w-6 text-primary mb-1",
+      "card_title": "font-semibold font-geist flex items-center gap-2 text-foreground",
+      "card_desc": "text-sm text-muted-foreground line-clamp-2"
+    },
+    "prose": {
+      "container": "prose prose-slate dark:prose-invert max-w-none font-inter prose-headings:font-geist prose-headings:tracking-tight prose-a:text-primary prose-a:no-underline hover:prose-a:underline",
+      "eyebrow": "text-sm font-medium text-primary mb-3 font-geist flex items-center gap-2",
+      "header_wrapper": "flex items-start justify-between gap-4 mb-8"
+    },
+    "toc": {
+      "title": "font-semibold font-geist text-sm mb-4",
+      "link": "block py-1.5 text-muted-foreground hover:text-foreground transition-colors",
+      "active_link": "text-primary font-medium"
+    }
+  },
+  "visual_enhancers": {
+    "borders": "Use border-border for structural lines. Never use pure black/white borders.",
+    "shadows": "Minimal. Use shadow-sm for dropdowns, hover:shadow-md for cards.",
+    "backdrop_blur": "Header and Secondary nav MUST have backdrop-blur-xl with semi-transparent background."
+  },
+  "motion": {
+    "hover": "transition-all duration-200 ease-in-out",
+    "tabs": "Underline indicator should ideally snap or use layout animations, but CSS border-bottom is acceptable.",
+    "sidebar": "Hover state transitions background color smoothly."
+  },
+  "accessibility": {
+    "data_testid": "MANDATORY on all interactive elements (buttons, links, tabs, search inputs).",
+    "focus": "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+    "contrast": "Ensure text-muted-foreground meets 4.5:1 ratio against background. Use APCA contrast."
+  },
+  "instructions_to_main_agent": [
+    "1. ALL COMPONENT FILES MUST USE .js EXTENSION (e.g. Sidebar.js, Header.js, Layout.js). DO NOT USE .tsx.",
+    "2. IMPLEMENT the layout with 4 core regions: Header (Top), Secondary Nav (Under Header), Sidebar (Left), Article (Center), TOC (Right).",
+    "3. SECONDARY NAV: Create a horizontal tab bar right below the main header. Example tabs: Build, Design, Learn, Features. Clicking a tab must change the state of the active tab, and the Sidebar content must scope/filter based on this active tab.",
+    "4. HEADER AND NAV SURFACES: Must use bg-background/80 and bg-background/95 respectively with backdrop-blur-xl. NEVER use fully transparent backgrounds.",
+    "5. SIDEBAR: Every page link must have a monochrome Lucide icon. The active item must have a blue left border indicator (border-l-[3px] border-primary) and blue text. The text and icons for inactive items are text-muted-foreground.",
+    "6. ARTICLE HEADER: Include an Eyebrow breadcrumb above the H1. Next to the H1 (flex-row, space-between), add a 'Copy page' or 'Share' icon button.",
+    "7. TYPOGRAPHY: Map Geist to headings and Inter to body text. Ensure tight tracking (tracking-tight) on headings.",
+    "8. BRANDING: STRICTLY stick to the #1588FC brand primary color. Do not use Replit's orange. Use this blue for active states, links, and accents.",
+    "9. DATA-TESTID: Always add data-testid attributes to ALL interactive elements (e.g., data-testid='sidebar-nav-item', data-testid='secondary-tab', data-testid='theme-toggle').",
+    "10. THEME: Ensure light mode is the default and looks pure and clean (white background #FFFFFF). Dark mode should be deep grey (#09090B), not flat black."
   ],
-  "universal_guidelines": [
-    "Do not use pure black (#000000) for backgrounds; use #020617 or #0f172a.",
-    "Always add a subtle 1px border (border-white/5) to cards and sidebars to define edges in dark mode.",
-    "Use 'text-balance' on headlines for better optical alignment.",
-    "Ensure all interactive elements have a :focus-visible state with the primary green ring.",
-    "Use 'backdrop-blur' heavily on sticky elements (nav, sidebar) to create depth."
+  "UNIVERSAL GUIDELINES FOR MAIN AGENT": [
+    "Do not converge toward generic outputs. The layout must feel extremely crisp, technical, and spaced generously like Replit docs.",
+    "Create depth through layered design elements with z-index hierarchy.",
+    "Use glass-morphism effects with backdrop filters for sticky headers.",
+    "You MUST NOT apply universal transition (e.g., transition: all). Add transitions for specific properties (transition-colors, transition-opacity).",
+    "You MUST NOT center align the app container. Do not add .App { text-align: center; }.",
+    "Every interaction needs micro-animations - hover states, active states, focus rings.",
+    "Subtle borders and crisp typography separate good from extraordinary.",
+    "Follow the exact spacing rules: generous padding in the prose section (py-8 to py-12), tighter padding in sidebars."
   ]
 }
