@@ -55,7 +55,7 @@ export const Step = ({
       </div>
       
       {/* Content area with connecting line */}
-      <div className="flex gap-4">
+      <div className="flex gap-4 min-w-0">
         {/* Line column */}
         <div className="w-8 flex justify-center flex-shrink-0">
           {!isLast && (
@@ -63,8 +63,8 @@ export const Step = ({
           )}
         </div>
         {/* Description */}
-        <div className={`flex-1 ${isLast ? 'pb-0' : 'pb-6'}`}>
-          <div className="text-[15px] !text-zinc-400 dark:text-zinc-600 dark:!text-zinc-600 dark:text-zinc-400 leading-relaxed italic [&>p]:mb-3 [&>p:last-child]:mb-0">
+        <div className={`flex-1 min-w-0 ${isLast ? 'pb-0' : 'pb-6'}`}>
+          <div className="text-[15px] text-zinc-600 dark:text-zinc-400 leading-relaxed [&>p]:mb-3 [&>p:last-child]:mb-0">
             {children}
           </div>
         </div>

@@ -232,7 +232,7 @@ const SecondaryTabBar = ({ tabs, activeTabId, onTabSelect }) => {
     if (!tabs || tabs.length < 2) return null;
     return (
         <div
-            className="fixed left-0 right-0 z-30 border-b border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md"
+            className="hidden lg:block fixed left-0 right-0 z-30 border-b border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md"
             style={{ top: 'var(--header-h, 56px)' }}
             data-testid="secondary-tab-bar"
         >
@@ -264,7 +264,7 @@ const SecondaryTabBar = ({ tabs, activeTabId, onTabSelect }) => {
     );
 };
 
-const LeftSidebar = ({ activeTab, documents, activeSlug, onDocSelect, mobileOpen, onMobileClose }) => {
+const LeftSidebar = ({ activeTab, tabs, activeTabId, onTabSelect, documents, activeSlug, onDocSelect, mobileOpen, onMobileClose }) => {
     return (
         <>
             {mobileOpen && (
@@ -276,15 +276,41 @@ const LeftSidebar = ({ activeTab, documents, activeSlug, onDocSelect, mobileOpen
             <aside
                 className={`
                     fixed bottom-0 left-0 z-40 w-72 lg:w-64
+                    top-[var(--header-h)] lg:top-[var(--nav-h)]
                     bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800
                     overflow-y-auto
                     transform transition-transform duration-300 ease-out
                     ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
                 `}
-                style={{ top: 'var(--nav-h, 56px)' }}
                 data-testid="left-sidebar"
             >
                 <nav className="px-3 pb-12 pt-4">
+                    {/* Mobile-only tab switcher — on mobile the top tab bar is hidden
+                        (Replit-style clean header), so tabs live inside the drawer. */}
+                    {tabs && tabs.length > 1 && (
+                        <div className="lg:hidden mb-3 pb-3 border-b border-zinc-200 dark:border-zinc-800 space-y-0.5">
+                            {tabs.map((tab) => {
+                                const IconComp = getIcon(tab.icon);
+                                const active = tab.id === activeTabId;
+                                return (
+                                    <button
+                                        key={tab.id}
+                                        type="button"
+                                        onClick={() => onTabSelect(tab.id)}
+                                        data-testid={`mobile-tab-${tab.id}`}
+                                        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-left transition-colors ${
+                                            active
+                                                ? 'bg-brand/10 text-brand font-semibold'
+                                                : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900'
+                                        }`}
+                                    >
+                                        {tab.icon && <IconComp className="h-4 w-4 flex-shrink-0" strokeWidth={2} />}
+                                        <span>{tab.label}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )}
                     <div className="space-y-0.5">
                         {(activeTab?.groups || []).map((g, gi) => (
                             <GroupSection
@@ -832,6 +858,9 @@ const PublicDocs = () => {
 
             <LeftSidebar
                 activeTab={activeTab}
+                tabs={tabs}
+                activeTabId={activeTabId}
+                onTabSelect={handleTabSelect}
                 documents={documents}
                 activeSlug={selectedDoc?.slug}
                 onDocSelect={handleDocSelect}
@@ -840,8 +869,7 @@ const PublicDocs = () => {
             />
 
             <main
-                className="lg:ml-64 xl:mr-60 min-h-screen"
-                style={{ paddingTop: 'var(--nav-h, 56px)' }}
+                className="lg:ml-64 xl:mr-60 min-h-screen pt-[var(--header-h)] lg:pt-[var(--nav-h)]"
             >
                 {selectedDoc ? (
                     <article

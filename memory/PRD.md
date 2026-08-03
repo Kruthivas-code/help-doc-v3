@@ -42,6 +42,13 @@ Source: user-provided "User Education Gaps Tracker.csv" (219 rows) → complete 
 - **Renderer fix**: `<Tab title="...">` now accepted as an alias for `<Tab label="...">` (parser + validator) — fixed spurious "Validation Warnings" on 17 integration pages.
 - **Mobile Apps promoted to its own top-level tab** (2nd position, after Build; icon `rocket`) — 11 pages moved out of the Build tab's "Mobile Apps" group into a standalone tab, since users had many mobile-specific questions. Now 6 tabs: Build, Mobile Apps, Integrations, Troubleshooting, Data Trust & Support, Wingman.
 
+## Mobile optimization — Replit-clean (June 2026)
+- **Secondary tab bar hidden on mobile** (`hidden lg:block`); on mobile the tabs now live at the top of the hamburger drawer (Replit-style clean header). `LeftSidebar` gained a `lg:hidden` tab switcher (`data-testid="mobile-tab-*"`).
+- **Responsive layout offsets**: added `:root` defaults `--header-h:56px` / `--nav-h:104px` in index.css; sidebar/main now use `top-[var(--header-h)] lg:top-[var(--nav-h)]` and `pt-[var(--header-h)] lg:pt-[var(--nav-h)]` so mobile content sits below just the header (no tab-bar gap) while desktop keeps the tab-bar offset.
+- **Fixed horizontal overflow on mobile**: code blocks inside `<Steps>` pushed the page to ~597px on a 390px screen. Added `min-w-0` to the Step flex row + description so code scrolls internally; body now == viewport width. Verified on code-heavy pages (bodyScroll 390 == win 390).
+- **Step readability**: removed the forced faint `!text-zinc-400` + `italic` on step descriptions (low contrast in both themes) → now `text-zinc-600 dark:text-zinc-400`, upright and readable.
+- Verified via screenshots at 390px (mobile) and 1440px (desktop) — both correct, no regressions.
+
 ## Design System (Feb 2026 — Full UX Overhaul)
 - **Typography**: Geist (headings, font-heading), Inter (body, font-sans), JetBrains Mono (code)
 - **Palette**: zinc neutrals + brand `#1588FC`; light-first with `html.dark` toggle

@@ -12,6 +12,10 @@
     --font-body:    'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
     --font-mono:    'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
+    /* Docs layout offsets (overridden at runtime by PublicDocs based on logo/tab bar) */
+    --header-h: 56px;
+    --nav-h: 104px;
+
     /* Layout */
     --content-width: 768px;
     --sidebar-width: 240px;
