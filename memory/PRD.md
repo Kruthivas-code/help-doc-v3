@@ -49,6 +49,10 @@ Source: user-provided "User Education Gaps Tracker.csv" (219 rows) → complete 
 - **Step readability**: removed the forced faint `!text-zinc-400` + `italic` on step descriptions (low contrast in both themes) → now `text-zinc-600 dark:text-zinc-400`, upright and readable.
 - Verified via screenshots at 390px (mobile) and 1440px (desktop) — both correct, no regressions.
 
+## Content trims per user review (June 2026)
+- **Removed** the "Template — fullstack vs base python (advanced)" page entirely (nav + document). Docs now 103 pages.
+- **Removed the internal "Development" deployment type** (ephemeral chat-iteration deploys the agent auto-commits to) from `/deployment-types` — page now documents only Preview + Production (card group cols 3→2, comparison-table column dropped, env-vars wording updated). Kept all other legitimate "ephemeral" mentions (ephemeral filesystem for uploads, ephemeral workspaces backup advice) as they are user-facing.
+
 ## Design System (Feb 2026 — Full UX Overhaul)
 - **Typography**: Geist (headings, font-heading), Inter (body, font-sans), JetBrains Mono (code)
 - **Palette**: zinc neutrals + brand `#1588FC`; light-first with `html.dark` toggle
