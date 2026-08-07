@@ -51,7 +51,8 @@ Source: user-provided "User Education Gaps Tracker.csv" (219 rows) → complete 
 
 ## Content trims per user review (June 2026)
 - **Removed** the "Template — fullstack vs base python (advanced)" page entirely (nav + document). Docs now 103 pages.
-- **Removed the internal "Development" deployment type** (ephemeral chat-iteration deploys the agent auto-commits to) from `/deployment-types` — page now documents only Preview + Production (card group cols 3→2, comparison-table column dropped, env-vars wording updated). Kept all other legitimate "ephemeral" mentions (ephemeral filesystem for uploads, ephemeral workspaces backup advice) as they are user-facing.
+- **Removed the internal "Development" deployment type** (ephemeral chat-iteration deploys the agent auto-commits to) from `/deployment-types` - page now documents only Preview + Production (card group cols 3->2, comparison-table column dropped, env-vars wording updated). Kept all other legitimate "ephemeral" mentions (ephemeral filesystem for uploads, ephemeral workspaces backup advice) as they are user-facing.
+- **Removed all em dashes** from every document (content, title, description) + config site fields - 575 occurrences across 92 pages replaced with spaced hyphens, double spaces collapsed, 0 remaining. Verified rendering is clean.
 
 ## Design System (Feb 2026 — Full UX Overhaul)
 - **Typography**: Geist (headings, font-heading), Inter (body, font-sans), JetBrains Mono (code)
