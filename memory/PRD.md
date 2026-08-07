@@ -16,6 +16,15 @@ Build a Mintlify-class documentation platform for **Emergent's Documentation** w
 - Manual version control with named snapshots
 
 
+## Admin Editor Authoring UX Improvements (June 2026)
+Goal (user): "check how easy it is to make a page look nice with all the components and if we can improve there" + QoL for the /admin editor.
+- **Component insertion fixes** (`SlashCommands.jsx`): the `Accordion/FAQ` command now inserts a proper `<AccordionGroup><Accordion title="...">` block (previously inserted raw `<details>/<summary>` HTML that didn't match the styled component). Added a new `Columns` command inserting `<Columns cols={2}>` with `<Card>` children (matches `parser.js`).
+- **Visible "Insert" button** (`Editor.jsx`): a header toolbar button (`data-testid="insert-component-btn"`) opens a shadcn Popover listing all component commands grouped by category — so admins don't need to memorize the `/` shortcut. `COMMANDS` is now exported from `SlashCommands.jsx`; inserts at cursor via `insertAtCursor`, and image/gif/color items route through `handleSlashAction`.
+- **QoL** (`Editor.jsx` + `App.js`): replaced all native `alert()` popups with `sonner` toasts (`<Toaster/>` mounted in `App.js` via `AppToaster`, theme-synced). Added an "Unsaved changes" amber badge (`isDirty` via `savedSnapshot`) and a `beforeunload` warning to prevent silent data loss.
+- Verified: testing_agent frontend pass 9/9 scenarios (iteration_12.json), zero bugs. Restored the "What is Emergent?" doc that the test run had modified.
+- **Auth still BYPASSED** (`DISABLE_AUTH=true`) per user request (f) — re-enable Google OAuth later before the milestone ships.
+
+
 ## Public Docs Redesign — Replit-style (June 2026)
 Goal: match https://docs.replit.com/help/overview look & feel while keeping the blue brand (#1588FC), light-default theme, both modes polished.
 Implemented in `/app/frontend/src/pages/PublicDocs.jsx`:
