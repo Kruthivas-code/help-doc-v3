@@ -1,0 +1,34 @@
+{
+  "summary": "Frontend-only testing of editor authoring changes (Insert button, slash-inserted Columns/Accordion MDX, sonner toasts, unsaved-changes badge). All 9 scenarios from the review request passed on https://cms-admin-3.preview.emergentagent.com/admin/editor/d901b4ab-a271-4aff-b63a-bf92d73b9bb0/c83eef51-7f8c-40e6-b9d3-823edbfbb798.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "editor_loads_saved_status_visible": "PASS",
+    "insert_button_visible_and_opens_menu": "PASS",
+    "insert_menu_has_columns_and_accordion_items": "PASS",
+    "accordion_insert_produces_AccordionGroup_MDX (no raw <details>)": "PASS",
+    "columns_insert_produces_Columns_cols_2_with_Card_children": "PASS",
+    "unsaved_changes_badge_appears_on_edit (content + title)": "PASS",
+    "save_flow_shows_sonner_'Changes saved'_toast_and_returns_to_Saved": "PASS",
+    "empty_title_save_shows_sonner_'Title is required'_error_toast (no native alert)": "PASS",
+    "split_view_shows_Insert_button_and_renders_AccordionGroup/Columns_as_components": "PASS"
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Editor.jsx is ~1320 lines; per code review guideline (>700 lines), consider splitting the header/toolbar, sidebar nav, and link-modal into separate components for maintainability.",
+    "handleSave useMemo/useCallback dependency list omits 'title', 'content', 'icon' being referenced via closures - deps list includes them via variables but double-check to avoid stale closures (currently works because they are listed). Non-blocking.",
+    "The 'Add Image' toolbar button lacks parity with the Insert menu's image action - both should ideally route through the same handler; minor UX consistency note."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (not tested per request)", "frontend": "100% (9/9 scenarios)"},
+  "seed_data_creation": "None. Used existing project/doc IDs provided in the request.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Auth is bypassed via DISABLE_AUTH=true - navigate directly to /admin/editor/{projectId}/{docId}. Editor takes ~2-3s to load past the spinner. Sonner toasts appear bottom-right with attribute data-sonner-toast; the Insert popover MDX inserts write into the textarea via React state so read value via el.value. Note: the test flow ends with title set back to 'Test Doc' and multiple Accordion/Columns blocks inserted then saved - the test document has been modified in the DB.",
+  "rca of the issue": "N/A - no issues found."
+}

@@ -10,9 +10,11 @@ import {
   History, Pencil
 } from "lucide-react";
 import { DocContent } from "@/components/docs/DocContent";
-import { SlashCommandMenu, useSlashCommands } from "@/components/docs/SlashCommands";
+import { SlashCommandMenu, useSlashCommands, COMMANDS } from "@/components/docs/SlashCommands";
 import { IconButton, Icon, getIcon } from "@/components/docs/IconPicker";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -174,6 +176,8 @@ const Editor = () => {
   const [colorPickerCursor, setColorPickerCursor] = useState(null);
   const colorInputRef = useRef(null);
   const [assistantOpen, setAssistantOpen] = useState(false);
+  const [insertMenuOpen, setInsertMenuOpen] = useState(false);
+  const [savedSnapshot, setSavedSnapshot] = useState(isNew ? { title: '', content: '', icon: null } : null);
   
   // Project & docs state
   const [project, setProject] = useState(null);
@@ -237,6 +241,36 @@ const Editor = () => {
 
   const slashCommands = useSlashCommands(textareaRef, handleInsert, handleSlashAction);
 
+  // Insert text at the current cursor position in the markdown textarea
+  const insertAtCursor = useCallback((text) => {
+    const ta = textareaRef.current;
+    if (!ta) {
+      setContent((prev) => prev + text);
+      return;
+    }
+    const start = ta.selectionStart ?? content.length;
+    const end = ta.selectionEnd ?? start;
+    const newContent = content.slice(0, start) + text + content.slice(end);
+    setContent(newContent);
+    setTimeout(() => {
+      if (textareaRef.current) {
+        const pos = start + text.length;
+        textareaRef.current.focus();
+        textareaRef.current.setSelectionRange(pos, pos);
+      }
+    }, 0);
+  }, [content]);
+
+  // Handle a component picked from the visible "Insert" toolbar menu
+  const handleInsertComponent = useCallback((item) => {
+    setInsertMenuOpen(false);
+    if (item.action) {
+      handleSlashAction(item.action);
+      return;
+    }
+    if (item.insert) insertAtCursor(item.insert);
+  }, [handleSlashAction, insertAtCursor]);
+
   // Fetch data
   const fetchProjectData = useCallback(async () => {
     try {
@@ -260,6 +294,7 @@ const Editor = () => {
       setContent(response.data.content);
       setIcon(response.data.icon);
       setSlug(response.data.slug); // Store original slug to preserve nav links
+      setSavedSnapshot({ title: response.data.title, content: response.data.content, icon: response.data.icon });
       setLastSaved(new Date());
     } catch (error) {
       console.error("Failed to fetch:", error);
@@ -281,7 +316,7 @@ const Editor = () => {
 
   const handleSave = useCallback(async () => {
     if (!title.trim()) {
-      alert("Title is required");
+      toast.error("Title is required");
       return;
     }
 
@@ -292,7 +327,9 @@ const Editor = () => {
           title, slug: generateSlug(title), content, icon
         });
         setSlug(response.data.slug); // Store the new slug
+        setSavedSnapshot({ title, content, icon });
         setLastSaved(new Date());
+        toast.success("Page published");
         // Refresh docs list
         fetchProjectData();
         // Navigate to edit this doc
@@ -303,14 +340,36 @@ const Editor = () => {
         await axios.put(`${API}/projects/${projectId}/documents/${docId}`, {
           title, slug: slug, content, icon  // Use existing slug, not regenerated
         });
+        setSavedSnapshot({ title, content, icon });
         setLastSaved(new Date());
+        toast.success("Changes saved");
       }
     } catch (error) {
-      alert(error.response?.data?.detail || "Failed to save");
+      toast.error(error.response?.data?.detail || "Failed to save");
     } finally {
       setSaving(false);
     }
   }, [title, content, icon, slug, isNew, projectId, docId, fetchProjectData, navigate]);
+
+  // Track unsaved changes
+  const isDirty = useMemo(() => {
+    if (!savedSnapshot) return false;
+    return savedSnapshot.title !== title ||
+      savedSnapshot.content !== content ||
+      (savedSnapshot.icon || null) !== (icon || null);
+  }, [savedSnapshot, title, content, icon]);
+
+  // Warn before leaving the tab with unsaved changes
+  useEffect(() => {
+    const handler = (e) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [isDirty]);
 
   // Auto-save on Cmd+S
   useEffect(() => {
@@ -344,7 +403,7 @@ const Editor = () => {
         navigate(`/admin/editor/${projectId}`);
       }
     } catch (error) {
-      alert(error.response?.data?.detail || "Failed to delete document");
+      toast.error(error.response?.data?.detail || "Failed to delete document");
     } finally {
       setDeletingDocId(null);
     }
@@ -456,7 +515,7 @@ const Editor = () => {
       
     } catch (error) {
       console.error('Failed to link document:', error);
-      alert('Failed to link document');
+      toast.error('Failed to link document');
     } finally {
       setLinking(false);
     }
@@ -511,7 +570,7 @@ const Editor = () => {
       }
     } catch (err) {
       console.error('Failed to save document metadata:', err);
-      alert('Failed to save metadata');
+      toast.error('Failed to save metadata');
     }
   }, [projectId, navConfig, documents, docId, handleSaveNavConfig]);
 
@@ -523,7 +582,7 @@ const Editor = () => {
       if (id === docId) navigate(`/admin/docs/${projectId}`);
     } catch (err) {
       console.error('Failed to delete document:', err);
-      alert('Failed to delete document');
+      toast.error('Failed to delete document');
     }
   }, [projectId, docId, navigate]);
 
@@ -556,7 +615,7 @@ const Editor = () => {
       if (doc?.id) navigate(`/admin/editor/${projectId}/${doc.id}`);
     } catch (err) {
       console.error('Failed to create page:', err);
-      alert(err?.response?.data?.detail || 'Failed to create new page');
+      toast.error(err?.response?.data?.detail || 'Failed to create new page');
     }
   }, [projectId, navConfig, handleSaveNavConfig, navigate]);
 
@@ -807,12 +866,17 @@ const Editor = () => {
             
             {/* Save Status */}
             {saving ? (
-              <div className="flex items-center gap-2 text-zinc-500 text-sm">
+              <div className="flex items-center gap-2 text-zinc-500 text-sm" data-testid="save-status-saving">
                 <Loader2 className="w-4 h-4 animate-spin" />
                 <span>Saving...</span>
               </div>
+            ) : isDirty ? (
+              <div className="flex items-center gap-2 text-amber-500 text-sm" data-testid="save-status-unsaved">
+                <span className="w-2 h-2 rounded-full bg-amber-500" />
+                <span>Unsaved changes</span>
+              </div>
             ) : lastSaved ? (
-              <div className="flex items-center gap-2 text-brand text-sm">
+              <div className="flex items-center gap-2 text-brand text-sm" data-testid="save-status-saved">
                 <Check className="w-4 h-4" />
                 <span>Saved</span>
               </div>
@@ -873,6 +937,53 @@ const Editor = () => {
               <WritingAssistantTrigger onOpen={() => setAssistantOpen(true)} />
             )}
 
+            {/* Insert Component menu - visible alternative to the "/" shortcut */}
+            {(viewMode === 'markdown' || viewMode === 'split') && (
+              <Popover open={insertMenuOpen} onOpenChange={setInsertMenuOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    className="flex items-center gap-2 px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white text-sm rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                    data-testid="insert-component-btn"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Insert</span>
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent align="end" className="w-80 p-0" data-testid="insert-component-menu">
+                  <ScrollArea className="max-h-96">
+                    <div className="p-2">
+                      {COMMANDS.map((category) => (
+                        <div key={category.category}>
+                          <div className="px-2 py-1.5 text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+                            {category.category}
+                          </div>
+                          {category.items.map((item) => {
+                            const ItemIcon = item.icon;
+                            return (
+                              <button
+                                key={item.id}
+                                onClick={() => handleInsertComponent(item)}
+                                className="w-full flex items-center gap-3 px-2 py-2 rounded-md text-left text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                                data-testid={`insert-item-${item.id}`}
+                              >
+                                <div className="w-8 h-8 rounded-md flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 flex-shrink-0">
+                                  <ItemIcon className="w-4 h-4" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-sm font-medium">{item.label}</div>
+                                  <div className="text-xs text-zinc-500 truncate">{item.description}</div>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </PopoverContent>
+              </Popover>
+            )}
+
             {/* Image Picker Button - Only shown in Markdown view */}
             {(viewMode === 'markdown' || viewMode === 'split') && (
               <button
@@ -893,7 +1004,7 @@ const Editor = () => {
               onClick={async () => {
                 const url = `${window.location.origin}/p/${project?.slug}`;
                 await navigator.clipboard.writeText(url);
-                alert('Link copied!');
+                toast.success('Link copied to clipboard');
               }}
               className="flex items-center gap-2 px-3 py-1.5 text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white text-sm rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
             >

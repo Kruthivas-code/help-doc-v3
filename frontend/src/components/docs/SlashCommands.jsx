@@ -3,14 +3,14 @@ import {
   ListOrdered, AlertCircle, Code, LayoutGrid, MessageSquare,
   ChevronRight, Table, Image, Minus, Quote, List, Hash,
   Info, Lightbulb, AlertTriangle, XCircle, CheckCircle, Play, Film,
-  Palette
+  Palette, Columns as ColumnsIcon
 } from 'lucide-react';
 
 /**
  * Slash Command Menu - Appears when user types "/"
  */
 
-const COMMANDS = [
+export const COMMANDS = [
   {
     category: 'Basic',
     items: [
@@ -188,7 +188,14 @@ const COMMANDS = [
         label: 'Accordion/FAQ', 
         icon: MessageSquare,
         description: 'Collapsible sections',
-        insert: '<details>\n<summary>Click to expand</summary>\n\nHidden content goes here.\n\n</details>'
+        insert: '<AccordionGroup>\n  <Accordion title="First question">\n    Answer to the first question.\n  </Accordion>\n  <Accordion title="Second question">\n    Answer to the second question.\n  </Accordion>\n</AccordionGroup>'
+      },
+      { 
+        id: 'columns', 
+        label: 'Columns', 
+        icon: ColumnsIcon,
+        description: 'Side-by-side card columns',
+        insert: '<Columns cols={2}>\n  <Card title="Column One" icon="rocket">\n    Content for the first column.\n  </Card>\n  <Card title="Column Two" icon="code">\n    Content for the second column.\n  </Card>\n</Columns>'
       },
     ]
   },

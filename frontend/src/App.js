@@ -4,6 +4,8 @@ import { BrowserRouter, Routes, Route, useNavigate, useLocation, Navigate } from
 import axios from "axios";
 import { HelmetProvider } from 'react-helmet-async';
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { useTheme } from "@/contexts/ThemeContext";
+import { Toaster } from "@/components/ui/sonner";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
@@ -237,6 +239,11 @@ function AuthProvider({ children }) {
   );
 }
 
+function AppToaster() {
+  const { theme } = useTheme();
+  return <Toaster theme={theme} position="bottom-right" richColors closeButton />;
+}
+
 function App() {
   return (
     <HelmetProvider>
@@ -247,6 +254,7 @@ function App() {
               <AppRouter />
             </AuthProvider>
           </BrowserRouter>
+          <AppToaster />
         </div>
       </ThemeProvider>
     </HelmetProvider>
