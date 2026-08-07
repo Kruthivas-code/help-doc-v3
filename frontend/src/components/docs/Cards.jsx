@@ -105,11 +105,11 @@ export const Card = ({
       
       {/* Description - render as div to allow nested elements */}
       <div className="
-        text-sm leading-relaxed text-zinc-600 dark:text-zinc-400 max-w-none
-        [&_p]:!text-zinc-600 dark:[&_p]:!text-zinc-400 [&_p]:!m-0 [&_p+p]:!mt-2
+        text-sm leading-relaxed text-zinc-600 dark:text-zinc-300 max-w-none
+        [&_p]:!text-zinc-600 dark:[&_p]:!text-zinc-300 [&_p]:!m-0 [&_p+p]:!mt-2
         [&_strong]:!font-semibold [&_strong]:!text-zinc-900 dark:[&_strong]:!text-zinc-100
         [&_a]:text-brand [&_a]:underline [&_a]:underline-offset-2
-        [&_ul]:!my-2 [&_ol]:!my-2 [&_li]:!text-zinc-600 dark:[&_li]:!text-zinc-400
+        [&_ul]:!my-2 [&_ol]:!my-2 [&_li]:!text-zinc-600 dark:[&_li]:!text-zinc-300
         [&_code:not(pre_*)]:!font-mono [&_code:not(pre_*)]:!text-[0.85em]
         [&_code:not(pre_*)]:!bg-zinc-100 dark:[&_code:not(pre_*)]:!bg-zinc-800
         [&_code:not(pre_*)]:!text-zinc-900 dark:[&_code:not(pre_*)]:!text-zinc-100
