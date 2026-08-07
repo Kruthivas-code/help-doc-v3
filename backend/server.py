@@ -235,6 +235,14 @@ class RestoreVersionRequest(BaseModel):
 
 async def get_current_user(request: Request) -> User:
     """Get current user from session token in cookies or Authorization header"""
+    # DEV: Google OAuth temporarily disabled. When DISABLE_AUTH is set, return the
+    # default project's owner so the admin console is reachable without login.
+    # Flip DISABLE_AUTH off (and restart backend) to re-enable Google OAuth.
+    if os.environ.get("DISABLE_AUTH", "").lower() == "true":
+        proj = await db.projects.find_one({}, {"_id": 0, "user_id": 1})
+        uid = (proj or {}).get("user_id", "dev-admin")
+        return User(user_id=uid, email="dev@local", name="Dev Admin")
+
     session_token = request.cookies.get("session_token")
     
     if not session_token:
