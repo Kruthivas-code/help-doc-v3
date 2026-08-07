@@ -53,6 +53,7 @@ Source: user-provided "User Education Gaps Tracker.csv" (219 rows) → complete 
 - **Removed** the "Template — fullstack vs base python (advanced)" page entirely (nav + document). Docs now 103 pages.
 - **Removed the internal "Development" deployment type** (ephemeral chat-iteration deploys the agent auto-commits to) from `/deployment-types` - page now documents only Preview + Production (card group cols 3->2, comparison-table column dropped, env-vars wording updated). Kept all other legitimate "ephemeral" mentions (ephemeral filesystem for uploads, ephemeral workspaces backup advice) as they are user-facing.
 - **Removed all em dashes** from every document (content, title, description) + config site fields - 575 occurrences across 92 pages replaced with spaced hyphens, double spaces collapsed, 0 remaining. Verified rendering is clean.
+- **Fixed low-contrast accordion/dropdown text**: `Accordion.jsx` content forced `!text-zinc-400` (light) / `!text-zinc-600` (dark) - both illegible. Changed to `text-zinc-700` (light) / `text-zinc-300` (dark) for p/ul/ol/li, strong to zinc-900/zinc-100. Verified on FAQ page in both themes.
 
 ## Design System (Feb 2026 — Full UX Overhaul)
 - **Typography**: Geist (headings, font-heading), Inter (body, font-sans), JetBrains Mono (code)

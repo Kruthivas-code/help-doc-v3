@@ -66,7 +66,7 @@ export const AccordionItem = ({
         }`}
       >
         <div 
-          className="px-4 pb-4 prose prose-sm dark:prose-invert max-w-none [&_p]:!text-zinc-400 dark:text-zinc-600 dark:[&_p]:!text-zinc-600 dark:text-zinc-400 [&_code]:!text-emerald-600 dark:[&_code]:!text-brand [&_strong]:!text-slate-800 dark:[&_strong]:!text-zinc-200 [&_a]:!text-indigo-600 dark:[&_a]:!text-brand [&_ul]:!text-zinc-400 dark:text-zinc-600 dark:[&_ul]:!text-zinc-600 dark:text-zinc-400 [&_ol]:!text-zinc-400 dark:text-zinc-600 dark:[&_ol]:!text-zinc-600 dark:text-zinc-400 [&_li]:!text-zinc-400 dark:text-zinc-600 dark:[&_li]:!text-zinc-600 dark:text-zinc-400"
+          className="px-4 pb-4 prose prose-sm dark:prose-invert max-w-none [&_p]:!text-zinc-700 dark:[&_p]:!text-zinc-300 [&_code]:!text-emerald-600 dark:[&_code]:!text-brand [&_strong]:!text-zinc-900 dark:[&_strong]:!text-zinc-100 [&_a]:!text-indigo-600 dark:[&_a]:!text-brand [&_ul]:!text-zinc-700 dark:[&_ul]:!text-zinc-300 [&_ol]:!text-zinc-700 dark:[&_ol]:!text-zinc-300 [&_li]:!text-zinc-700 dark:[&_li]:!text-zinc-300"
           data-testid="accordion-content"
         >
           {children}
