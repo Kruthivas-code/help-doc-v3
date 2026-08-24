@@ -7,7 +7,7 @@ import {
   Loader2, FileText, FolderOpen, Plus, Settings, Image as ImageIcon, 
   Check, Monitor, Sun, Moon, MoreHorizontal,
   Share2, Upload, Trash2, GripVertical, X, Edit3, Smartphone, Tablet,
-  History, Pencil
+  History, Pencil, Download
 } from "lucide-react";
 import { DocContent } from "@/components/docs/DocContent";
 import { SlashCommandMenu, useSlashCommands, COMMANDS } from "@/components/docs/SlashCommands";
@@ -177,6 +177,7 @@ const Editor = () => {
   const colorInputRef = useRef(null);
   const [assistantOpen, setAssistantOpen] = useState(false);
   const [insertMenuOpen, setInsertMenuOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [savedSnapshot, setSavedSnapshot] = useState(isNew ? { title: '', content: '', icon: null } : null);
   
   // Project & docs state
@@ -619,6 +620,30 @@ const Editor = () => {
     }
   }, [projectId, navConfig, handleSaveNavConfig, navigate]);
 
+  // Export the whole project (config + all documents) as a single JSON file
+  const handleExport = useCallback(async () => {
+    setExporting(true);
+    try {
+      const res = await axios.get(`${API}/projects/${projectId}/export`, { responseType: 'blob' });
+      const disposition = res.headers['content-disposition'] || '';
+      const match = disposition.match(/filename="?([^"]+)"?/);
+      const filename = match ? match[1] : `${project?.slug || 'project'}-export.json`;
+      const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/json' }));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success('Export downloaded');
+    } catch (e) {
+      toast.error('Failed to export');
+    } finally {
+      setExporting(false);
+    }
+  }, [projectId, project]);
+
   const IconComponent = icon ? getIcon(icon) : null;
 
   if (loading) {
@@ -1010,6 +1035,22 @@ const Editor = () => {
             >
               <Share2 className="w-4 h-4" />
               <span>Copy Link</span>
+            </button>
+
+            {/* Export all documents as JSON */}
+            <button
+              onClick={handleExport}
+              disabled={exporting}
+              className="flex items-center gap-2 px-3 py-1.5 text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white text-sm rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors disabled:opacity-50"
+              data-testid="export-all-btn"
+              title="Download all pages as a single JSON file"
+            >
+              {exporting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+              <span>Export all</span>
             </button>
 
             {/* Save/Publish Button */}

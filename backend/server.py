@@ -8,6 +8,7 @@ from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional
 import uuid
+import json
 from datetime import datetime, timezone, timedelta
 import httpx
 from storage_service import (
@@ -557,6 +558,44 @@ async def get_documents(project_id: str, user: User = Depends(get_current_user))
             doc["updated_at"] = datetime.fromisoformat(doc["updated_at"])
     
     return documents
+
+@api_router.get("/projects/{project_id}/export")
+async def export_project(project_id: str, user: User = Depends(get_current_user)):
+    """Export a whole project (config + all documents) as a single downloadable JSON file."""
+    project = await get_project_with_admin_check(project_id, user)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    documents = await db.documents.find(
+        {"project_id": project_id},
+        {"_id": 0}
+    ).sort("order", 1).to_list(1000)
+
+    config = await db.project_configs.find_one({"project_id": project_id}, {"_id": 0})
+
+    payload = {
+        "export_version": 1,
+        "exported_at": datetime.now(timezone.utc).isoformat(),
+        "project": {
+            "id": project.get("id"),
+            "name": project.get("name"),
+            "slug": project.get("slug"),
+            "description": project.get("description"),
+        },
+        "config": config,
+        "documents": documents,
+    }
+
+    slug = project.get("slug") or "project"
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%d")
+    filename = f"{slug}-export-{stamp}.json"
+
+    body = json.dumps(payload, indent=2, default=str)
+    return Response(
+        content=body,
+        media_type="application/json",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 @api_router.post("/projects/{project_id}/documents", response_model=Document)
 async def create_document(

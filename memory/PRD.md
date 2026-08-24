@@ -24,6 +24,12 @@ Goal (user): "check how easy it is to make a page look nice with all the compone
 - Verified: testing_agent frontend pass 9/9 scenarios (iteration_12.json), zero bugs. Restored the "What is Emergent?" doc that the test run had modified.
 - **Auth still BYPASSED** (`DISABLE_AUTH=true`) per user request (f) — re-enable Google OAuth later before the milestone ships.
 
+## Project Export to JSON (June 2026)
+Articles are stored in MongoDB (`documents` collection), not as files. Added a full-project export:
+- **Backend** (`server.py`): `GET /api/projects/{project_id}/export` returns a single downloadable JSON (`Content-Disposition: attachment`, filename `{slug}-export-{YYYYMMDD}.json`) containing `export_version`, `exported_at`, `project`, `config` (incl. navigation), and all `documents` (with raw MDX `content`). Verified: 103 docs + nav config.
+- **Frontend** (`Editor.jsx`): "Export all" header button (`data-testid="export-all-btn"`) downloads the JSON via axios blob (carries auth header), with sonner success/error toasts.
+- One-time link (auth bypassed): `/api/projects/{projectId}/export`.
+
 
 ## Public Docs Redesign — Replit-style (June 2026)
 Goal: match https://docs.replit.com/help/overview look & feel while keeping the blue brand (#1588FC), light-default theme, both modes polished.
