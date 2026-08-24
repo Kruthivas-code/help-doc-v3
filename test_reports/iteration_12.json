@@ -1,5 +1,5 @@
 {
-  "summary": "Frontend-only testing of editor authoring changes (Insert button, slash-inserted Columns/Accordion MDX, sonner toasts, unsaved-changes badge). All 9 scenarios from the review request passed on https://cms-admin-3.preview.emergentagent.com/admin/editor/d901b4ab-a271-4aff-b63a-bf92d73b9bb0/c83eef51-7f8c-40e6-b9d3-823edbfbb798.",
+  "summary": "Frontend-only testing of editor authoring changes (Insert button, slash-inserted Columns/Accordion MDX, sonner toasts, unsaved-changes badge). All 9 scenarios from the review request passed on https://docs-platform-6.preview.emergentagent.com/admin/editor/d901b4ab-a271-4aff-b63a-bf92d73b9bb0/c83eef51-7f8c-40e6-b9d3-823edbfbb798.",
   "backend_issues": {"critical": [], "minor": []},
   "frontend_issues": {
     "ui_bugs": [],
