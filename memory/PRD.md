@@ -24,6 +24,16 @@ Goal (user): "check how easy it is to make a page look nice with all the compone
 - Verified: testing_agent frontend pass 9/9 scenarios (iteration_12.json), zero bugs. Restored the "What is Emergent?" doc that the test run had modified.
 - **Auth still BYPASSED** (`DISABLE_AUTH=true`) per user request (f) — re-enable Google OAuth later before the milestone ships.
 
+## "Learn the Basics" tab — Rail 1 / Get Started (June 2026) — AWAITING USER REVIEW
+Beginner outcome-oriented learning path (Replit Learn / Lovable style), added as the FIRST tab. Additive: the existing 103 reference docs were NOT touched.
+- **Source of truth = existing reviewed docs (grounded generation, NOT thin-air).** New pipeline `scripts_edu/learn_generate.py` pulls the real content of relevant existing docs from Mongo and feeds it to Claude Sonnet 4.5 (Universal Key) as the ONLY factual source; anything the source doesn't cover is emitted as a `<Callout type="warning" title="Draft - needs review">` placeholder. `learn_fix.py` corrected unverified claims; `learn_apply.py` inserts docs + prepends the tab (idempotent).
+- **7 Get Started articles** (slug/icon): start-with-your-idea(lightbulb), talk-it-through(message), watch-your-app-come-alive(eye), make-it-yours(palette), try-it-before-you-share-it(check-circle), put-your-app-live(rocket), share-it-with-the-world(send). Tab id `learn-the-basics`, one group "Get Started", tab icon `compass`.
+- **QA / grounding audit done.** Verified grounded: 50 credits/month deploy cost, ~15 min first deploy, Redeploy/Replace, emergent.app URL, 24/7, Expo Go, Universal Key, "explain the plan first", Maxx 2-4x credits. FIXED fabrications: removed "Node" (absent from all sources); softened the "planning/discussing is FREE" premise in talk-it-through + watch-your-app-come-alive (NOT stated in any existing doc — flagged with a Draft callout for product confirmation).
+- **Known placeholders (need product input):** talk-it-through "is it free" premise; make-it-yours copy-paste prompt library + ✨enhance; share-it-with-the-world visit analytics + feedback flow; all screenshots + the 6 videos ("Video/Screenshot coming soon" callouts).
+- **How the ORIGINAL 103 were made (for the record):** offline `scripts_edu/` pipeline (build_tree.py→generate.py→apply.py) from `gaps.csv` briefs via Claude — NOT the /admin CMS generator, NOT a Claude Project/KB. apply.py WIPED old docs. Prose came from Claude's own knowledge steered by short CSV briefs (no external corpus) — hence the new grounded approach.
+- **Pending:** Rail 2 "Grow Your App" (9 articles) + 2 reference pages (How credits work, Get your first users) — build after user approves Rail 1 tone/quality.
+
+
 ## Project Export to JSON (June 2026)
 Articles are stored in MongoDB (`documents` collection), not as files. Added a full-project export:
 - **Backend** (`server.py`): `GET /api/projects/{project_id}/export` returns a single downloadable JSON (`Content-Disposition: attachment`, filename `{slug}-export-{YYYYMMDD}.json`) containing `export_version`, `exported_at`, `project`, `config` (incl. navigation), and all `documents` (with raw MDX `content`). Verified: 103 docs + nav config.
