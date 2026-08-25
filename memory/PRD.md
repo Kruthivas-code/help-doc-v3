@@ -10,6 +10,19 @@ Build a Mintlify-class documentation platform for **Emergent's Documentation** w
 - Google OAuth authentication
 - AI-powered documentation generation
 - WYSIWYG editor with bi-directional HTML/Markdown sync
+
+## Completed work — June 2026 (Learn the Basics — Rail 2 finished)
+- **Unblocked LLM budget**: The forked job was inheriting a cross-org ancestor's Universal LLM Key (budget capped at 726.0). Swapped `EMERGENT_LLM_KEY` in `/app/backend/.env` to the user's "Green Leaf" project key; verified a live Claude Sonnet call succeeds.
+- **Generated remaining 6 Rail 2 articles** via `scripts_edu/learn_generate2.py` (resumable): `write-prompts-that-work`, `when-something-breaks`, `checkpoints-undo-anything`, `add-login-user-accounts`, `keep-it-safe`, `connect-your-tools`.
+- **QA / anti-hallucination pass** (`scripts_edu/learn_fix2.py` + `learn_regen_keepsafe.py`), grounded against real source docs:
+  - `connect-your-tools`: removed fabricated "300+ integrations via OAuth" / "hundreds of tools" (source = "a curated set").
+  - `add-login-user-accounts`: removed invented session durations ("weeks", "90 days") — source states no duration.
+  - `keep-it-safe`: fully regenerated — first pass drifted into mobile/Expo-Go testing; now correctly focused on data safety (Env panel secrets, what the AI sees, login for private data, pre-launch checklist), grounded in data-privacy/data-leakage/account-security docs. Also fixed a broken `/using-logs-debugging` link.
+  - `checkpoints-undo-anything` & `write-prompts-that-work`: verified fully grounded, no changes.
+- **Applied to MongoDB** via `scripts_edu/learn_apply2.py` (additive + idempotent). "Learn the Basics" tab now has 3 groups: **Get Started (7)**, **Grow Your App (9)**, **Reference (2)** = 18 articles. Total docs: 121.
+- **Verified rendering** with headless Puppeteer (dev SPA needs ~9s to hydrate; the standard screenshot tool's 10s networkidle timeout shows a false spinner — not a real bug). All groups, breadcrumbs, TOC, callouts and placeholders render correctly.
+- NOTE: The remaining unverified/placeholder content is intentionally marked with `<Callout type="warning" title="Draft - needs review">` and "Screenshot/Video coming soon" info callouts.
+
 - Configurable navigation structure (Mintlify-style)
 - Device preview toggle (desktop/tablet/mobile)
 - GitHub OAuth integration for import/export
