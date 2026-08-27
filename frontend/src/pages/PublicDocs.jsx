@@ -746,10 +746,25 @@ const PublicDocs = () => {
         return null;
     }, [selectedDoc, tabs]);
 
-    // Prev/next
-    const currentIndex = documents.findIndex(d => d.id === selectedDoc?.id);
-    const prevDoc = currentIndex > 0 ? documents[currentIndex - 1] : null;
-    const nextDoc = currentIndex >= 0 && currentIndex < documents.length - 1 ? documents[currentIndex + 1] : null;
+    // Prev/next — scoped to the tab that contains the current doc. No previous on a
+    // tab's first page, no next on its last page (navigation never crosses tabs).
+    const { prevDoc, nextDoc } = useMemo(() => {
+        if (!selectedDoc) return { prevDoc: null, nextDoc: null };
+        const slugOf = (p) => (typeof p === 'string' ? p : p.page);
+        let tabSlugs = null;
+        for (const t of tabs) {
+            const slugs = [];
+            for (const g of (t.groups || [])) for (const p of (g.pages || [])) slugs.push(slugOf(p));
+            if (slugs.some(s => s?.toLowerCase() === selectedDoc.slug?.toLowerCase())) { tabSlugs = slugs; break; }
+        }
+        if (!tabSlugs) return { prevDoc: null, nextDoc: null };
+        const idx = tabSlugs.findIndex(s => s?.toLowerCase() === selectedDoc.slug?.toLowerCase());
+        const docBySlug = (s) => documents.find(d => d.slug?.toLowerCase() === s?.toLowerCase()) || null;
+        return {
+            prevDoc: idx > 0 ? docBySlug(tabSlugs[idx - 1]) : null,
+            nextDoc: idx >= 0 && idx < tabSlugs.length - 1 ? docBySlug(tabSlugs[idx + 1]) : null,
+        };
+    }, [selectedDoc, tabs, documents]);
 
     if (loading) {
         return (

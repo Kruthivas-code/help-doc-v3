@@ -1,98 +1,79 @@
-# Fact-check of the two review documents + proposed fixes
+# Restructure the Rest of the Docs — Credit Estimate & Plan
 
-## 1. Are the documents true? Short answer: mostly yes, with two important corrections.
+## The question you asked first
+How many credits would it take to rework the remaining existing docs into the new
+"Learn the Basics" beginner style, based on what this last batch used — so the budget
+isn't exhausted again.
 
-The reviewer clearly measured the real production site and the findings are largely
-accurate. But some of the *diagnoses* are framed in a way that would send us fixing the
-wrong thing. Here is the item-by-item verdict against what the code actually does today.
+---
 
-### Claims that are TRUE
-- **Production doc pages serve an empty shell** ("You need to enable JavaScript…") with no
-  article text in the raw HTML. Correct — the site is a client-rendered SPA, so a crawler
-  that doesn't run JavaScript sees nothing.
-- **AI crawlers (GPTBot, ClaudeBot, PerplexityBot) can't see the content.** Correct, and it
-  follows directly from the point above. This is the single most valuable thing to fix.
-- **`og:image` / `twitter:image` is a relative path.** Correct. The code emits whatever is
-  stored as the logo/favicon, and that value is a relative `/api/public/files/…` path. It
-  is never converted to an absolute URL, so link previews break on Slack/Twitter/LinkedIn.
-- **No per-page `.md` endpoint.** Correct — it does not exist. AI tools that prefer markdown
-  get nothing.
-- **`/llms.txt` returns the HTML shell in production.** Effectively correct. A proper
-  `llms.txt` generator *does* exist on the backend, but the public `/llms.txt` address is
-  being routed to the SPA instead of to that generator, so visitors get HTML.
-- **Unknown URLs return HTTP 200 instead of 404 (soft 404).** Correct — an SPA answers every
-  path with the same shell.
-- **`robots.txt` and `sitemap.xml` exist and are basically right.** Correct — and slightly
-  better than the reviewer credited: robots.txt already names and welcomes the AI crawlers.
-- **Speed / TTFB / no edge caching / Cloudflare passthrough.** Cannot be verified from the
-  code (it's a hosting/CDN setting), but the description is consistent and plausible.
+## What this last session actually used
+- It produced **7 article passes**: 6 new Rail 2 articles + 1 full regeneration of "Keep it safe".
+- Combined output was ~28,600 characters. Estimated token usage across all 7 calls:
+  roughly **~24K input tokens + ~7K output tokens** (plus a few trivial test pings, negligible).
+- At current Claude Sonnet pricing (~$3 per million input tokens, ~$15 per million output),
+  that is roughly **$0.15–$0.25 of raw model usage for the whole session** — about
+  **$0.02–$0.04 per article**.
 
-### Claims that need CORRECTION (the reviewer got the symptom right but the cause wrong)
-- **"Canonical is hardcoded to the homepage on every page."** This is the one to be careful
-  about. The application code sets a correct, per-page canonical (each page points to its own
-  URL). It is **not** hardcoded to the homepage anywhere. What the reviewer saw in raw HTML is
-  a *side effect*: in production, every route is being served the homepage's snapshot, so it
-  inherits the homepage's title and canonical. So the fix is **not** a one-line canonical edit
-  (that code is already correct) — it's making each route actually serve its own snapshot.
-- **"The prerender step isn't running."** A build-time prerender step exists and is wired into
-  the production build. The real question is whether its per-page output is actually *served*
-  in production, or whether the hosting is rewriting every route back to the homepage file.
-  That distinction changes where the fix has to happen (see the crux below).
+## Estimate for the full restructure
+- The "rest of the docs" is approximately **~103 pages** across 6 tabs
+  (Build, Mobile Apps, Integrations, Troubleshooting, Data/Trust/Support, Wingman).
+- Restructuring each page feeds its **current content back in as the source** (so no facts are
+  invented) plus the style instructions, which makes the input a little larger than a
+  from-scratch article. Estimate **~5K input + ~2K output tokens per page ≈ $0.045/page**.
+- **Full run ≈ $5–$10 of raw model usage** (~$0.05–$0.10 per page × ~103 pages).
 
-### Net verdict
-The documents are trustworthy as a description of what's wrong on the live site. The
-"stay in-house, the fixes are bounded" conclusion is reasonable. The only load-bearing
-correction: the headline "canonical bug" is really a "prerendered pages aren't being served
-per-route in production" problem, and that has a partly-infrastructure cause.
+## Why the "726" number was so alarming — and why this is much smaller
+- 726 was the **cumulative lifetime spend** on the *inherited* key across everything it ever
+  did: the original 107-doc bulk generation, the in-app AI writing assistant, and repeated
+  testing — not the cost of the recent articles.
+- Pure article/doc generation is a small slice of that. The $5–$10 estimate above is a small
+  fraction of 726, so a full restructure should not, on its own, come close to exhausting a
+  topped-up budget.
 
-## 2. Rationale behind the original design decisions (what you asked about)
-- **SPA + build-time snapshot instead of true server-side rendering.** The site was built as
-  a standard single-page app and SEO was bolted on by snapshotting each page with a headless
-  browser after the build. Rationale: keep the architecture simple and the hosting cheap,
-  avoid moving to a server-rendered framework. Trade-off: it only works if the host serves the
-  per-page snapshot files — which is exactly the fragile point that broke in production.
-- **Per-page SEO owned entirely in the app (titles, canonical, structured data).** Deliberate,
-  and correctly implemented — canonical, Open Graph, Twitter, and JSON-LD are all generated
-  per page. The gap is purely that this only becomes visible once JavaScript runs.
-- **A small script in the page shell that hand-serves `robots.txt`/`sitemap.xml`.** A workaround
-  so those two files don't return the SPA shell. It was never extended to `llms.txt`, which is
-  why that one leaks HTML.
-- **`og:image` taken straight from the configured logo.** A convenience default. Reasonable as
-  a starting point, but it inherited the relative-path bug because it was never made absolute.
-- **No `.md` endpoints / no MCP server.** Not a decision — simply not built yet.
+## Honest caveat on precision
+- The exact credit delta on the Green Leaf key this session was **not captured as a number**
+  (only that calls succeed). The figures above are **token-based estimates** using public
+  Claude pricing. The Universal Key may bill with a markup, so the real credit draw could be
+  **somewhat higher** than the raw-dollar figures.
 
-## 3. What I propose to do (for your approval)
+## Recommended safeguard: a measured pilot
+Before committing to all ~103 pages:
+1. Note the current key balance.
+2. Restructure a **pilot batch of 5 pages**.
+3. Read the exact balance change from the Universal Key dashboard.
+4. Multiply by ~20 for the full set.
 
-### Group A — code fixes I can make and prove in the preview now
-1. Make `og:image` / `twitter:image` / structured-data image absolute URLs.
-2. Add a per-page `.md` endpoint that returns the raw article markdown.
-3. Make `/llms.txt` (and `/llms-full.txt`) reliably return real text, not the SPA shell.
-4. Serve a proper "not found" experience for unknown pages instead of a silent 200.
-5. Verify locally that the build snapshots each page with its own title, description,
-   canonical and article text — proving the mechanism itself is sound.
+This converts the estimate into a firm number and gives a hard budget guardrail. It costs only
+about $0.25–$0.50 (est.) to probe.
 
-### Group B — the crux, which can only be *confirmed* on the live site
-6. Whether production actually serves each page's snapshot (or rewrites every route to the
-   homepage, which is what's producing the "empty HTML + homepage canonical" symptom) is a
-   hosting/routing question. I can prepare the code and the check, but confirming and, if
-   needed, correcting the production routing/CDN caching requires a deploy and a look at the
-   live environment — it cannot be proven in the preview.
+---
 
-### Group C — optional additions the reviewer recommends (only if you want them)
-7. An MCP server for the docs (lets developers plug your docs into Claude/Cursor/ChatGPT).
-8. A "Was this page helpful?" prompt at the bottom of each page.
+## What the restructure work itself would do
+- Rewrite each existing page into the same friendly Learn-the-Basics shape (outcome intro →
+  scannable sections → callouts/steps → "Next up" link) **while preserving every existing fact
+  and all reference depth**.
+- **Same anti-hallucination rule as Learn the Basics:** only facts already present in each
+  page's current content are used; anything unverifiable becomes a clearly-marked
+  `Draft - needs review` placeholder. Nothing new is invented.
+- **Slugs, URLs, and navigation stay unchanged** — only the content/structure of each page changes.
+- **Reversible:** each original is backed up before it is overwritten, so any page can be restored.
+- Run **tab by tab**, so each batch can be reviewed before the next begins.
 
-## 4. Decisions I need from you
-- **a.** Confirm the direction: fix in-house (the reviewer's own recommendation), not move to
-  Mintlify. If you're leaning Mintlify instead, say so and I'll stop here.
-- **b.** Scope for now: do Group A only, or Group A + the Group C extras (MCP, feedback prompt)?
-- **c.** The crux (item 6) needs a production deploy to verify and possibly a hosting/CDN
-  change. Are you okay with me preparing the code now and confirming it against the live site
-  via a deploy afterwards? (This is the only way to prove the highest-impact fix actually
-  landed.)
+## Assumptions (change these if wrong)
+- Scope = all ~103 existing pages outside "Learn the Basics" (not a subset).
+- The goal is a structural/tonal rewrite that keeps full reference depth — not a light
+  reformat, and not a second "beginner-only" copy of each page.
+- Existing pages are updated in place; links and nav are left alone.
 
-## 5. Assumptions (chosen unless you object)
-- The stored logo/favicon paths are relative (matches what the reviewer observed); the
-  absolute-URL base comes from the existing site-URL configuration.
-- "Fix in-house" is the intended direction, since both documents conclude that.
-- The MCP server and feedback prompt are treated as optional and left out unless you pick them.
+## Out of scope
+- Filling the `Draft - needs review` placeholders with real screenshots / verified product details.
+- Re-enabling Google admin auth (tracked separately).
+
+---
+
+## Decision point
+- **Option A** — Approve the pilot first: restructure 5 pages, report the exact measured credit
+  cost, then decide on the full run. (Recommended.)
+- **Option B** — Approve the full ~103-page run now at the estimated **$5–$10 (raw model) /
+  possibly a bit more in credit units**.

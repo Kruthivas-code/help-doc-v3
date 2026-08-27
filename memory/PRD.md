@@ -11,6 +11,12 @@ Build a Mintlify-class documentation platform for **Emergent's Documentation** w
 - AI-powered documentation generation
 - WYSIWYG editor with bi-directional HTML/Markdown sync
 
+## Completed work — June 2026 (Doc nav polish)
+- **Footer Prev/Next scoped to tab** (`PublicDocs.jsx` ~L749-767): prev/next now computed within the tab that contains the current doc (flatten that tab's group pages in order). No Previous on a tab's first page, no Next on its last page, never crosses tabs. Fixes bug where the first Learn page showed "Previous → Custom & MCP integrations" (a different tab).
+- **Removed redundant in-content "Next up / Continue the path" CardGroup** from all 14 docs that had it (`scripts_edu/learn_strip_nextup.py`, idempotent) — the footer Next already covers this. 95 legitimate CardGroups untouched.
+- Verified by testing_agent (`/app/test_reports/iteration_13.json`): 6/6 nav scenarios pass.
+- KNOWN pre-existing (unrelated) issue surfaced by test: header logo 404 (`/api/public/files/emergent-docs/_legacy/migrated/e9c10f…png`) — leftover from Supabase→Tigris migration; needs the logo asset re-uploaded.
+
 ## Completed work — June 2026 (Learn the Basics — Rail 2 finished)
 - **Unblocked LLM budget**: The forked job was inheriting a cross-org ancestor's Universal LLM Key (budget capped at 726.0). Swapped `EMERGENT_LLM_KEY` in `/app/backend/.env` to the user's "Green Leaf" project key; verified a live Claude Sonnet call succeeds.
 - **Generated remaining 6 Rail 2 articles** via `scripts_edu/learn_generate2.py` (resumable): `write-prompts-that-work`, `when-something-breaks`, `checkpoints-undo-anything`, `add-login-user-accounts`, `keep-it-safe`, `connect-your-tools`.

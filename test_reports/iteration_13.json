@@ -1,0 +1,21 @@
+{
+  "summary": "Frontend-only verification of the two fixed bugs in PublicDocs (tab-scoped Previous/Next footer nav + removal of redundant 'Next up'/'Continue the path' in-content card). All 5 requested scenarios PASS. Additionally verified boundary behavior for the Integrations tab first page (/what-and-how): no Previous, Next = 'MCPs & connectors' (no tab crossing).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "TopHeader logo", "issue": "Header logo image returns 404 (GET /api/public/files/emergent-docs/_legacy/migrated/e9c10f14f1814460b205363c4d994dd0.png) -> broken image icon shown next to alt text 'Emergent' on every page", "selector": "header img[alt='Emergent']", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": ["Fix/re-upload the missing header logo asset or add a fallback so the broken-image icon is not rendered (404 on /api/public/files/emergent-docs/_legacy/migrated/e9c10f14f1814460b205363c4d994dd0.png)"],
+  "critical_code_review_comments": ["PublicDocs.jsx prev/next useMemo (lines 749-767) correctly scopes to the tab containing selectedDoc and nulls prev/next at boundaries; logic verified against live UI. File is ~976 lines - consider splitting into smaller modules (sidebar, header, footer nav, doc content)."],
+  "updated_files": [],
+  "success_rate": {"backend": "not tested", "frontend": "100% (6/6 nav scenarios)"},
+  "seed_data_creation": "none",
+  "should_call_test_agent_after_fix": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Verified results: /start-with-your-idea -> prev absent, next='Talk it through (free)'. /get-your-first-users -> next absent, prev='How credits work'. /checkpoints-undo-anything -> prev='Add login & user accounts', next='How credits work'. /keep-it-safe -> prev='Get found on Google', next='Write prompts that work'. /connect-your-tools -> prev='Get paid', next='Use your own web address'. No 'Continue the path'/'Next up' text found in doc-article body on any tested page. NOTE: CRA dev build - wait for [data-testid='doc-article'] then ~2.5s instead of networkidle. Also note the sidebar contains hidden mobile tab buttons, so use visible-scoped selectors when clicking sidebar entries.",
+  "rca_of_the_issue": "Both reported bugs are fixed. Only remaining defect is an unrelated 404 for the header logo asset."
+}
