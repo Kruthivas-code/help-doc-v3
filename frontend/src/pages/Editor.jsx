@@ -179,6 +179,10 @@ const Editor = () => {
   const [insertMenuOpen, setInsertMenuOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [savedSnapshot, setSavedSnapshot] = useState(isNew ? { title: '', content: '', icon: null } : null);
+  const [docStatus, setDocStatus] = useState('draft'); // draft | in_review | published
+  const [publishedSnapshot, setPublishedSnapshot] = useState(null); // {content,title} when published
+  const [publishing, setPublishing] = useState(false);
+  const isOwner = !!(user?.is_owner || user?.role === 'owner');
   
   // Project & docs state
   const [project, setProject] = useState(null);
@@ -296,10 +300,14 @@ const Editor = () => {
       setIcon(response.data.icon);
       setSlug(response.data.slug); // Store original slug to preserve nav links
       setSavedSnapshot({ title: response.data.title, content: response.data.content, icon: response.data.icon });
+      setDocStatus(response.data.status || 'draft');
+      setPublishedSnapshot(response.data.status === 'published'
+        ? { content: response.data.published_content ?? response.data.content, title: response.data.published_title ?? response.data.title }
+        : null);
       setLastSaved(new Date());
     } catch (error) {
       console.error("Failed to fetch:", error);
-      navigate(`/admin/docs/${projectId}`);
+      navigate(`/admin/editor/${projectId}`);
     } finally {
       setLoading(false);
     }
@@ -330,7 +338,7 @@ const Editor = () => {
         setSlug(response.data.slug); // Store the new slug
         setSavedSnapshot({ title, content, icon });
         setLastSaved(new Date());
-        toast.success("Page published");
+        toast.success("Draft saved");
         // Refresh docs list
         fetchProjectData();
         // Navigate to edit this doc
@@ -351,6 +359,47 @@ const Editor = () => {
       setSaving(false);
     }
   }, [title, content, icon, slug, isNew, projectId, docId, fetchProjectData, navigate]);
+
+  // ---- Review Mode: publish gate ----
+  const gotoAfterDelete = useCallback((deletedId) => {
+    const sibling = documents.find(d => d.id !== deletedId);
+    navigate(sibling ? `/admin/editor/${projectId}/${sibling.id}` : `/admin/editor/${projectId}`);
+  }, [documents, projectId, navigate]);
+
+  const hasUnpublishedChanges = useMemo(() => {
+    if (docStatus !== 'published' || !publishedSnapshot) return false;
+    return publishedSnapshot.content !== content || publishedSnapshot.title !== title;
+  }, [docStatus, publishedSnapshot, content, title]);
+
+  const handlePublish = useCallback(async () => {
+    if (isNew || !docId) { toast.error('Save the page first'); return; }
+    setPublishing(true);
+    try {
+      await axios.put(`${API}/projects/${projectId}/documents/${docId}`, { title, slug, content, icon });
+      await axios.post(`${API}/projects/${projectId}/documents/${docId}/publish`);
+      setSavedSnapshot({ title, content, icon });
+      setPublishedSnapshot({ content, title });
+      setDocStatus('published');
+      setLastSaved(new Date());
+      toast.success('Published — now live');
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Publish failed');
+    } finally { setPublishing(false); }
+  }, [isNew, docId, projectId, title, slug, content, icon]);
+
+  const handleTakedown = useCallback(async () => {
+    if (!docId) return;
+    if (!window.confirm('Take this page down for rework? It will be removed from the public site until re-published.')) return;
+    setPublishing(true);
+    try {
+      await axios.post(`${API}/projects/${projectId}/documents/${docId}/unpublish`);
+      setDocStatus('in_review');
+      setPublishedSnapshot(null);
+      toast.success('Taken down — back in review');
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Take down failed');
+    } finally { setPublishing(false); }
+  }, [docId, projectId]);
 
   // Track unsaved changes
   const isDirty = useMemo(() => {
@@ -399,10 +448,11 @@ const Editor = () => {
       // Remove from local state
       setDocuments(prev => prev.filter(d => d.id !== docIdToDelete));
       
-      // If we're deleting the current document, navigate to project root
+      // If we're deleting the current document, jump to a sibling page (stay in editor)
       if (docIdToDelete === docId) {
-        navigate(`/admin/editor/${projectId}`);
+        gotoAfterDelete(docIdToDelete);
       }
+      fetchProjectData(); // refresh nav (backend prunes the slug from config)
     } catch (error) {
       toast.error(error.response?.data?.detail || "Failed to delete document");
     } finally {
@@ -580,12 +630,13 @@ const Editor = () => {
     try {
       await axios.delete(`${API}/projects/${projectId}/documents/${id}`);
       setDocuments((prev) => prev.filter((d) => d.id !== id));
-      if (id === docId) navigate(`/admin/docs/${projectId}`);
+      if (id === docId) gotoAfterDelete(id);
+      fetchProjectData(); // refresh nav (backend prunes the slug from config)
     } catch (err) {
       console.error('Failed to delete document:', err);
       toast.error('Failed to delete document');
     }
-  }, [projectId, docId, navigate]);
+  }, [projectId, docId, gotoAfterDelete, fetchProjectData]);
 
   // Create a fresh document and link it under the given nav group
   const handleCreatePageInGroup = useCallback(async (tabPath) => {
@@ -753,6 +804,7 @@ const Editor = () => {
                       return (
                         <div
                           key={doc.id}
+                          data-testid={`unlinked-doc-${doc.id}`}
                           className={`group flex items-center gap-1 rounded-lg transition-colors ml-2 pr-1 ${
                             isActive 
                               ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-950 dark:text-white' 
@@ -783,6 +835,7 @@ const Editor = () => {
                               onClick={(e) => handleDeleteDocument(doc.id, e)}
                               className="p-1.5 text-zinc-500 hover:text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 rounded transition-all flex-shrink-0"
                               title="Delete document"
+                              data-testid={`delete-unlinked-${doc.id}`}
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -906,6 +959,28 @@ const Editor = () => {
                 <span>Saved</span>
               </div>
             ) : null}
+
+            {/* Publish status pill */}
+            <span
+              className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                docStatus === 'published'
+                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400'
+                  : docStatus === 'in_review'
+                    ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400'
+                    : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'
+              }`}
+              data-testid="doc-status-pill"
+            >
+              {docStatus === 'published' ? 'Published' : docStatus === 'in_review' ? 'In review' : 'Draft'}
+            </span>
+            {hasUnpublishedChanges && (
+              <span
+                className="text-xs px-2 py-0.5 rounded-full font-medium bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-400"
+                data-testid="unpublished-badge"
+              >
+                Unpublished changes
+              </span>
+            )}
           </div>
 
           <div className="flex items-center gap-2">
@@ -1053,20 +1128,41 @@ const Editor = () => {
               <span>Export all</span>
             </button>
 
-            {/* Save/Publish Button */}
+            {/* Save draft */}
             <button
               onClick={handleSave}
               disabled={saving}
-              className="flex items-center gap-2 px-4 py-1.5 bg-brand hover:bg-brand-600-600 disabled:opacity-50 text-zinc-950 dark:text-white text-sm font-medium rounded-md transition-colors"
-              data-testid="save-button"
+              className="flex items-center gap-2 px-3 py-1.5 border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50 text-zinc-700 dark:text-zinc-200 text-sm font-medium rounded-md transition-colors"
+              data-testid="save-draft-button"
             >
-              {saving ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Upload className="w-4 h-4" />
-              )}
-              <span>{saving ? 'Saving...' : 'Publish'}</span>
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              <span>{saving ? 'Saving...' : 'Save draft'}</span>
             </button>
+
+            {/* Publish (Owner only) */}
+            {isOwner && !isNew && (
+              <button
+                onClick={handlePublish}
+                disabled={publishing || saving}
+                className="flex items-center gap-2 px-4 py-1.5 bg-brand hover:bg-brand-600 disabled:opacity-50 text-white text-sm font-medium rounded-md transition-colors"
+                data-testid="publish-button"
+              >
+                {publishing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                <span>{docStatus === 'published' ? 'Publish update' : 'Publish'}</span>
+              </button>
+            )}
+
+            {/* Take down (Owner, when live) */}
+            {isOwner && docStatus === 'published' && (
+              <button
+                onClick={handleTakedown}
+                disabled={publishing}
+                className="flex items-center gap-2 px-3 py-1.5 border border-rose-300 dark:border-rose-500/40 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 disabled:opacity-50 text-sm font-medium rounded-md transition-colors"
+                data-testid="takedown-button"
+              >
+                <span>Take down</span>
+              </button>
+            )}
           </div>
         </header>
 

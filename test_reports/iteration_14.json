@@ -1,0 +1,48 @@
+{
+  "summary": "Full e2e test of Review Mode (Draft→In review→Published gate, Owner publish, assignments/comments/verdicts, Review Console) and the editor delete-redirect bug fix. Backend: 13/13 pytest cases pass (/app/backend/tests/backend_test.py). Frontend: primary bug fix VERIFIED for BOTH delete entry points (sidebar trash on unlinked doc row and PageMetaDialog meta-delete-confirm) — URL stayed at /admin/editor/<pid>/<siblingDocId>, never /admin/docs. Editor publish gate (doc-status-pill In review → Publish → Published → Take down → In review), content gate via /api/public/default-project, Review Console role badge/tabs, assignment create + 'Mark done' blocked by unresolved comment then allowed after resolve, Review Inbox resolve, unread badge, Publish tab publish/takedown all PASS. Environment restored to baseline (121 docs, 0 published, 0 comments, 0 assignments, nav config restored from backup).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "DELETE /api/projects/{pid}/documents/{doc_id}", "issue": "Delete does not prune the document's slug from project_configs.navigation. Confirmed in UI: after deleting a linked page via PageMetaDialog the sidebar showed a dangling 'untitled-mth54f3l  missing' nav entry (and the public nav would link to a non-existent page). Editor's handleDeleteFromDialog also does not update navConfig."},
+      {"endpoint": "POST /api/projects/{pid}/assignments (flatten_scope_slugs)", "issue": "scope_type='group' matches by group NAME across ALL tabs, so duplicate group names collide. Real data has 'Reference' in 2 tabs → an assignment scoped to one tab's 'Reference' silently pulls in the other tab's pages. Scope should be (tab, group) qualified."},
+      {"endpoint": "GET /api/projects/{pid}/review/inbox", "issue": "'unread' count never decreases from the console because the UI never calls POST /comments/{cid}/read; the red inbox-badge stays after viewing/resolving (badge still showed 1 after resolve)."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "ReviewConsole (assign-scope select)", "issue": "React console error 'Encountered two children with the same key' repeated on every render — scopeOptions key `${type}:${id}` is not unique because group name 'Reference' exists in two tabs; selecting it is also ambiguous.", "selector": "[data-testid=\"assign-scope\"]", "priority": "MEDIUM"},
+      {"component": "Editor sidebar (Unlinked Documents rows)", "issue": "Delete (trash) button and row had no data-testid; added delete-unlinked-<docId> and unlinked-doc-<docId> for testability.", "selector": "[data-testid=\"delete-unlinked-<id>\"]", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Review Console", "issues": ["Overview/Assignments/Publish layout, pills and contrast look clean; no contrast/spacing defects found. Publish tab renders all 121 rows unpaginated/unsearchable — usable but heavy for owners."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/review_mode_results.xml"
+  ],
+  "action_items": [
+    "Prune the deleted document's slug from navigation config on delete (backend delete_document or Editor handleDeleteFromDialog/handleDeleteDocument) to avoid dangling 'missing' nav entries.",
+    "Make review scope ids tab-qualified (e.g. `${tabId}::${group}`) in both ReviewConsole scopeOptions keys and backend flatten_scope_slugs to fix the duplicate React key error and the cross-tab 'Reference' scope collision.",
+    "Mark inbox comments read (POST /comments/{cid}/read) when the Review Inbox tab is opened so the unread badge clears.",
+    "Minor: Editor handleDeleteFromDialog useCallback deps are [projectId, docId, navigate] but it calls gotoAfterDelete (which depends on `documents`) — stale-closure risk could send the user to /admin/editor/<pid> instead of a sibling; add gotoAfterDelete to the deps."
+  ],
+  "critical_code_review_comments": [
+    "Editor.jsx is 1452 lines — split sidebar/nav tree, toolbar and publish-gate logic into modules.",
+    "handleDeleteFromDialog dependency array omits gotoAfterDelete (stale closure over `documents`).",
+    "Document delete leaves navigation config inconsistent (orphan slug) — no server-side cleanup or transaction.",
+    "flatten_scope_slugs matches groups by name only; not tab-scoped."
+  ],
+  "updated_files": [
+    "/app/backend/tests/backend_test.py",
+    "/app/frontend/src/pages/Editor.jsx (added data-testid delete-unlinked-<id> and unlinked-doc-<id> only)"
+  ],
+  "success_rate": {"backend": "100% (13/13)", "frontend": "100% of tested flows (delete redirect x2, publish gate, content gate, review console tabs/assignments/inbox/publish)"},
+  "seed_data_creation": "Temp docs TEST_TrashDelete/TEST_TrashDelete2 + one UI-created 'Untitled Page' (all deleted), one seeded unread review comment on talk-it-through and one assignment to test_reviewer@example.com (both deleted). Nav config restored from /tmp/config_backup.json. Verified final state: 121 docs, 0 published, 0 comments, 0 assignments, public documents = 0.",
+  "should_call_test_agent_after_fix": true,
+  "should_main_agent_self_test": false,
+  "test_credentials": "/app/memory/test_credentials.md is missing/empty — not needed, DISABLE_AUTH=true auto-authenticates dev@local as Owner (verified via /api/roles/me and /api/auth/me).",
+  "context_for_next_testing_agent": "Use pid=d901b4ab-a271-4aff-b63a-bf92d73b9bb0 and doc talk-it-through=f20c76cc-bf77-4d16-bc25-83cd9d29c91f. Editor/console pages need ~10s hydration; never rely on networkidle. For window.confirm flows register page.on('dialog', accept) AND click with no_wait_after=True, otherwise the click promise hangs. PageMetaDialog delete is only reachable from linked nav pages (page-menu-<slug>); create a throwaway page via [data-testid=\"group-add-page-Get Started\"] and restore project config afterwards (PUT /api/projects/{pid}/config). Reviewer(non-owner) UX untested (auth bypass forces Owner); voice comments intentionally untested.",
+  "rca_of_the_issue": "Primary bug fix confirmed correct: both handleDeleteDocument and handleDeleteFromDialog route through gotoAfterDelete(), which navigates to /admin/editor/<pid>/<siblingId> (or /admin/editor/<pid> when no sibling); no /admin/docs navigation observed in either path. Remaining defects are secondary: nav-config orphan on document delete, tab-unqualified group scope ids (duplicate React key + wrong slug fan-out), and inbox unread badge never cleared."
+}

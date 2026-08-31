@@ -11,7 +11,33 @@ Build a Mintlify-class documentation platform for **Emergent's Documentation** w
 - AI-powered documentation generation
 - WYSIWYG editor with bi-directional HTML/Markdown sync
 
-## Completed work — June 2026 (Doc nav polish)
+## Completed work — June 2026 (Review Mode — Phase 1)
+
+**Content gate (Draft → In review → Published)**
+- `Document` gained `status` (draft|in_review|published) + `published_content`/`published_title`/`published_at`. Public `/public/default-project`, `/public/projects/{slug}`, `sitemap.xml` and `llms.txt` now serve ONLY published pages (from the published snapshot). New docs default to `draft`.
+- Rollout migration (`scripts_edu/review_migrate.py`): all 121 docs set to `in_review` → nothing is public until an Owner publishes (per plan; this workspace is not the real user site).
+
+**Roles (Owner)**
+- `User.role` (member|owner). `owner_invites` collection pre-authorizes emails before first login; applied on OAuth session + startup seed. First Owner seeded: `sarang@emergent.sh`. Dev auth-bypass user is Owner (for testing). Only Owner can publish/unpublish/promote (`require_owner` pattern per integration playbook).
+- Endpoints: `/roles/me`, `/roles/owners`, `/roles/promote`.
+
+**Publish gate + Editor UI**
+- `POST /projects/{pid}/documents/{id}/publish|unpublish` (owner-gated). Editor now has **Save draft** vs **Publish** vs **Take down** (owner-only), a status pill, and an **Unpublished changes** badge.
+
+**Assignments / Comments / Verdicts / Inbox (`review_routes.py`)**
+- Assignments at tab/group/page scope (group scope is TAB-QUALIFIED as `tabId::group` to avoid duplicate-name collisions); `mine` filter, delegate (trail kept), status not_started→in_review→done. **Done is gated on all scope comments resolved.**
+- Comments (page-level or `anchor_text` highlight; `audio_url` field ready for voice), resolve/reopen (owner resolves), read tracking. Verdicts upserted per (doc, reviewer). Owner **Review Inbox** (unread badge) + **progress** rollup.
+- `ReviewConsole.jsx` at `/admin/review` (linked from Dashboard): Overview, Assignments, Review Inbox (unread badge clears on view), Publish tabs + a per-doc verdict/comment drawer.
+
+**Bug fixed**
+- Editor delete no longer redirects to the legacy `/admin/docs/<pid>` view — both the sidebar trash and the PageMetaDialog delete stay in the editor and jump to a sibling page. Backend `delete_document` now also **prunes the deleted slug from navigation config** (no dangling "missing" entries). Verified by testing_agent (iteration_14) + curl.
+- Note: the "Deployments" group showing 0 pages was a red herring — its pages live in nested subgroups ("Common", "Web flow") and render fine; no relink needed.
+
+**Verification**: testing_agent iteration_14 — backend 13/13 pass; delete-redirect fix verified for BOTH entry points; publish gate, content gate, Review Console (assignments incl. done-gate, inbox resolve, publish/takedown) all pass. Follow-up fixes (tab-qualified group scope, nav prune on delete, inbox-badge clear, stale-closure deps) applied and curl-verified.
+
+**FAST-FOLLOW (not built this phase)**: voice comments recording + manual transcription (transcribe endpoint returns `unavailable`); reviewer highlight-to-pin comments on the public reading view with a Review toggle (console drawer covers verdict+text comments for now); reviewer-only UX needs real member login (currently auth-bypassed to Owner). Re-enable Google OAuth (`DISABLE_AUTH`) before real reviewers use it.
+
+
 - **Footer Prev/Next scoped to tab** (`PublicDocs.jsx` ~L749-767): prev/next now computed within the tab that contains the current doc (flatten that tab's group pages in order). No Previous on a tab's first page, no Next on its last page, never crosses tabs. Fixes bug where the first Learn page showed "Previous → Custom & MCP integrations" (a different tab).
 - **Removed redundant in-content "Next up / Continue the path" CardGroup** from all 14 docs that had it (`scripts_edu/learn_strip_nextup.py`, idempotent) — the footer Next already covers this. 95 legitimate CardGroups untouched.
 - Verified by testing_agent (`/app/test_reports/iteration_13.json`): 6/6 nav scenarios pass.

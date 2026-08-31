@@ -3,7 +3,7 @@ import { useAuth, API } from "@/App";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import {
-    Book, Plus, LogOut, Sparkles, Trash2, MoreHorizontal, Clock, ArrowRight,
+    Book, Plus, LogOut, Sparkles, Trash2, MoreHorizontal, Clock, ArrowRight, Inbox,
 } from "lucide-react";
 import {
     DropdownMenu,
@@ -107,6 +107,15 @@ const Dashboard = () => {
                     </div>
 
                     <div className="flex items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={() => navigate("/admin/review")}
+                            className="btn-press hidden sm:inline-flex h-9 px-3 items-center gap-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-900"
+                            data-testid="review-console-nav"
+                        >
+                            <Inbox className="h-4 w-4 text-brand" />
+                            Review Console
+                        </button>
                         <button
                             type="button"
                             onClick={() => navigate("/admin/generator")}

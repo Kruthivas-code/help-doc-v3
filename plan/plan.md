@@ -1,79 +1,68 @@
-# Restructure the Rest of the Docs — Credit Estimate & Plan
+# Review Mode — Final Plan
 
-## The question you asked first
-How many credits would it take to rework the remaining existing docs into the new
-"Learn the Basics" beginner style, based on what this last batch used — so the budget
-isn't exhausted again.
+## Context: how things work TODAY (confirmed in code)
+- **No draft/published separation exists.** Both the Writing Assistant's "Create page & add to navigation" and the editor's "Publish" button (which is really just **Save**) write straight to the database and are **immediately live** on this workspace's public docs view. The "Saved / Unsaved changes" text is only a dirty indicator.
+- **This preview workspace is NOT the real user-facing site.** An older, separately-deployed version serves actual users. So changes here (including gating pages off) do not affect real users.
+- The **"Deployments" navigation group currently shows 0 pages** even though deployment pages exist (`deploying-web`, `deployment-types`, `custom-domain`, `deployment-plan-levels`, …). They're linked under a different group or orphaned/unlinked. **First task when building: locate those pages and relink them into the Deployments group.**
 
----
+## What we're building: a native Review Mode + a real Draft/Published gate
 
-## What this last session actually used
-- It produced **7 article passes**: 6 new Rail 2 articles + 1 full regeneration of "Keep it safe".
-- Combined output was ~28,600 characters. Estimated token usage across all 7 calls:
-  roughly **~24K input tokens + ~7K output tokens** (plus a few trivial test pings, negligible).
-- At current Claude Sonnet pricing (~$3 per million input tokens, ~$15 per million output),
-  that is roughly **$0.15–$0.25 of raw model usage for the whole session** — about
-  **$0.02–$0.04 per article**.
+### Content gate (Option A)
+Every page gets a state: **Draft → In review → Published**. The public docs view + `sitemap.xml` + pre-render serve **only Published** pages.
+- Creating a page (manually or via "Create page & add to navigation") lands it as a **Draft** (not public).
+- The editor gets a real **Save draft** vs **Publish** split. The current "Publish" button becomes an actual publish (Owner-only).
+- Editing a live page offers **Publish update** (push a minor edit live) or **Take down for rework** (unpublish → back to Draft/In-review).
+- An **"unpublished changes"** badge appears when a live page has edited-but-unpublished content.
 
-## Estimate for the full restructure
-- The "rest of the docs" is approximately **~103 pages** across 6 tabs
-  (Build, Mobile Apps, Integrations, Troubleshooting, Data/Trust/Support, Wingman).
-- Restructuring each page feeds its **current content back in as the source** (so no facts are
-  invented) plus the style instructions, which makes the input a little larger than a
-  from-scratch article. Estimate **~5K input + ~2K output tokens per page ≈ $0.045/page**.
-- **Full run ≈ $5–$10 of raw model usage** (~$0.05–$0.10 per page × ~103 pages).
+### Roles
+- Add an **Owner** role — the only role that can **Publish** and can promote others to Owner by entering their email. (No role system exists today; we add one.)
+- Seed the first Owner as **`sarang@emergent.sh`**.
+- Non-owner admins/reviewers can edit drafts and comment, but not publish.
+- (Auth/role work will go through the integration playbook during build.)
 
-## Why the "726" number was so alarming — and why this is much smaller
-- 726 was the **cumulative lifetime spend** on the *inherited* key across everything it ever
-  did: the original 107-doc bulk generation, the in-app AI writing assistant, and repeated
-  testing — not the cost of the recent articles.
-- Pure article/doc generation is a small slice of that. The $5–$10 estimate above is a small
-  fraction of 726, so a full restructure should not, on its own, come close to exhausting a
-  topped-up budget.
+### Assignments & delegation
+- Assign at **Tab / Section (group) / Page** level; assigning a Tab or Section covers its pages.
+- Reviewer filters to **"My Reviews"**; assignment status Not started → In review → Done.
+- Reviewer can **delegate** to another email (trail kept).
+- Progress roll-up for the Owner.
 
-## Honest caveat on precision
-- The exact credit delta on the Green Leaf key this session was **not captured as a number**
-  (only that calls succeed). The figures above are **token-based estimates** using public
-  Claude pricing. The Universal Key may bill with a markup, so the real credit draw could be
-  **somewhat higher** than the raw-dollar figures.
+### Reviewer actions (on a read-only reading view with a Review toggle)
+- **Verdict** tag (Looks correct / Needs small edits / Wrong info / More info needed / Outdated / Tone-clarity / Other) — this *is* the approve / request-changes signal.
+- **Comments** — page-level or pinned to highlighted text; text and/or **voice** (audio stored, **Transcribe** is a manual button, no auto-transcription).
+- **Edit this page** — jump into the editor to fix the draft directly (a version snapshot is auto-saved first).
+- Anyone can comment on any page, assigned or not.
 
-## Recommended safeguard: a measured pilot
-Before committing to all ~103 pages:
-1. Note the current key balance.
-2. Restructure a **pilot batch of 5 pages**.
-3. Read the exact balance change from the Universal Key dashboard.
-4. Multiply by ~20 for the full set.
+### Owner actions
+- **Review Inbox** in the dashboard with an **unread badge**; grouped/filterable by page/tab/reviewer/status.
+- **Resolve** comments (reviewer can Reopen).
+- **Publish** (the only action that changes the public site).
+- **Assignments view** to hand out and track work.
 
-This converts the estimate into a firm number and gives a hard budget guardrail. It costs only
-about $0.25–$0.50 (est.) to probe.
+### "Done" rule
+A reviewer can mark an assignment **Done** only once **all comments on its pages are Resolved** (a verdict alone doesn't gate it).
 
----
+## End-to-end workflow
+1. **Draft it** — write manually or via Writing Assistant → lands as **Draft** (not public).
+2. **Assign** page/section/tab to a reviewer email → **In review**; appears in their "My Reviews".
+3. **Reviewer** sets a verdict, leaves comments (highlight/page, text/voice), optionally edits the draft.
+4. Feedback → **Review Inbox** (unread badge).
+5. Owner fixes + **Resolves** comments (reviewer can reopen).
+6. Reviewer marks assignment **Done** (gated on resolved comments).
+7. **Owner Publishes** → live; sitemap/prerender include it.
+8. Editing a live page later → **Publish update** (minor) or **Take down for rework** (major) → re-review → re-publish.
 
-## What the restructure work itself would do
-- Rewrite each existing page into the same friendly Learn-the-Basics shape (outcome intro →
-  scannable sections → callouts/steps → "Next up" link) **while preserving every existing fact
-  and all reference depth**.
-- **Same anti-hallucination rule as Learn the Basics:** only facts already present in each
-  page's current content are used; anything unverifiable becomes a clearly-marked
-  `Draft - needs review` placeholder. Nothing new is invented.
-- **Slugs, URLs, and navigation stay unchanged** — only the content/structure of each page changes.
-- **Reversible:** each original is backed up before it is overwritten, so any page can be restored.
-- Run **tab by tab**, so each batch can be reviewed before the next begins.
+## Rollout of the existing 121 pages
+- **All 121 pages start in "In review."** Because only Published is public and this workspace isn't the real user-facing site, it's fine that the workspace's public view shows nothing until pages are reviewed and published. (Confirmed by user.)
 
-## Assumptions (change these if wrong)
-- Scope = all ~103 existing pages outside "Learn the Basics" (not a subset).
-- The goal is a structural/tonal rewrite that keeps full reference depth — not a light
-  reformat, and not a second "beginner-only" copy of each page.
-- Existing pages are updated in place; links and nav are left alone.
+## Bug fixed as part of this work
+- **Delete → wrong redirect.** The nav-tree/metadata-dialog delete routes to `/admin/docs/<projectId>` (the legacy flat "old sitemap" view); the sidebar-trash delete stays in the editor — hence the inconsistency. Fix: all delete paths stay in the editor (jump to a sibling page); stop routing into the legacy view.
 
-## Out of scope
-- Filling the `Draft - needs review` placeholders with real screenshots / verified product details.
-- Re-enabling Google admin auth (tracked separately).
+## Loopholes closed
+- Nothing public until Published (sitemap + prerender excluded too).
+- Review UI + all review/assignment/comment APIs are login-only; voice audio access-gated.
+- Version snapshot before reviewer edits; delegation trail; Unpublish/take-down available.
+- Prerequisite for real-reviewer/go-live use: Emergent login must be re-enabled (currently bypassed). Fine to build/test with the bypass; must flip before real reviewers use it.
 
----
-
-## Decision point
-- **Option A** — Approve the pilot first: restructure 5 pages, report the exact measured credit
-  cost, then decide on the full run. (Recommended.)
-- **Option B** — Approve the full ~103-page run now at the estimated **$5–$10 (raw model) /
-  possibly a bit more in credit units**.
+## Out of scope (this build) / fast-follow
+- Slack (channel notifications + assignment DM) — kept in the plan as a fast-follow; needs a Slack app + bot token with `chat:write`, `users:read.email`, `im:write`.
+- Tracked "suggesting mode" accept/reject; real-time multiplayer cursors; branch previews; email notifications; anonymous share links.

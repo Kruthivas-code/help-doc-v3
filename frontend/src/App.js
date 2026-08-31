@@ -38,6 +38,7 @@ import EditorEntry from "@/pages/EditorEntry";
 import Generator from "@/pages/Generator";
 import PublicDocs from "@/pages/PublicDocs";
 import AdminLogin from "@/pages/AdminLogin";
+import ReviewConsole from "@/pages/ReviewConsole";
 
 // Auth Callback - Silent processing
 const AuthCallback = () => {
@@ -186,6 +187,7 @@ function AppRouter() {
       <Route path="/admin/editor/:projectId" element={<ProtectedRoute><Editor /></ProtectedRoute>} />
       <Route path="/admin/editor/:projectId/:docId" element={<ProtectedRoute><Editor /></ProtectedRoute>} />
       <Route path="/admin/generator" element={<ProtectedRoute><Generator /></ProtectedRoute>} />
+      <Route path="/admin/review" element={<ProtectedRoute><ReviewConsole /></ProtectedRoute>} />
       
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />

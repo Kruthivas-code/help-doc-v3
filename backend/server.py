@@ -52,6 +52,7 @@ class User(BaseModel):
     email: str
     name: str
     picture: Optional[str] = None
+    role: str = "member"  # member | owner (only owners can publish)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class UserSession(BaseModel):
@@ -176,6 +177,10 @@ class Document(BaseModel):
     parent_id: Optional[str] = None
     icon: Optional[str] = None
     description: Optional[str] = None
+    status: str = "draft"  # draft | in_review | published
+    published_content: Optional[str] = None
+    published_title: Optional[str] = None
+    published_at: Optional[datetime] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -242,7 +247,7 @@ async def get_current_user(request: Request) -> User:
     if os.environ.get("DISABLE_AUTH", "").lower() == "true":
         proj = await db.projects.find_one({}, {"_id": 0, "user_id": 1})
         uid = (proj or {}).get("user_id", "dev-admin")
-        return User(user_id=uid, email="dev@local", name="Dev Admin")
+        return User(user_id=uid, email="dev@local", name="Dev Admin", role="owner")
 
     session_token = request.cookies.get("session_token")
     
@@ -353,6 +358,11 @@ async def create_session(request: Request, response: Response):
         user_dict["created_at"] = user_dict["created_at"].isoformat()
         await db.users.insert_one(user_dict)
     
+    # Apply any pre-authorized owner role for this email (idempotent).
+    invite = await db.owner_invites.find_one({"email": email.strip().lower()})
+    if invite:
+        await db.users.update_one({"email": email}, {"$set": {"role": "owner"}})
+
     # Store session
     expires_at = datetime.now(timezone.utc) + timedelta(days=7)
     session = UserSession(
@@ -402,6 +412,8 @@ async def get_me(request: Request, user: User = Depends(get_current_user)):
         "email": user.email,
         "name": user.name,
         "picture": user.picture,
+        "role": getattr(user, "role", "member"),
+        "is_owner": getattr(user, "role", "member") == "owner",
         "token": session_token  # Return token for cross-domain auth
     }
 
@@ -702,13 +714,34 @@ async def delete_document(
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     
+    doc = await db.documents.find_one({"id": doc_id, "project_id": project_id}, {"_id": 0, "slug": 1})
     result = await db.documents.delete_one(
         {"id": doc_id, "project_id": project_id}
     )
     
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Document not found")
-    
+
+    # Prune the slug from navigation config so no dangling "missing" nav entry remains
+    if doc and doc.get("slug"):
+        slug = doc["slug"]
+        cfg = await db.project_configs.find_one({"project_id": project_id})
+        nav = (cfg or {}).get("navigation")
+        if nav:
+            def prune(group):
+                group["pages"] = [p for p in group.get("pages", [])
+                                  if (p.get("page") if isinstance(p, dict) else p) != slug]
+                for sg in group.get("groups", []):
+                    prune(sg)
+            for t in nav.get("tabs", []):
+                for g in t.get("groups", []):
+                    prune(g)
+            for g in nav.get("groups", []):
+                prune(g)
+            await db.project_configs.update_one(
+                {"project_id": project_id},
+                {"$set": {"navigation": nav, "updated_at": datetime.now(timezone.utc).isoformat()}})
+
     return {"message": "Document deleted successfully"}
 
 # ==================== AI GENERATION ROUTES ====================
@@ -1200,18 +1233,23 @@ async def get_default_project():
     if config and isinstance(config.get("updated_at"), str):
         config["updated_at"] = datetime.fromisoformat(config["updated_at"])
     
-    # Get documents
-    documents = await db.documents.find(
-        {"project_id": project["id"]},
+    # Get documents — PUBLIC GATE: only PUBLISHED pages, served from the published snapshot.
+    raw_docs = await db.documents.find(
+        {"project_id": project["id"], "status": "published"},
         {"_id": 0}
     ).sort("order", 1).to_list(500)
-    
-    for doc in documents:
+
+    documents = []
+    for doc in raw_docs:
+        doc["content"] = doc.get("published_content") or doc.get("content", "")
+        if doc.get("published_title"):
+            doc["title"] = doc["published_title"]
         if isinstance(doc.get("created_at"), str):
             doc["created_at"] = datetime.fromisoformat(doc["created_at"])
         if isinstance(doc.get("updated_at"), str):
             doc["updated_at"] = datetime.fromisoformat(doc["updated_at"])
-    
+        documents.append(doc)
+
     return {
         "project": project,
         "config": config,
@@ -1230,18 +1268,23 @@ async def get_public_project(project_slug: str):
     if config and isinstance(config.get("updated_at"), str):
         config["updated_at"] = datetime.fromisoformat(config["updated_at"])
     
-    # Get documents
-    documents = await db.documents.find(
-        {"project_id": project["id"]},
+    # Get documents — PUBLIC GATE: only PUBLISHED pages, served from the published snapshot.
+    raw_docs = await db.documents.find(
+        {"project_id": project["id"], "status": "published"},
         {"_id": 0}
     ).sort("order", 1).to_list(500)
-    
-    for doc in documents:
+
+    documents = []
+    for doc in raw_docs:
+        doc["content"] = doc.get("published_content") or doc.get("content", "")
+        if doc.get("published_title"):
+            doc["title"] = doc["published_title"]
         if isinstance(doc.get("created_at"), str):
             doc["created_at"] = datetime.fromisoformat(doc["created_at"])
         if isinstance(doc.get("updated_at"), str):
             doc["updated_at"] = datetime.fromisoformat(doc["updated_at"])
-    
+        documents.append(doc)
+
     return {
         "project": project,
         "config": config,
@@ -1770,7 +1813,7 @@ async def _build_llms_txt(base_url: str, full: bool = False) -> str:
 
     config = await db.project_configs.find_one({"project_id": project["id"]}, {"_id": 0}) or {}
     docs = await db.documents.find(
-        {"project_id": project["id"]},
+        {"project_id": project["id"], "status": "published"},
         {"_id": 0, "slug": 1, "title": 1, "description": 1, "content": 1},
     ).to_list(1000)
     by_slug = {d.get("slug"): d for d in docs if d.get("slug")}
@@ -1840,7 +1883,7 @@ async def _build_sitemap(base_url: str) -> str:
         return empty
 
     documents = await db.documents.find(
-        {"project_id": project["id"]},
+        {"project_id": project["id"], "status": "published"},
         {"_id": 0, "slug": 1, "updated_at": 1},
     ).to_list(1000)
 
@@ -1952,6 +1995,30 @@ async def llms_full_txt(request: Request):
     return Response(content=body, media_type="text/plain; charset=utf-8")
 
 # Include the router in the main app
+# ==================== REVIEW MODE ROUTES ====================
+from review_routes import register_review_routes, OWNER_SEED_EMAIL
+register_review_routes(api_router, {
+    "db": db,
+    "get_current_user": get_current_user,
+    "storage_put_object": storage_put_object,
+    "storage_build_path": storage_build_path,
+    "storage_public_url": storage_public_url,
+})
+
+
+@app.on_event("startup")
+async def _seed_owner_on_startup():
+    """Idempotently seed the first Owner (pre-authorized before first login)."""
+    try:
+        await db.owner_invites.update_one(
+            {"email": OWNER_SEED_EMAIL},
+            {"$setOnInsert": {"email": OWNER_SEED_EMAIL, "created_at": datetime.now(timezone.utc).isoformat()}},
+            upsert=True)
+        await db.users.update_one({"email": OWNER_SEED_EMAIL}, {"$set": {"role": "owner"}})
+    except Exception as e:
+        logger.error(f"owner seed failed: {e}")
+
+
 app.include_router(api_router)
 
 # CORS configuration - must specify exact origins when credentials are enabled
