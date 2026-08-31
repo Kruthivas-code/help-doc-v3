@@ -107,13 +107,18 @@ export default function ReviewConsole() {
   const openDoc = useCallback(async (doc) => {
     setActiveDoc(doc);
     setVerdict('');
-    const [cm, vd] = await Promise.all([
-      axios.get(`${API}/projects/${pid}/comments`, { params: { doc_slug: doc.slug } }),
-      axios.get(`${API}/projects/${pid}/verdicts`, { params: { doc_slug: doc.slug } }),
-    ]);
-    setComments(cm.data.comments);
-    const mine = (vd.data.verdicts || []).find(v => v.reviewer_email === role?.email);
-    setVerdict(mine?.verdict || '');
+    setComments([]);
+    try {
+      const [cm, vd] = await Promise.all([
+        axios.get(`${API}/projects/${pid}/comments`, { params: { doc_slug: doc.slug } }),
+        axios.get(`${API}/projects/${pid}/verdicts`, { params: { doc_slug: doc.slug } }),
+      ]);
+      setComments(cm.data.comments);
+      const mine = (vd.data.verdicts || []).find(v => v.reviewer_email === role?.email);
+      setVerdict(mine?.verdict || '');
+    } catch (e) {
+      toast.error('Failed to load comments');
+    }
   }, [pid, role]);
 
   const addComment = async () => {
@@ -261,9 +266,19 @@ export default function ReviewConsole() {
               {assignments.length === 0 && <p className="text-sm text-zinc-500" data-testid="assign-empty">No assignments yet.</p>}
               {assignments.map(a => (
                 <div key={a.id} className="bg-white rounded-lg border border-zinc-200 p-4 flex items-center justify-between" data-testid={`assignment-${a.id}`}>
-                  <div>
+                  <div className="flex-1">
                     <div className="font-medium">{a.scope_label} <span className="text-xs text-zinc-400">({a.scope_type})</span></div>
                     <div className="text-xs text-zinc-500">{a.assignee_email} · {a.slugs?.length || 0} page(s){a.delegated_from ? ` · delegated from ${a.delegated_from}` : ''}</div>
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {(a.slugs || []).map(s => {
+                        const doc = documents.find(x => x.slug === s);
+                        return (
+                          <button key={s} onClick={() => openDoc(doc || { slug: s, title: s })} className="text-xs px-2 py-0.5 rounded-full bg-zinc-100 hover:bg-indigo-100 text-zinc-600" data-testid={`review-page-${s}`}>
+                            {doc?.title || s}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <StatusPill s={a.status} />
@@ -305,6 +320,7 @@ export default function ReviewConsole() {
               <div key={d.id} className="bg-white rounded-lg border border-zinc-200 px-4 py-2.5 flex items-center justify-between">
                 <button onClick={() => navigate(`/admin/editor/${pid}/${d.id}`)} className="text-sm text-left hover:underline">{d.title}</button>
                 <div className="flex items-center gap-2">
+                  <button onClick={() => openDoc(d)} className="text-xs px-2 py-1 rounded-md border border-indigo-300 text-indigo-700 hover:bg-indigo-50" data-testid={`review-doc-${d.id}`}>Review / Comment</button>
                   <StatusPill s={d.status || 'in_review'} />
                   {d.status === 'published'
                     ? <button onClick={() => publishDoc(d, false)} className="text-xs px-2 py-1 rounded-md border border-rose-300 text-rose-600 hover:bg-rose-50" data-testid={`takedown-${d.id}`}>Take down</button>

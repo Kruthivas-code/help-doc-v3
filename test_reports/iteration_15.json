@@ -1,0 +1,39 @@
+{
+  "summary": "Frontend-only verification of the two Review Mode fixes on the preview URL (auth bypassed = dev Owner). (1) Editor header Publish gate: doc-status-pill ('In review'), save-draft-button and blue publish-button are all rendered AND fully inside the 1920x1080 viewport (save-draft box x=643 w=116; publish box x=768 w=105 — no clipping). Clicking Publish flipped the pill to 'Published', showed takedown-button and relabelled the primary button to 'Publish update'; clicking Take down (native confirm accepted) returned the pill to 'In review' and removed takedown-button; backend GET document confirmed status back to in_review and published count = 0. (2) Review Console drawer is now reachable: /admin/review > Publish tab > review-doc-<id> opens review-drawer; verdict chip verdict-Needs-small-edits produced a 'Verdict saved' toast and stayed selected; drawer-comment-input + drawer-comment-submit added the comment (visible in list, 'Comment added' toast, persisted via GET /comments and visible in Review Inbox). (3) Assignments tab: created a page-scope assignment (assign-scope/assign-email/assign-submit), the review-page-talk-it-through chip opened the same drawer, then the assignment was deleted. Regression: editor page-row interaction stayed on /admin/editor/... (no navigation to /admin/docs). All test data cleaned up (comment deleted via API, assignment deleted via UI, 2 dev@local verdicts removed from review_verdicts, doc unpublished; final state: 0 comments, 0 assignments, 0 verdicts, 0 published docs).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "DELETE /api/projects/{pid}/verdicts", "issue": "No endpoint (nor UI) to clear/delete a verdict; test/mistaken verdicts can only be overwritten. Had to remove them directly from MongoDB (review_verdicts) for cleanup."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "Review drawer open (openDoc)", "issue": "Drawer renders immediately with the previous/empty comment list and empty verdict while GET /comments and /verdicts are still in flight (~1-2s) — no loading state, and stale comments from a previously opened doc can flash for the newly opened doc. openDoc() also has no try/catch, so an API failure leaves a permanently empty drawer with an unhandled promise rejection and no error toast.", "affected_selectors": ["review-drawer", "verdict-*", "drawer-comment-input"]}
+    ],
+    "design_issues": [
+      {"screen": "Editor header (1920x1080, published state)", "issues": ["Once 'Publish update' + 'Take down' appear, the left cluster and right toolbar get cramped and button labels wrap onto two lines (Save draft, Publish update, Take down, Add Image, Copy Link, Export all). Everything stays inside the viewport and clickable, but the header looks broken/uneven — consider icon-only buttons or an overflow menu at <=1920px."]},
+      {"screen": "Editor Take down", "issues": ["Uses native window.confirm() instead of the shadcn AlertDialog used elsewhere (inconsistent styling; also silently no-ops in automation where dialogs are auto-dismissed)."]},
+      {"screen": "Review Console > Publish tab", "issues": ["125 document rows rendered with no search/filter/pagination; finding a specific page requires long scrolling."]}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Optional polish: add a loading state (and clear previous comments/verdict) in ReviewConsole.openDoc, plus try/catch + error toast.",
+    "Optional polish: compact the editor header when published so labels don't wrap at 1920px.",
+    "Optional: add DELETE verdict endpoint / 'clear verdict' control for reset.",
+    "Optional: add search or pagination to the Publish tab document list."
+  ],
+  "critical_code_review_comments": [
+    "ReviewConsole.openDoc: awaited Promise.all with no error handling — wrap in try/catch and reset comments/verdict state before fetching to avoid showing another document's comments.",
+    "Editor.jsx is 1455 lines — exceeds the 700-line guideline; consider extracting the header/publish-gate and toolbar into components."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "not tested (frontend-only request)", "frontend": "100% (all 4 requested flows passed)"},
+  "seed_data_creation": "Temporary only: 1 comment on talk-it-through, 1 verdict (Needs small edits), 1 assignment to TEST_qa_reviewer@emergent.sh, 1 publish of start-with-your-idea. All reverted/deleted.",
+  "should_call_test_agent_after_fix": false,
+  "should_main_agent_self_test": true,
+  "test_credentials": "Auth bypassed (DISABLE_AUTH=true) — /admin/* auto-authenticates as dev@local (Owner). /app/memory/test_credentials.md present and accurate.",
+  "context_for_next_testing_agent": "pid=d901b4ab-a271-4aff-b63a-bf92d73b9bb0; docIds: start-with-your-idea=169fef15-3ca3-48d7-b407-e61ae8abaf28, talk-it-through=f20c76cc-bf77-4d16-bc25-83cd9d29c91f. Editor/review pages need ~10-40s for the data-testid to appear (CRA HMR keeps networkidle open — never use networkidle). Take down in the editor triggers a native window.confirm — you MUST register page.on('dialog', ...accept) or the takedown silently cancels. Drawer needs a ~3s wait after opening before asserting comments/verdict. Verdicts have no DELETE API — clean up via mongo db.review_verdicts.",
+  "rca_of_the_issue": "First takedown attempt appeared to fail (pill stayed 'Published') — root cause was Playwright auto-dismissing the native window.confirm in handleTakedown, not an app bug; re-run with dialog accept succeeded and DB returned to in_review. Similarly the assignment-chip drawer initially looked empty — that was a test race (assert ran before the comments/verdicts fetch resolved), though it does reveal the missing loading state noted above."
+}

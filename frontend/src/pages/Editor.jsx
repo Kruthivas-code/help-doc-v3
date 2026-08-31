@@ -981,6 +981,40 @@ const Editor = () => {
                 Unpublished changes
               </span>
             )}
+
+            {/* Publish gate actions */}
+            <div className="flex items-center gap-2 pl-3 ml-1 border-l border-zinc-200 dark:border-zinc-800">
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="flex items-center gap-2 px-3 py-1.5 border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50 text-zinc-700 dark:text-zinc-200 text-sm font-medium rounded-md transition-colors"
+                data-testid="save-draft-button"
+              >
+                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                <span>{saving ? 'Saving...' : 'Save draft'}</span>
+              </button>
+              {isOwner && !isNew && (
+                <button
+                  onClick={handlePublish}
+                  disabled={publishing || saving}
+                  className="flex items-center gap-2 px-4 py-1.5 bg-brand hover:bg-brand-600 disabled:opacity-50 text-white text-sm font-medium rounded-md transition-colors"
+                  data-testid="publish-button"
+                >
+                  {publishing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                  <span>{docStatus === 'published' ? 'Publish update' : 'Publish'}</span>
+                </button>
+              )}
+              {isOwner && docStatus === 'published' && (
+                <button
+                  onClick={handleTakedown}
+                  disabled={publishing}
+                  className="flex items-center gap-2 px-3 py-1.5 border border-rose-300 dark:border-rose-500/40 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 disabled:opacity-50 text-sm font-medium rounded-md transition-colors"
+                  data-testid="takedown-button"
+                >
+                  <span>Take down</span>
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
@@ -1127,42 +1161,6 @@ const Editor = () => {
               )}
               <span>Export all</span>
             </button>
-
-            {/* Save draft */}
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="flex items-center gap-2 px-3 py-1.5 border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-50 text-zinc-700 dark:text-zinc-200 text-sm font-medium rounded-md transition-colors"
-              data-testid="save-draft-button"
-            >
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              <span>{saving ? 'Saving...' : 'Save draft'}</span>
-            </button>
-
-            {/* Publish (Owner only) */}
-            {isOwner && !isNew && (
-              <button
-                onClick={handlePublish}
-                disabled={publishing || saving}
-                className="flex items-center gap-2 px-4 py-1.5 bg-brand hover:bg-brand-600 disabled:opacity-50 text-white text-sm font-medium rounded-md transition-colors"
-                data-testid="publish-button"
-              >
-                {publishing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                <span>{docStatus === 'published' ? 'Publish update' : 'Publish'}</span>
-              </button>
-            )}
-
-            {/* Take down (Owner, when live) */}
-            {isOwner && docStatus === 'published' && (
-              <button
-                onClick={handleTakedown}
-                disabled={publishing}
-                className="flex items-center gap-2 px-3 py-1.5 border border-rose-300 dark:border-rose-500/40 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 disabled:opacity-50 text-sm font-medium rounded-md transition-colors"
-                data-testid="takedown-button"
-              >
-                <span>Take down</span>
-              </button>
-            )}
           </div>
         </header>
 
