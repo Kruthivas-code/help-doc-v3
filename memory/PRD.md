@@ -11,6 +11,13 @@ Build a Mintlify-class documentation platform for **Emergent's Documentation** w
 - AI-powered documentation generation
 - WYSIWYG editor with bi-directional HTML/Markdown sync
 
+## Status note — June 2026 (partial turn)
+- **B5 DONE**: "watch-your-app-come-alive" now includes a short plain recap-of-what-was-built orientation (grounded, no new heading). Pages remain `in_review`.
+- **DEFERRED (not started, next turn)** — ran low on context budget, intentionally NOT done to avoid half-finished/untested work:
+  1. **Old-docs link audit**: some touch points still link back to the old Emergent docs (e.g. the admin-page main menu). Need to sweep all nav/links (App.js, Dashboard header/main-menu, editor, footer) and repoint them.
+  2. **Reviewer side-nav on ReviewPage** (`/review/:slug`): add a left sidebar listing ONLY the pages assigned to that reviewer, allowing navigation to the next assigned page from within the review view. Before navigating away, remind the reviewer of the verdict they gave (or that none was given) with an option to "review later" and proceed anyway.
+  3. **Re-enable Emergent Google OAuth** (remove `DISABLE_AUTH=true` bypass in `/app/backend/.env` + server.py bypass; must go through integration_expert). MUST be done LAST, after #2, so the user isn't locked out mid-testing.
+
 ## Completed work — June 2026 (Learn the Basics — plain-language rewrite)
 - Rewrote all 18 first-tab pages for non-technical readers via a grounded LLM pass (`scripts_edu/learn_rewrite.py`): "UX/UI"→"how your app looks and feels", "deploy/publish/put live"→"making it live", "environment variable/secret"→"a private key for your service", define-then-reuse for API ("a connection to another service (API)") and database ("where your app stores its information (database)"). Real product control names (the **Deploy** button, **Environment Variables** panel, doc-link titles) intentionally preserved for accuracy.
 - Content folded into existing pages (no new pages/sections): B1+B3 plan-mode-from-a-rough-idea (short line in "Talk it through" + fuller paragraph in "Write prompts that work"; explicitly points to plan mode, NOT an outside AI); B2 copy-paste starter prompts inside "Write prompts that work"; B6 "costs at a glance" intro inside "How credits work".
