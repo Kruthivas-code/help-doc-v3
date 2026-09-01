@@ -19,6 +19,8 @@ export default function ReviewPage() {
   const [composer, setComposer] = useState(null); // {anchor_text}
   const [body, setBody] = useState('');
   const [loading, setLoading] = useState(true);
+  const [verdict, setVerdict] = useState('');
+  const VERDICTS = ['Looks correct', 'Needs small edits', 'Wrong info', 'More info needed', 'Outdated', 'Tone / clarity', 'Other'];
 
   const isOwner = role?.is_owner;
 
@@ -38,6 +40,11 @@ export default function ReviewPage() {
         const docs = await axios.get(`${API}/projects/${projectId}/documents`);
         setDoc(docs.data.find((x) => x.slug === slug) || null);
         await loadComments(projectId);
+        try {
+          const vd = await axios.get(`${API}/projects/${projectId}/verdicts`, { params: { doc_slug: slug } });
+          const mine = (vd.data.verdicts || []).find((v) => v.reviewer_email === me.data.email);
+          setVerdict(mine?.verdict || '');
+        } catch (e) { /* no verdict yet */ }
       } catch (e) {
         toast.error('Failed to load page');
       } finally {
@@ -76,6 +83,14 @@ export default function ReviewPage() {
     } catch { toast.error('Action failed'); }
   };
 
+  const saveVerdict = async (v) => {
+    setVerdict(v);
+    try {
+      await axios.post(`${API}/projects/${pid}/verdicts`, { doc_slug: slug, verdict: v });
+      toast.success('Verdict saved');
+    } catch { toast.error('Failed to save verdict'); }
+  };
+
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-white text-zinc-400">Loading…</div>;
   if (!doc) return <div className="min-h-screen flex items-center justify-center bg-white text-zinc-500">Page not found.</div>;
 
@@ -91,6 +106,7 @@ export default function ReviewPage() {
           <span className="text-zinc-500">Review</span>
           <button
             onClick={() => setReviewOn((v) => !v)}
+            aria-pressed={reviewOn}
             className={`relative w-10 h-5 rounded-full transition-colors ${reviewOn ? 'bg-indigo-600' : 'bg-zinc-300'}`}
             data-testid="review-toggle-btn"
           >
@@ -112,9 +128,17 @@ export default function ReviewPage() {
 
         {/* Comments rail */}
         <aside className="lg:sticky lg:top-20 h-fit">
+          <div className="mb-5">
+            <h3 className="text-sm font-semibold text-zinc-500 mb-2">Your verdict</h3>
+            <div className="flex flex-wrap gap-1.5">
+              {VERDICTS.map((v) => (
+                <button key={v} onClick={() => saveVerdict(v)} className={`text-xs px-2 py-1 rounded-full border transition-colors ${verdict === v ? 'bg-zinc-900 text-white border-zinc-900' : 'border-zinc-300 text-zinc-600 hover:bg-zinc-100'}`} data-testid={`reviewpage-verdict-${v.replace(/\W+/g, '-')}`}>{v}</button>
+              ))}
+            </div>
+          </div>
           <h3 className="text-sm font-semibold text-zinc-500 mb-3">Comments ({comments.length})</h3>
           {reviewOn && <p className="text-xs text-zinc-400 mb-3">Select any text in the page to pin a comment to it.</p>}
-          <div className="space-y-2" data-testid="review-comment-list">
+          <div className="space-y-2" data-testid="review-comments-rail">
             {comments.length === 0 && <p className="text-xs text-zinc-400">No comments yet.</p>}
             {comments.map((c) => (
               <div key={c.id} className={`rounded-lg border p-3 text-sm ${c.resolved ? 'border-emerald-200 bg-emerald-50/40' : 'border-zinc-200'}`} data-testid={`review-comment-${c.id}`}>

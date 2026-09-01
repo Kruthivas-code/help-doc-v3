@@ -11,6 +11,11 @@ Build a Mintlify-class documentation platform for **Emergent's Documentation** w
 - AI-powered documentation generation
 - WYSIWYG editor with bi-directional HTML/Markdown sync
 
+## Completed work — June 2026 (Review Mode — Phase 2b: Discoverability + cascade)
+- Inline Review View (`/review/:slug`) is now reachable directly: the Publish-tab per-row **"Review page ↗"** button and the assignment **page chips** navigate straight to it, and the inline page now carries **verdict chips** (so it's the full review surface: read + highlight-pin comments + verdict + resolve/reopen).
+- Multi-select assignment now **cascades**: checking a Tab selects all its sections + pages; checking a Section selects its pages (selected-count reflects page count). Partial selections render an **indeterminate** checkbox.
+- Verified by testing_agent iteration_17 — backend 23/23, frontend 100% (cascade select/deselect, per-page assign, chip + publish-tab nav to inline view, verdict save+persist, anchored comment, resolve/reopen, toggle off). Minor a11y/testid polish applied after.
+
 ## Completed work — June 2026 (Review Mode — Phase 2: Inline Review + Multi-assign)
 
 **Inline Review View (`/review/:slug`, `ReviewPage.jsx`)**

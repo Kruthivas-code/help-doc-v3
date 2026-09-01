@@ -63,6 +63,30 @@ export default function ReviewConsole() {
     return opts;
   }, [config, documents]);
 
+  // For each tab/section option key -> the list of descendant page keys (page:<slug>)
+  const descendants = useMemo(() => {
+    const map = {};
+    const tabs = config?.navigation?.tabs || [];
+    const slugOf = (p) => (typeof p === 'string' ? p : p.page);
+    tabs.forEach(t => {
+      const tabKey = `tab:${t.id || t.label}`;
+      const tabPages = [];
+      (t.groups || []).forEach(g => {
+        const grpKey = `group:${t.id || t.label}::${g.group}`;
+        const gp = [];
+        const collect = (gg) => {
+          (gg.pages || []).forEach(p => { const s = slugOf(p); if (s) gp.push(`page:${s}`); });
+          (gg.groups || []).forEach(collect);
+        };
+        collect(g);
+        map[grpKey] = gp;
+        tabPages.push(...gp);
+      });
+      map[tabKey] = tabPages;
+    });
+    return map;
+  }, [config]);
+
   const load = useCallback(async () => {
     try {
       const me = await axios.get(`${API}/roles/me`);
@@ -179,7 +203,19 @@ export default function ReviewConsole() {
     } catch (e) { toast.error('Failed to assign'); } finally { setBusy(false); }
   };
 
-  const toggleScope = (key) => setAScopes((prev) => prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]);
+  const toggleScope = (key) => {
+    const kids = descendants[key];
+    if (kids && kids.length) {
+      // Tab / section: cascade-select all its pages
+      setAScopes((prev) => {
+        const allIn = kids.every((k) => prev.includes(k));
+        if (allIn) return prev.filter((k) => !kids.includes(k));
+        return Array.from(new Set([...prev, ...kids]));
+      });
+    } else {
+      setAScopes((prev) => prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]);
+    }
+  };
 
   const setAssignmentStatus = async (a, status) => {
     try {
@@ -286,10 +322,12 @@ export default function ReviewConsole() {
                         .slice(0, 200)
                         .map((o) => {
                           const key = `${o.type}:${o.id}`;
-                          const checked = aScopes.includes(key);
+                          const kids = descendants[key];
+                          const checked = kids && kids.length ? kids.every((k) => aScopes.includes(k)) : aScopes.includes(key);
+                          const some = kids && kids.length ? kids.some((k) => aScopes.includes(k)) : false;
                           return (
                             <label key={key} className={`flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer hover:bg-zinc-50 ${o.type !== 'page' ? 'font-medium' : ''}`} data-testid={`assign-option-${o.type}-${o.id}`}>
-                              <input type="checkbox" checked={checked} onChange={() => toggleScope(key)} className="accent-zinc-900" />
+                              <input type="checkbox" checked={checked} ref={(el) => { if (el) el.indeterminate = some && !checked; }} onChange={() => toggleScope(key)} className="accent-zinc-900" />
                               <span className={o.type === 'tab' ? 'text-indigo-700' : o.type === 'group' ? 'text-zinc-700' : 'text-zinc-500'}>{o.label.trim()}</span>
                             </label>
                           );
@@ -327,7 +365,7 @@ export default function ReviewConsole() {
                       {(a.slugs || []).map(s => {
                         const doc = documents.find(x => x.slug === s);
                         return (
-                          <button key={s} onClick={() => openDoc(doc || { slug: s, title: s })} className="text-xs px-2 py-0.5 rounded-full bg-zinc-100 hover:bg-indigo-100 text-zinc-600" data-testid={`review-page-${s}`}>
+                          <button key={s} onClick={() => navigate(`/review/${s}`)} className="text-xs px-2 py-0.5 rounded-full bg-zinc-100 hover:bg-indigo-100 text-zinc-600" data-testid={`review-page-${s}`}>
                             {doc?.title || s}
                           </button>
                         );
@@ -374,7 +412,7 @@ export default function ReviewConsole() {
               <div key={d.id} className="bg-white rounded-lg border border-zinc-200 px-4 py-2.5 flex items-center justify-between">
                 <button onClick={() => navigate(`/admin/editor/${pid}/${d.id}`)} className="text-sm text-left hover:underline">{d.title}</button>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => openDoc(d)} className="text-xs px-2 py-1 rounded-md border border-indigo-300 text-indigo-700 hover:bg-indigo-50" data-testid={`review-doc-${d.id}`}>Review / Comment</button>
+                  <button onClick={() => navigate(`/review/${d.slug}`)} className="text-xs px-2 py-1 rounded-md border border-indigo-300 text-indigo-700 hover:bg-indigo-50" data-testid={`review-doc-${d.id}`}>Review page ↗</button>
                   <StatusPill s={d.status || 'in_review'} />
                   {d.status === 'published'
                     ? <button onClick={() => publishDoc(d, false)} className="text-xs px-2 py-1 rounded-md border border-rose-300 text-rose-600 hover:bg-rose-50" data-testid={`takedown-${d.id}`}>Take down</button>
