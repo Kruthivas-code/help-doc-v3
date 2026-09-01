@@ -115,6 +115,23 @@ def register_review_routes(api_router, ctx):
         invites = await db.owner_invites.find({}, {"_id": 0}).to_list(200)
         return {"owners": invites}
 
+    @api_router.get("/projects/{project_id}/known-emails")
+    async def known_emails(project_id: str, user=Depends(get_current_user)):
+        """Suggestion list for the assign-email autocomplete: everyone we already know about
+        (users who have logged in, seeded owners, and previously-assigned reviewers)."""
+        ensure_owner(user)
+        emails = set()
+        async for u in db.users.find({}, {"_id": 0, "email": 1}):
+            if u.get("email"):
+                emails.add(u["email"].lower())
+        async for o in db.owner_invites.find({}, {"_id": 0, "email": 1}):
+            if o.get("email"):
+                emails.add(o["email"].lower())
+        async for a in db.assignments.find({"project_id": project_id}, {"_id": 0, "assignee_email": 1}):
+            if a.get("assignee_email"):
+                emails.add(a["assignee_email"].lower())
+        return {"emails": sorted(emails)}
+
     @api_router.post("/roles/promote")
     async def roles_promote(req: PromoteReq, user=Depends(get_current_user)):
         ensure_owner(user)
@@ -151,6 +168,7 @@ def register_review_routes(api_router, ctx):
     # ---------------- Assignments ----------------
     @api_router.post("/projects/{project_id}/assignments")
     async def create_assignment(project_id: str, req: AssignmentReq, user=Depends(get_current_user)):
+        ensure_owner(user)
         slugs = await flatten_scope_slugs(project_id, req.scope_type, req.scope_id)
         a = {"id": str(uuid.uuid4()), "project_id": project_id, "scope_type": req.scope_type,
              "scope_id": req.scope_id, "scope_label": req.scope_label or req.scope_id,
@@ -178,6 +196,8 @@ def register_review_routes(api_router, ctx):
         a = await db.assignments.find_one({"id": aid, "project_id": project_id})
         if not a:
             raise HTTPException(404, "Assignment not found")
+        if not is_owner(user) and _norm(user.email) != a.get("assignee_email"):
+            raise HTTPException(403, "Only the Owner or the assignee can update this")
         if req.status == "done":
             open_ct = await db.review_comments.count_documents(
                 {"project_id": project_id, "doc_slug": {"$in": a.get("slugs", [])}, "resolved": False})
@@ -191,6 +211,8 @@ def register_review_routes(api_router, ctx):
         a = await db.assignments.find_one({"id": aid, "project_id": project_id})
         if not a:
             raise HTTPException(404, "Assignment not found")
+        if not is_owner(user) and _norm(user.email) != a.get("assignee_email"):
+            raise HTTPException(403, "Only the Owner or the current assignee can delegate")
         await db.assignments.update_one({"id": aid}, {"$set": {
             "assignee_email": _norm(req.email), "delegated_from": a.get("assignee_email"),
             "status": "in_review", "updated_at": _now()}})

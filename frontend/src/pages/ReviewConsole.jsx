@@ -42,8 +42,9 @@ export default function ReviewConsole() {
   const [newComment, setNewComment] = useState('');
   const [verdict, setVerdict] = useState('');
   // assignment form
-  const [aScope, setAScope] = useState('page');
-  const [aScopeId, setAScopeId] = useState('');
+  const [aScopes, setAScopes] = useState([]);
+  const [scopeQuery, setScopeQuery] = useState('');
+  const [knownEmails, setKnownEmails] = useState([]);
   const [aEmail, setAEmail] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -74,6 +75,10 @@ export default function ReviewConsole() {
       setDocuments(docs.data);
       const asg = await axios.get(`${API}/projects/${projectId}/assignments`);
       setAssignments(asg.data.assignments);
+      try {
+        const ke = await axios.get(`${API}/projects/${projectId}/known-emails`);
+        setKnownEmails(ke.data.emails || []);
+      } catch (e) { /* suggestions are best-effort */ }
       if (me.data.is_owner) {
         const [pr, ib] = await Promise.all([
           axios.get(`${API}/projects/${projectId}/review/progress`),
@@ -149,19 +154,32 @@ export default function ReviewConsole() {
   };
 
   const createAssignment = async () => {
-    if (!aScopeId || !aEmail.trim()) { toast.error('Pick a scope and enter an email'); return; }
-    const opt = scopeOptions.find(o => `${o.type}:${o.id}` === aScopeId);
+    if (aScopes.length === 0 || !aEmail.trim()) { toast.error('Pick at least one item and enter an email'); return; }
     setBusy(true);
     try {
-      await axios.post(`${API}/projects/${pid}/assignments`, {
-        scope_type: opt.type, scope_id: opt.id, scope_label: opt.label.replace(/^\s*(Tab|Section|Page):\s*/, ''), assignee_email: aEmail.trim(),
-      });
-      setAEmail(''); setAScopeId('');
+      const results = await Promise.allSettled(aScopes.map((key) => {
+        const opt = scopeOptions.find((o) => `${o.type}:${o.id}` === key);
+        return axios.post(`${API}/projects/${pid}/assignments`, {
+          scope_type: opt.type, scope_id: opt.id,
+          scope_label: opt.label.replace(/^\s*(Tab|Section|Page):\s*/, ''),
+          assignee_email: aEmail.trim(),
+        });
+      }));
+      const email = aEmail.trim();
+      const ok = results.filter((r) => r.status === 'fulfilled').length;
+      const failed = results.length - ok;
       const asg = await axios.get(`${API}/projects/${pid}/assignments`);
       setAssignments(asg.data.assignments);
-      toast.success('Assignment created');
+      if (failed === 0) {
+        setAEmail(''); setAScopes([]); setScopeQuery('');
+        toast.success(`Assigned ${ok} item(s) to ${email}`);
+      } else {
+        toast.error(`${ok} assigned, ${failed} failed — try the failed ones again`);
+      }
     } catch (e) { toast.error('Failed to assign'); } finally { setBusy(false); }
   };
+
+  const toggleScope = (key) => setAScopes((prev) => prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]);
 
   const setAssignmentStatus = async (a, status) => {
     try {
@@ -252,13 +270,49 @@ export default function ReviewConsole() {
             {isOwner && (
               <div className="bg-white rounded-xl border border-zinc-200 p-5 mb-5">
                 <h3 className="font-semibold mb-3 flex items-center gap-2"><UserPlus className="w-4 h-4" /> New assignment</h3>
-                <div className="flex flex-wrap gap-2 items-center">
-                  <select value={aScopeId} onChange={e => setAScopeId(e.target.value)} data-testid="assign-scope" className="border border-zinc-300 rounded-md px-3 py-2 text-sm min-w-[260px]">
-                    <option value="">Select tab / section / page…</option>
-                    {scopeOptions.map(o => <option key={`${o.type}:${o.id}`} value={`${o.type}:${o.id}`}>{o.label}</option>)}
-                  </select>
-                  <input value={aEmail} onChange={e => setAEmail(e.target.value)} placeholder="reviewer@email.com" data-testid="assign-email" className="border border-zinc-300 rounded-md px-3 py-2 text-sm" />
-                  <button onClick={createAssignment} disabled={busy} data-testid="assign-submit" className="px-4 py-2 bg-zinc-900 text-white text-sm font-medium rounded-md disabled:opacity-50">Assign</button>
+                <div className="grid gap-3">
+                  <div>
+                    <label className="text-xs text-zinc-500">Assign these (pick one or many)</label>
+                    <input
+                      value={scopeQuery}
+                      onChange={(e) => setScopeQuery(e.target.value)}
+                      placeholder="Filter tabs / sections / pages…"
+                      data-testid="assign-scope-search"
+                      className="mt-1 w-full border border-zinc-300 rounded-md px-3 py-2 text-sm"
+                    />
+                    <div className="mt-2 max-h-56 overflow-y-auto border border-zinc-200 rounded-md divide-y divide-zinc-100" data-testid="assign-scope-list">
+                      {scopeOptions
+                        .filter((o) => o.label.toLowerCase().includes(scopeQuery.toLowerCase()))
+                        .slice(0, 200)
+                        .map((o) => {
+                          const key = `${o.type}:${o.id}`;
+                          const checked = aScopes.includes(key);
+                          return (
+                            <label key={key} className={`flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer hover:bg-zinc-50 ${o.type !== 'page' ? 'font-medium' : ''}`} data-testid={`assign-option-${o.type}-${o.id}`}>
+                              <input type="checkbox" checked={checked} onChange={() => toggleScope(key)} className="accent-zinc-900" />
+                              <span className={o.type === 'tab' ? 'text-indigo-700' : o.type === 'group' ? 'text-zinc-700' : 'text-zinc-500'}>{o.label.trim()}</span>
+                            </label>
+                          );
+                        })}
+                    </div>
+                    {aScopes.length > 0 && <p className="text-xs text-zinc-500 mt-1" data-testid="assign-selected-count">{aScopes.length} item(s) selected</p>}
+                  </div>
+                  <div className="flex flex-wrap gap-2 items-center">
+                    <input
+                      value={aEmail}
+                      onChange={(e) => setAEmail(e.target.value)}
+                      placeholder="reviewer@emergent.sh"
+                      list="known-emails"
+                      data-testid="assign-email"
+                      className="border border-zinc-300 rounded-md px-3 py-2 text-sm min-w-[240px]"
+                    />
+                    <datalist id="known-emails">
+                      {knownEmails.map((em) => <option key={em} value={em} />)}
+                    </datalist>
+                    <button onClick={createAssignment} disabled={busy} data-testid="assign-submit" className="px-4 py-2 bg-zinc-900 text-white text-sm font-medium rounded-md disabled:opacity-50">
+                      Assign {aScopes.length > 0 ? `(${aScopes.length})` : ''}
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -336,7 +390,10 @@ export default function ReviewConsole() {
       {activeDoc && (
         <div className="fixed inset-0 z-50 flex justify-end bg-black/30" onClick={() => setActiveDoc(null)}>
           <div className="w-[440px] h-full bg-white shadow-xl p-5 overflow-y-auto" onClick={e => e.stopPropagation()} data-testid="review-drawer">
-            <h3 className="font-semibold mb-2">{activeDoc.title}</h3>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-semibold">{activeDoc.title}</h3>
+              <button onClick={() => navigate(`/review/${activeDoc.slug}`)} className="text-xs px-2 py-1 rounded-md border border-indigo-300 text-indigo-700 hover:bg-indigo-50" data-testid="open-inline-review">Open full page ↗</button>
+            </div>
             <label className="text-xs text-zinc-500">Verdict</label>
             <div className="flex flex-wrap gap-1.5 my-2">
               {VERDICTS.map(v => (

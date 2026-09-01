@@ -11,7 +11,20 @@ Build a Mintlify-class documentation platform for **Emergent's Documentation** w
 - AI-powered documentation generation
 - WYSIWYG editor with bi-directional HTML/Markdown sync
 
-## Completed work — June 2026 (Review Mode — Phase 1)
+## Completed work — June 2026 (Review Mode — Phase 2: Inline Review + Multi-assign)
+
+**Inline Review View (`/review/:slug`, `ReviewPage.jsx`)**
+- Read-only render of a page (reuses `DocContent`) with a **Review toggle**. While ON, selecting any text shows a floating **Comment** button that pins a comment to that exact passage (`anchor_text`). A comments rail lists all comments (with the pinned quote); Owners can Resolve/Reopen inline. Reachable from the console drawer's "Open full page ↗" link. Verified by testing_agent (iteration_16).
+
+**Multi-select assignment + email autocomplete**
+- Assignments tab now has a filterable **checkbox list** of all tabs/sections/pages — select many and assign them all to ONE email in a single action (multi POST via `Promise.allSettled`, partial-failure reported). Email field uses a `<datalist>` of **known emails** (`GET /projects/{pid}/known-emails` — users who logged in + owner_invites + prior assignees; NOT a live Emergent workspace directory, which OAuth does not expose).
+- Backend hardening from test review: `POST /assignments` and `/known-emails` are now **owner-gated**; `PUT /assignments/{id}` and `/delegate` restricted to Owner or the assignee.
+
+**Verification**: testing_agent iteration_16 — backend 14/14 (incl. tab-qualified group scopes, multi-assign, done-gate, anchored comments), frontend 100% of tested flows. Follow-up authz + partial-failure + test-id fixes applied and curl-verified (owner endpoints 200).
+
+**Still FAST-FOLLOW**: voice comments + transcription; GET-doc-by-slug perf (inline view currently loads full doc list); resolved/open filter on the review rail; batch-assign endpoint. Next: re-enable Google OAuth (`DISABLE_AUTH`) before real reviewers.
+
+
 
 **Content gate (Draft → In review → Published)**
 - `Document` gained `status` (draft|in_review|published) + `published_content`/`published_title`/`published_at`. Public `/public/default-project`, `/public/projects/{slug}`, `sitemap.xml` and `llms.txt` now serve ONLY published pages (from the published snapshot). New docs default to `draft`.

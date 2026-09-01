@@ -1,0 +1,45 @@
+{
+  "summary": "Full backend+frontend verification of the two new Review Mode features on the preview URL (auth bypassed = dev@local Owner). BACKEND: new pytest suite /app/backend/tests/test_review_mode_multiselect.py - 14/14 PASSED (roles/me owner, known-emails sorted+lowercased, 3 assignments of different scope types for one email, TAB-QUALIFIED group scopes (learn-the-basics::Reference -> ONLY how-credits-work-basics + get-your-first-users; troubleshooting::Reference -> ONLY glossary-of-emergent-terms + faqs, no cross-tab leak), tab flattening (wingman = 4 slugs), assignment delete, done-gate 400 then 200 after resolve, anchored comment create/GET-persist/resolve/reopen/delete, inbox/progress/verdict upsert, no _id leakage). FRONTEND (1) INLINE REVIEW /review/talk-it-through: review-page + review-content + review-comment-list render, review-toggle-btn ON by default, simulated Range selection + mouseup showed floating selection-comment-btn, composer opened with the quoted selection, composer-input + composer-submit created the comment which appeared in the rail with the anchor_text quote ('Comment pinned to selection' toast), reviewpage-resolve-<id> toggled it to Reopen, and turning the toggle OFF correctly suppressed the floating button. 0 console errors. (2) MULTI-SELECT ASSIGNMENT /admin/review > Assignments: 150 scope options, assign-scope-search filters correctly, checked a tab + a section + a page -> assign-selected-count '3 item(s) selected' and button label 'Assign (3)'; with assign-email filled, one click produced toast 'Assigned 3 item(s) to test_ui_multi@emergent.sh' and exactly 3 new rows all with the same assignee (Wingman tab=4 pages, Learn the Basics > Reference group=2 correct pages, page=1); form reset afterwards; empty-selection submit shows 'Pick at least one item and enter an email'. datalist #known-emails present with 2 suggestions (expected - best-effort list). (3) REGRESSION: Publish tab > review-doc-<id> opens the drawer and open-inline-review navigates to /review/<slug> which renders; single-assignment done-gate blocked with 'Resolve all 1 open comment(s) before marking done', then after resolving from the inline review page 'Mark done' succeeded ('Marked done', Done pill). CLEANUP DONE: all test assignments/comments/verdicts removed - DB now 0 assignments, 0 comments, 0 verdicts, 0 published docs.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "POST /api/projects/{pid}/assignments", "issue": "No ensure_owner() check - any authenticated member (not just Owner) can create assignments (and flip doc statuses draft->in_review). PUT /assignments/{aid} and /delegate are likewise ungated (delegate may be intentional)."},
+      {"endpoint": "GET /api/projects/{pid}/known-emails", "issue": "Not owner-gated: exposes every known user/invite/assignee email to any authenticated member. Should require ensure_owner()."},
+      {"endpoint": "POST /api/projects/{pid}/assignments", "issue": "Side-effect not reversible: creating an assignment flips matching draft docs to in_review, but DELETE assignment does not restore the previous status (DB currently shows 121 in_review / 0 draft)."},
+      {"endpoint": "DELETE /api/projects/{pid}/verdicts", "issue": "Still no delete-verdict endpoint (carried over from iteration 15); verdicts can only be overwritten, cleanup needs direct Mongo access."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "ReviewPage comments rail", "issue": "The 'Reopen' button has no data-testid (only the Resolve path has reviewpage-resolve-<id>), so the un-resolve action is not addressable by automation.", "selector": "[data-testid^=\"reviewpage-resolve-\"]", "priority": "LOW"}
+    ],
+    "integration_issues": [
+      {"flow": "Multi-select assign (createAssignment)", "issue": "N independent POSTs via Promise.all with a single catch: if one of N fails the others are still committed, the UI shows only a generic 'Failed to assign', and the form/selection is not restored -> silent partial assignment. Consider a batch endpoint (accept a list of scopes) or per-item error reporting.", "affected_selectors": ["assign-submit", "assign-scope-list"]},
+      {"flow": "ReviewPage load", "issue": "Fetches the whole GET /projects/{pid}/documents list (121 docs incl. full content) just to find one slug; a GET-by-slug endpoint would cut the ~10s hydration cost of /review/<slug>.", "affected_selectors": ["review-page"]}
+    ],
+    "design_issues": [
+      {"screen": "/review/<slug>", "issues": ["Pinned quote in the comment card is very light (text-zinc-500 italic at 12px) on white - borderline contrast for a key piece of information", "Comments rail has no filter/section for resolved vs open comments; resolved cards stay inline in the same list"]},
+      {"screen": "/admin/review Assignments", "issues": ["Scope checkbox list max-h-56 with 150 options makes finding an item without the filter tedious; no 'select all filtered' / 'clear selection' shortcut", "Selected items are only shown as a count - no chips of what is currently checked once scrolled away"]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_review_mode_multiselect.py", "/app/backend/tests/cleanup_review_test_data.py", "/app/test_reports/pytest/review_multiselect.xml"],
+  "action_items": [
+    "Add ensure_owner() to POST /assignments and GET /known-emails (currently any member can assign / read all emails).",
+    "Handle partial failure in the multi-assign Promise.all (batch endpoint or per-item error toast).",
+    "Add data-testid to the ReviewPage 'Reopen' button.",
+    "Optional: add GET document-by-slug to avoid downloading all 121 docs on /review/<slug>."
+  ],
+  "critical_code_review_comments": [
+    "review_routes.flatten_scope_slugs group handling is correct and tab-qualified; keep the legacy unqualified fallback documented since ReviewConsole always emits 'tabId::group'.",
+    "createAssignment reads aScopes.length for the toast after setAScopes([]) - works only because of the closure snapshot; make it an explicit local variable to avoid a future refactor bug.",
+    "No owner check on assignment creation means the publish/review gating can be bypassed by a member once real auth is re-enabled."
+  ],
+  "updated_files": ["/app/backend/tests/test_review_mode_multiselect.py", "/app/backend/tests/cleanup_review_test_data.py"],
+  "success_rate": {"backend": "100% (14/14)", "frontend": "100% of tested flows (inline review, multi-select assign, done-gate, drawer link)"},
+  "seed_data_creation": "Temporary assignments for test_multi_reviewer@emergent.sh / test_ui_multi@emergent.sh / test_gate_ui@emergent.sh, TEST_ comments on talk-it-through, and one dev@local verdict - ALL deleted afterwards (0 assignments / 0 comments / 0 verdicts / 0 published docs remain).",
+  "should_call_test_agent_after_fix": false,
+  "should_main_agent_self_test": true,
+  "test_credentials": "Auth bypassed (DISABLE_AUTH=true) -> dev@local, role owner, per /app/memory/test_credentials.md",
+  "context_for_next_testing_agent": "Reusable suite: /app/backend/tests/test_review_mode_multiselect.py (14 tests, self-cleaning) and cleanup_review_test_data.py for DB hygiene. pid=d901b4ab-a271-4aff-b63a-bf92d73b9bb0. Two 'Reference' groups exist (learn-the-basics, troubleshooting) - use them for tab-qualified group-scope checks. To trigger the floating comment button in headless Chrome: build a Range over a text node inside [data-testid=review-content] p, add to window.getSelection(), then dispatch a bubbling mouseup on the <p>. /review/<slug> and /admin/review need ~10-45s to hydrate; wait on data-testid rather than networkidle. Note [data-testid^=\"assignment-\"] also matches nested elements - count rows by unique assignment id or by assignee text.",
+  "rca_of_the_issue": "No functional defects found in the two new features. The only real risks are authorization gaps (POST /assignments and GET /known-emails lack ensure_owner) and the non-atomic multi-assign (N parallel POSTs with a single catch), both of which are latent rather than currently visible because auth is bypassed and the happy path succeeds."
+}
