@@ -11,6 +11,12 @@ Build a Mintlify-class documentation platform for **Emergent's Documentation** w
 - AI-powered documentation generation
 - WYSIWYG editor with bi-directional HTML/Markdown sync
 
+## Completed work — June 2026 (Learn the Basics — plain-language rewrite)
+- Rewrote all 18 first-tab pages for non-technical readers via a grounded LLM pass (`scripts_edu/learn_rewrite.py`): "UX/UI"→"how your app looks and feels", "deploy/publish/put live"→"making it live", "environment variable/secret"→"a private key for your service", define-then-reuse for API ("a connection to another service (API)") and database ("where your app stores its information (database)"). Real product control names (the **Deploy** button, **Environment Variables** panel, doc-link titles) intentionally preserved for accuracy.
+- Content folded into existing pages (no new pages/sections): B1+B3 plan-mode-from-a-rough-idea (short line in "Talk it through" + fuller paragraph in "Write prompts that work"; explicitly points to plan mode, NOT an outside AI); B2 copy-paste starter prompts inside "Write prompts that work"; B6 "costs at a glance" intro inside "How credits work".
+- Verified rendering via inline review view (grounded, plain, additions present). B4 excluded per plan. **B5 (recap-of-what-was-built) still PENDING user decision** — not added.
+- Pages remain `in_review` (edits are not public until published).
+
 ## Completed work — June 2026 (Review Mode — Phase 2d: nested scopes + reassign confirm)
 - **Nested subgroup scopes**: assignment scope picker (frontend `scopeOptions`/`descendants`) and backend `flatten_scope_slugs` now RECURSE into nested subgroups. Fixes "Build › Deployments shows 0 pages" — its 'Common' (8) and 'Web flow' (4) subgroups now appear as indented sub-sections and the Deployments section cascade-selects all 12 nested pages. (The Deployments group was never broken in the public/editor nav — pages are nested; this was the Review Console scope list only.)
 - **Reassign confirmation**: delegate now prompts for the new email, blocks same-email, and shows a `window.confirm` referencing the previous assignee before reassigning.
