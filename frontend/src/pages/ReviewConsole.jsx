@@ -4,8 +4,9 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import {
   Inbox, ClipboardList, BarChart3, Send, CheckCircle2, RotateCcw, Trash2,
-  ArrowLeft, MessageSquarePlus, Loader2, UserPlus,
+  ArrowLeft, MessageSquarePlus, Loader2, UserPlus, Sun, Moon, Filter,
 } from 'lucide-react';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -16,14 +17,14 @@ const VERDICTS = [
 
 const StatusPill = ({ s }) => {
   const map = {
-    published: 'bg-emerald-100 text-emerald-700',
-    in_review: 'bg-amber-100 text-amber-700',
-    draft: 'bg-zinc-200 text-zinc-600',
-    done: 'bg-emerald-100 text-emerald-700',
-    not_started: 'bg-zinc-200 text-zinc-600',
+    published: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400',
+    in_review: 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400',
+    draft: 'bg-zinc-200 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400',
+    done: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400',
+    not_started: 'bg-zinc-200 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400',
   };
   const label = { published: 'Published', in_review: 'In review', draft: 'Draft', done: 'Done', not_started: 'Not started' };
-  return <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${map[s] || 'bg-zinc-200 text-zinc-600'}`}>{label[s] || s}</span>;
+  return <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${map[s] || 'bg-zinc-200 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400'}`}>{label[s] || s}</span>;
 };
 
 export default function ReviewConsole() {
@@ -47,6 +48,8 @@ export default function ReviewConsole() {
   const [knownEmails, setKnownEmails] = useState([]);
   const [aEmail, setAEmail] = useState('');
   const [busy, setBusy] = useState(false);
+  const [reviewerFilter, setReviewerFilter] = useState('');
+  const { isDark, toggleTheme } = useTheme();
 
   const isOwner = role?.is_owner;
 
@@ -245,14 +248,14 @@ export default function ReviewConsole() {
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center bg-zinc-50"><Loader2 className="w-6 h-6 animate-spin text-zinc-400" /></div>;
+    return <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-950"><Loader2 className="w-6 h-6 animate-spin text-zinc-400" /></div>;
   }
 
   const TabBtn = ({ id, icon: Icon, label, badge }) => (
     <button
       onClick={() => setTab(id)}
       data-testid={`review-tab-${id}`}
-      className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${tab === id ? 'bg-zinc-900 text-white' : 'text-zinc-600 hover:bg-zinc-100'}`}
+      className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${tab === id ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900' : 'text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'}`}
     >
       <Icon className="w-4 h-4" /> {label}
       {badge > 0 && <span className="ml-1 text-[10px] px-1.5 py-0.5 rounded-full bg-rose-500 text-white" data-testid={`${id}-badge`}>{badge}</span>}
@@ -260,17 +263,22 @@ export default function ReviewConsole() {
   );
 
   return (
-    <div className="min-h-screen bg-zinc-50 text-zinc-900" data-testid="review-console">
-      <header className="h-14 px-6 flex items-center justify-between border-b border-zinc-200 bg-white">
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100" data-testid="review-console">
+      <header className="h-14 px-6 flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate('/admin/dashboard')} className="p-1.5 hover:bg-zinc-100 rounded-md" data-testid="review-back"><ArrowLeft className="w-4 h-4" /></button>
+          <button onClick={() => navigate('/admin/dashboard')} className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md" data-testid="review-back"><ArrowLeft className="w-4 h-4" /></button>
           <h1 className="font-semibold">Review Console</h1>
-          <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-medium" data-testid="review-role">{isOwner ? 'Owner' : 'Reviewer'}</span>
+          <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-400 font-medium" data-testid="review-role">{isOwner ? 'Owner' : 'Reviewer'}</span>
         </div>
-        <span className="text-sm text-zinc-500">{role?.email}</span>
+        <div className="flex items-center gap-3">
+          <button onClick={toggleTheme} className="p-1.5 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400" data-testid="theme-toggle" aria-label="Toggle theme">
+            {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </button>
+          <span className="text-sm text-zinc-500 dark:text-zinc-400">{role?.email}</span>
+        </div>
       </header>
 
-      <div className="px-6 py-3 flex items-center gap-2 border-b border-zinc-200 bg-white">
+      <div className="px-6 py-3 flex items-center gap-2 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
         {isOwner && <TabBtn id="overview" icon={BarChart3} label="Overview" />}
         <TabBtn id="assignments" icon={ClipboardList} label={isOwner ? 'Assignments' : 'My Reviews'} />
         {isOwner && <TabBtn id="inbox" icon={Inbox} label="Review Inbox" badge={inbox.unread} />}
@@ -281,19 +289,19 @@ export default function ReviewConsole() {
         {/* OVERVIEW */}
         {tab === 'overview' && isOwner && (
           <div className="grid grid-cols-2 gap-4" data-testid="review-overview">
-            <div className="bg-white rounded-xl border border-zinc-200 p-5">
+            <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-5">
               <h3 className="font-semibold mb-3">Documents</h3>
               {Object.entries(progress?.docs_by_status || {}).map(([k, v]) => (
                 <div key={k} className="flex items-center justify-between py-1.5"><StatusPill s={k} /><span className="font-semibold">{v}</span></div>
               ))}
             </div>
-            <div className="bg-white rounded-xl border border-zinc-200 p-5">
+            <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-5">
               <h3 className="font-semibold mb-3">Assignments</h3>
               <p className="text-sm text-zinc-500 mb-2">{progress?.total_assignments || 0} total</p>
               {Object.entries(progress?.assignments_by_status || {}).map(([k, v]) => (
                 <div key={k} className="flex items-center justify-between py-1.5"><StatusPill s={k} /><span className="font-semibold">{v}</span></div>
               ))}
-              <div className="mt-3 flex items-center justify-between border-t pt-3">
+              <div className="mt-3 flex items-center justify-between border-t border-zinc-200 dark:border-zinc-800 pt-3">
                 <span className="text-sm text-zinc-500">Open comments</span><span className="font-semibold">{inbox.open}</span>
               </div>
             </div>
@@ -304,7 +312,7 @@ export default function ReviewConsole() {
         {tab === 'assignments' && (
           <div data-testid="review-assignments">
             {isOwner && (
-              <div className="bg-white rounded-xl border border-zinc-200 p-5 mb-5">
+              <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-5 mb-5">
                 <h3 className="font-semibold mb-3 flex items-center gap-2"><UserPlus className="w-4 h-4" /> New assignment</h3>
                 <div className="grid gap-3">
                   <div>
@@ -314,9 +322,9 @@ export default function ReviewConsole() {
                       onChange={(e) => setScopeQuery(e.target.value)}
                       placeholder="Filter tabs / sections / pages…"
                       data-testid="assign-scope-search"
-                      className="mt-1 w-full border border-zinc-300 rounded-md px-3 py-2 text-sm"
+                      className="mt-1 w-full border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 rounded-md px-3 py-2 text-sm"
                     />
-                    <div className="mt-2 max-h-56 overflow-y-auto border border-zinc-200 rounded-md divide-y divide-zinc-100" data-testid="assign-scope-list">
+                    <div className="mt-2 max-h-56 overflow-y-auto border border-zinc-200 dark:border-zinc-800 rounded-md divide-y divide-zinc-100 dark:divide-zinc-800" data-testid="assign-scope-list">
                       {scopeOptions
                         .filter((o) => o.label.toLowerCase().includes(scopeQuery.toLowerCase()))
                         .slice(0, 200)
@@ -326,9 +334,9 @@ export default function ReviewConsole() {
                           const checked = kids && kids.length ? kids.every((k) => aScopes.includes(k)) : aScopes.includes(key);
                           const some = kids && kids.length ? kids.some((k) => aScopes.includes(k)) : false;
                           return (
-                            <label key={key} className={`flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer hover:bg-zinc-50 ${o.type !== 'page' ? 'font-medium' : ''}`} data-testid={`assign-option-${o.type}-${o.id}`}>
-                              <input type="checkbox" checked={checked} ref={(el) => { if (el) el.indeterminate = some && !checked; }} onChange={() => toggleScope(key)} className="accent-zinc-900" />
-                              <span className={o.type === 'tab' ? 'text-indigo-700' : o.type === 'group' ? 'text-zinc-700' : 'text-zinc-500'}>{o.label.trim()}</span>
+                            <label key={key} className={`flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800 ${o.type !== 'page' ? 'font-medium' : ''}`} data-testid={`assign-option-${o.type}-${o.id}`}>
+                              <input type="checkbox" checked={checked} ref={(el) => { if (el) el.indeterminate = some && !checked; }} onChange={() => toggleScope(key)} className="accent-zinc-900 dark:accent-white" />
+                              <span className={o.type === 'tab' ? 'text-indigo-700 dark:text-indigo-400' : o.type === 'group' ? 'text-zinc-700 dark:text-zinc-300' : 'text-zinc-500 dark:text-zinc-400'}>{o.label.trim()}</span>
                             </label>
                           );
                         })}
@@ -342,22 +350,37 @@ export default function ReviewConsole() {
                       placeholder="reviewer@emergent.sh"
                       list="known-emails"
                       data-testid="assign-email"
-                      className="border border-zinc-300 rounded-md px-3 py-2 text-sm min-w-[240px]"
+                      className="border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 rounded-md px-3 py-2 text-sm min-w-[240px]"
                     />
                     <datalist id="known-emails">
                       {knownEmails.map((em) => <option key={em} value={em} />)}
                     </datalist>
-                    <button onClick={createAssignment} disabled={busy} data-testid="assign-submit" className="px-4 py-2 bg-zinc-900 text-white text-sm font-medium rounded-md disabled:opacity-50">
+                    <button onClick={createAssignment} disabled={busy} data-testid="assign-submit" className="px-4 py-2 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-sm font-medium rounded-md disabled:opacity-50">
                       Assign {aScopes.length > 0 ? `(${aScopes.length})` : ''}
                     </button>
                   </div>
                 </div>
               </div>
             )}
+            <div className="flex items-center gap-2 mb-3">
+              <div className="relative flex-1 max-w-xs">
+                <Filter className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+                <input
+                  value={reviewerFilter}
+                  onChange={(e) => setReviewerFilter(e.target.value)}
+                  placeholder="Show reviews for email…"
+                  data-testid="assign-reviewer-filter"
+                  className="w-full border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 rounded-md pl-8 pr-3 py-1.5 text-sm"
+                />
+              </div>
+              {reviewerFilter && <button onClick={() => setReviewerFilter('')} className="text-xs text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200">Clear</button>}
+            </div>
             <div className="space-y-2">
-              {assignments.length === 0 && <p className="text-sm text-zinc-500" data-testid="assign-empty">No assignments yet.</p>}
-              {assignments.map(a => (
-                <div key={a.id} className="bg-white rounded-lg border border-zinc-200 p-4 flex items-center justify-between" data-testid={`assignment-${a.id}`}>
+              {(() => {
+                const shown = assignments.filter(a => !reviewerFilter.trim() || (a.assignee_email || '').toLowerCase().includes(reviewerFilter.trim().toLowerCase()));
+                if (shown.length === 0) return <p className="text-sm text-zinc-500 dark:text-zinc-400" data-testid="assign-empty">{assignments.length === 0 ? 'No assignments yet.' : 'No reviews match that email.'}</p>;
+                return shown.map(a => (
+                <div key={a.id} className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 p-4 flex items-center justify-between" data-testid={`assignment-${a.id}`}>
                   <div className="flex-1">
                     <div className="font-medium">{a.scope_label} <span className="text-xs text-zinc-400">({a.scope_type})</span></div>
                     <div className="text-xs text-zinc-500">{a.assignee_email} · {a.slugs?.length || 0} page(s){a.delegated_from ? ` · delegated from ${a.delegated_from}` : ''}</div>
@@ -365,7 +388,7 @@ export default function ReviewConsole() {
                       {(a.slugs || []).map(s => {
                         const doc = documents.find(x => x.slug === s);
                         return (
-                          <button key={s} onClick={() => navigate(`/review/${s}`)} className="text-xs px-2 py-0.5 rounded-full bg-zinc-100 hover:bg-indigo-100 text-zinc-600" data-testid={`review-page-${s}`}>
+                          <button key={s} onClick={() => navigate(`/review/${s}`)} className="text-xs px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 text-zinc-600 dark:text-zinc-300" data-testid={`review-page-${s}`}>
                             {doc?.title || s}
                           </button>
                         );
@@ -374,31 +397,30 @@ export default function ReviewConsole() {
                   </div>
                   <div className="flex items-center gap-2">
                     <StatusPill s={a.status} />
-                    {a.status !== 'done' && <button onClick={() => setAssignmentStatus(a, 'done')} className="text-xs px-2 py-1 rounded-md border border-emerald-300 text-emerald-700 hover:bg-emerald-50" data-testid={`assignment-done-${a.id}`}>Mark done</button>}
-                    {a.status === 'done' && <button onClick={() => setAssignmentStatus(a, 'in_review')} className="text-xs px-2 py-1 rounded-md border border-zinc-300 text-zinc-600 hover:bg-zinc-50">Reopen</button>}
-                    <button onClick={() => delegate(a)} className="text-xs px-2 py-1 rounded-md border border-zinc-300 text-zinc-600 hover:bg-zinc-50" data-testid={`assignment-delegate-${a.id}`}>Delegate</button>
-                    {isOwner && <button onClick={async () => { await axios.delete(`${API}/projects/${pid}/assignments/${a.id}`); setAssignments(p => p.filter(x => x.id !== a.id)); }} className="p-1 text-rose-500 hover:bg-rose-50 rounded"><Trash2 className="w-4 h-4" /></button>}
+                    {a.status !== 'done' && <button onClick={() => setAssignmentStatus(a, 'done')} className="text-xs px-2 py-1 rounded-md border border-emerald-300 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10" data-testid={`assignment-done-${a.id}`}>Mark done</button>}
+                    {a.status === 'done' && <button onClick={() => setAssignmentStatus(a, 'in_review')} className="text-xs px-2 py-1 rounded-md border border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800">Reopen</button>}
+                    <button onClick={() => delegate(a)} className="text-xs px-2 py-1 rounded-md border border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800" data-testid={`assignment-delegate-${a.id}`}>Delegate</button>
+                    {isOwner && <button data-testid={`assignment-delete-btn-${a.id}`} onClick={async () => { await axios.delete(`${API}/projects/${pid}/assignments/${a.id}`); setAssignments(p => p.filter(x => x.id !== a.id)); }} className="p-1 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded"><Trash2 className="w-4 h-4" /></button>}
                   </div>
                 </div>
-              ))}
+                ));
+              })()}
             </div>
           </div>
         )}
-
-        {/* INBOX */}
         {tab === 'inbox' && isOwner && (
           <div className="space-y-2" data-testid="review-inbox">
             {inbox.comments.length === 0 && <p className="text-sm text-zinc-500">No comments yet.</p>}
             {inbox.comments.map(c => (
-              <div key={c.id} className="bg-white rounded-lg border border-zinc-200 p-4" data-testid={`inbox-comment-${c.id}`}>
+              <div key={c.id} className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 p-4" data-testid={`inbox-comment-${c.id}`}>
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-sm font-medium">{c.author_name || c.author_email} <span className="text-xs text-zinc-400">on {c.doc_slug}</span></span>
                   {c.resolved
-                    ? <button onClick={() => resolveComment(c, false)} className="text-xs flex items-center gap-1 text-zinc-500 hover:text-zinc-800"><RotateCcw className="w-3 h-3" /> Reopen</button>
-                    : <button onClick={() => resolveComment(c, true)} className="text-xs flex items-center gap-1 text-emerald-600 hover:text-emerald-800" data-testid={`resolve-${c.id}`}><CheckCircle2 className="w-3 h-3" /> Resolve</button>}
+                    ? <button onClick={() => resolveComment(c, false)} className="text-xs flex items-center gap-1 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"><RotateCcw className="w-3 h-3" /> Reopen</button>
+                    : <button onClick={() => resolveComment(c, true)} className="text-xs flex items-center gap-1 text-emerald-600 dark:text-emerald-400 hover:text-emerald-800" data-testid={`resolve-${c.id}`}><CheckCircle2 className="w-3 h-3" /> Resolve</button>}
                 </div>
-                {c.anchor_text && <div className="text-xs italic text-zinc-500 border-l-2 border-zinc-300 pl-2 mb-1">“{c.anchor_text}”</div>}
-                <p className="text-sm text-zinc-700">{c.body}</p>
+                {c.anchor_text && <div className="text-xs italic text-zinc-500 dark:text-zinc-400 border-l-2 border-zinc-300 dark:border-zinc-700 pl-2 mb-1">“{c.anchor_text}”</div>}
+                <p className="text-sm text-zinc-700 dark:text-zinc-200">{c.body}</p>
                 {c.resolved && <span className="text-[10px] text-emerald-600 font-medium">Resolved</span>}
               </div>
             ))}
@@ -409,14 +431,14 @@ export default function ReviewConsole() {
         {tab === 'publish' && isOwner && (
           <div className="space-y-1" data-testid="review-publish">
             {documents.map(d => (
-              <div key={d.id} className="bg-white rounded-lg border border-zinc-200 px-4 py-2.5 flex items-center justify-between">
-                <button onClick={() => navigate(`/admin/editor/${pid}/${d.id}`)} className="text-sm text-left hover:underline">{d.title}</button>
+              <div key={d.id} className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 px-4 py-2.5 flex items-center justify-between">
+                <button onClick={() => navigate(`/review/${d.slug}`)} className="text-sm text-left hover:underline" data-testid={`publish-title-${d.id}`}>{d.title}</button>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => navigate(`/review/${d.slug}`)} className="text-xs px-2 py-1 rounded-md border border-indigo-300 text-indigo-700 hover:bg-indigo-50" data-testid={`review-doc-${d.id}`}>Review page ↗</button>
+                  <button onClick={() => navigate(`/review/${d.slug}`)} className="text-xs px-2 py-1 rounded-md border border-indigo-300 dark:border-indigo-500/40 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10" data-testid={`review-doc-${d.id}`}>Review page ↗</button>
                   <StatusPill s={d.status || 'in_review'} />
                   {d.status === 'published'
-                    ? <button onClick={() => publishDoc(d, false)} className="text-xs px-2 py-1 rounded-md border border-rose-300 text-rose-600 hover:bg-rose-50" data-testid={`takedown-${d.id}`}>Take down</button>
-                    : <button onClick={() => publishDoc(d, true)} className="text-xs px-2 py-1 rounded-md bg-zinc-900 text-white" data-testid={`publish-${d.id}`}>Publish</button>}
+                    ? <button onClick={() => publishDoc(d, false)} className="text-xs px-2 py-1 rounded-md border border-rose-300 dark:border-rose-500/40 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10" data-testid={`takedown-${d.id}`}>Take down</button>
+                    : <button onClick={() => publishDoc(d, true)} className="text-xs px-2 py-1 rounded-md bg-zinc-900 dark:bg-white text-white dark:text-zinc-900" data-testid={`publish-${d.id}`}>Publish</button>}
                 </div>
               </div>
             ))}
@@ -427,30 +449,30 @@ export default function ReviewConsole() {
       {/* Doc review drawer */}
       {activeDoc && (
         <div className="fixed inset-0 z-50 flex justify-end bg-black/30" onClick={() => setActiveDoc(null)}>
-          <div className="w-[440px] h-full bg-white shadow-xl p-5 overflow-y-auto" onClick={e => e.stopPropagation()} data-testid="review-drawer">
+          <div className="w-[440px] h-full bg-white dark:bg-zinc-900 border-l border-zinc-200 dark:border-zinc-800 shadow-xl p-5 overflow-y-auto" onClick={e => e.stopPropagation()} data-testid="review-drawer">
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-semibold">{activeDoc.title}</h3>
-              <button onClick={() => navigate(`/review/${activeDoc.slug}`)} className="text-xs px-2 py-1 rounded-md border border-indigo-300 text-indigo-700 hover:bg-indigo-50" data-testid="open-inline-review">Open full page ↗</button>
+              <button onClick={() => navigate(`/review/${activeDoc.slug}`)} className="text-xs px-2 py-1 rounded-md border border-indigo-300 dark:border-indigo-500/40 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10" data-testid="open-inline-review">Open full page ↗</button>
             </div>
             <label className="text-xs text-zinc-500">Verdict</label>
             <div className="flex flex-wrap gap-1.5 my-2">
               {VERDICTS.map(v => (
-                <button key={v} onClick={() => saveVerdict(v)} className={`text-xs px-2 py-1 rounded-full border ${verdict === v ? 'bg-zinc-900 text-white border-zinc-900' : 'border-zinc-300 text-zinc-600 hover:bg-zinc-100'}`} data-testid={`verdict-${v.replace(/\W+/g, '-')}`}>{v}</button>
+                <button key={v} onClick={() => saveVerdict(v)} className={`text-xs px-2 py-1 rounded-full border ${verdict === v ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 border-zinc-900 dark:border-white' : 'border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'}`} data-testid={`verdict-${v.replace(/\W+/g, '-')}`}>{v}</button>
               ))}
             </div>
             <div className="mt-4">
               <label className="text-xs text-zinc-500">Comments</label>
               <div className="space-y-2 my-2">
                 {comments.map(c => (
-                  <div key={c.id} className="text-sm border border-zinc-200 rounded-md p-2">
+                  <div key={c.id} className="text-sm border border-zinc-200 dark:border-zinc-800 rounded-md p-2">
                     <div className="text-xs text-zinc-400">{c.author_name || c.author_email}{c.resolved ? ' · resolved' : ''}</div>
                     <p>{c.body}</p>
                   </div>
                 ))}
                 {comments.length === 0 && <p className="text-xs text-zinc-400">No comments yet.</p>}
               </div>
-              <textarea value={newComment} onChange={e => setNewComment(e.target.value)} placeholder="Leave a comment…" data-testid="drawer-comment-input" className="w-full border border-zinc-300 rounded-md p-2 text-sm" rows={3} />
-              <button onClick={addComment} disabled={busy} className="mt-2 flex items-center gap-2 px-3 py-1.5 bg-zinc-900 text-white text-sm rounded-md disabled:opacity-50" data-testid="drawer-comment-submit"><MessageSquarePlus className="w-4 h-4" /> Add comment</button>
+              <textarea value={newComment} onChange={e => setNewComment(e.target.value)} placeholder="Leave a comment…" data-testid="drawer-comment-input" className="w-full border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 rounded-md p-2 text-sm" rows={3} />
+              <button onClick={addComment} disabled={busy} className="mt-2 flex items-center gap-2 px-3 py-1.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-sm rounded-md disabled:opacity-50" data-testid="drawer-comment-submit"><MessageSquarePlus className="w-4 h-4" /> Add comment</button>
             </div>
           </div>
         </div>

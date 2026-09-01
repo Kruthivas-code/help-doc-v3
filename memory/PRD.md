@@ -11,6 +11,12 @@ Build a Mintlify-class documentation platform for **Emergent's Documentation** w
 - AI-powered documentation generation
 - WYSIWYG editor with bi-directional HTML/Markdown sync
 
+## Completed work — June 2026 (Review Mode — Phase 2c: Dark mode + contrast + discoverability)
+- **Contrast fix**: inline Review page was white-on-white in dark theme because the Review pages hardcoded a light background while `DocContent` renders per-theme (white) text. Both `ReviewPage.jsx` and `ReviewConsole.jsx` now fully support light/dark (measured contrast: dark body ~13:1, headings ~19:1; light ~19:1) with a **theme toggle** (data-testid `theme-toggle`) in each header.
+- **Publish link fix**: Publish-tab page title now opens the inline review page `/review/<slug>` (data-testid `publish-title-<id>`) instead of the admin editor.
+- **Reviewer filter ("My Reviews")**: Assignments tab has an email filter (`assign-reviewer-filter`) to preview any reviewer's queue while auth is bypassed; once real login is on, non-owners auto-see only their own (server-side `mine` filter). NOTE: a true org-wide address book needs a Google Workspace Directory integration (OAuth does not expose it); the email autocomplete is a best-effort suggestion list.
+- Verified across testing_agent iterations 18 & 19 (all 4 user items pass; dark-mode contrast HIGH bugs fixed, re-measured via computed WCAG contrast). Pre-existing `vishal.k@emergent.sh` assignments in DB are the user's own test data — left intact.
+
 ## Completed work — June 2026 (Review Mode — Phase 2b: Discoverability + cascade)
 - Inline Review View (`/review/:slug`) is now reachable directly: the Publish-tab per-row **"Review page ↗"** button and the assignment **page chips** navigate straight to it, and the inline page now carries **verdict chips** (so it's the full review surface: read + highlight-pin comments + verdict + resolve/reopen).
 - Multi-select assignment now **cascades**: checking a Tab selects all its sections + pages; checking a Section selects its pages (selected-count reflects page count). Partial selections render an **indeterminate** checkbox.
