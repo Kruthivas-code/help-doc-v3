@@ -90,9 +90,13 @@ def register_review_routes(api_router, ctx):
                     grp, tgt_tab = scope_id, None
                 if tgt_tab and t.get("id") != tgt_tab and t.get("label") != tgt_tab:
                     continue
-                for g in t.get("groups", []):
-                    if g.get("group") == grp:
-                        collect(g)
+
+                def _find(groups):
+                    for g in groups:
+                        if g.get("group") == grp:
+                            collect(g)
+                        _find(g.get("groups", []))
+                _find(t.get("groups", []))
         return slugs
 
     async def grant_owner(email):

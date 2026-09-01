@@ -1,0 +1,20 @@
+{
+  "summary": "Verified both fixes on /admin/review (auth bypassed, Owner=dev@local). Backend: new pytest suite (8 passed, 1 skipped) proves flatten_scope_slugs recurses into nested subgroups - 'build::Deployments' -> 12 slugs, 'build::Web flow' -> 4, 'build::Common' -> 8, tab 'learn-the-basics' -> 18, unknown group -> [], delegate sets assignee + delegated_from, delegate on unknown id -> 404, delete removes assignment. Frontend Playwright: nested subgroups appear as indented Section options (Build > Deployments, > Common, > Web flow) plus their page options; cascade on Deployments selects 12, on Web flow selects exactly the 4 expected pages (nested subgroup checkboxes reflect checked state); assignment creation works; reassign/delegate now shows prompt then a window.confirm quoting previous assignee - accept reassigns (row shows 'second@emergent.sh - delegated from first@emergent.sh'), dismiss leaves it unchanged, same email shows 'Already assigned to that email' toast with no confirm/no API call. Regression: Learn the Basics cascade (18), reviewer filter (match + empty state), dark mode toggle all OK. All created assignments cleaned up (DB back to 18 pre-existing vishal.k@emergent.sh rows, published count 0) and documents flipped to in_review by test assignments were reverted to draft.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": ["/app/backend/tests/test_nested_scope_and_delegate.py", "/app/test_reports/pytest/nested_scope.xml"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "review_routes.py flatten_scope_slugs._find(): after a name match it still recurses into that group's children, so a subgroup sharing its parent's name would duplicate slugs; slugs are never de-duplicated (consider set/dedupe).",
+    "Assignment creation flips matching draft docs to in_review, but DELETE /assignments/{id} never reverts document status - deleted/abandoned assignments leave docs stuck in 'in_review' (109 docs currently in_review vs 18 assignments, i.e. stale state accumulated from earlier runs).",
+    "Cascade selection posts one assignment per page (4 rows for 'Web flow') instead of a single group-scoped assignment; group scope_type is supported by the backend, so this is a UX/data-volume consideration."
+  ],
+  "updated_files": ["/app/backend/tests/test_nested_scope_and_delegate.py"],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "seed_data_creation": "Temporary assignments (TEST_nested@, TEST_webflow@, first@/second@emergent.sh) - all deleted; doc statuses restored to draft.",
+  "should_call_test_agent_after_fix": false,
+  "should_main_agent_self_test": false,
+  "test_credentials": "Auth bypassed: /admin/review = Owner dev@local",
+  "context_for_next_testing_agent": "Beware selector '[data-testid^=\"assignment-\"]' also matches assignment-delete-btn/delegate/done buttons (4x inflation); use '[data-testid^=\"assignment-\"]:not([data-testid*=\"-btn-\"])' or count rows via API. Assignee emails are lowercased server-side. Pre-existing state to preserve: 18 vishal.k@emergent.sh page assignments, published=0, comments=0. Note stale in_review docs (109) unrelated to current assignments.",
+  "rca_of_the_issue": "N/A - both reported fixes verified working end-to-end."
+}

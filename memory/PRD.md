@@ -11,6 +11,12 @@ Build a Mintlify-class documentation platform for **Emergent's Documentation** w
 - AI-powered documentation generation
 - WYSIWYG editor with bi-directional HTML/Markdown sync
 
+## Completed work — June 2026 (Review Mode — Phase 2d: nested scopes + reassign confirm)
+- **Nested subgroup scopes**: assignment scope picker (frontend `scopeOptions`/`descendants`) and backend `flatten_scope_slugs` now RECURSE into nested subgroups. Fixes "Build › Deployments shows 0 pages" — its 'Common' (8) and 'Web flow' (4) subgroups now appear as indented sub-sections and the Deployments section cascade-selects all 12 nested pages. (The Deployments group was never broken in the public/editor nav — pages are nested; this was the Review Console scope list only.)
+- **Reassign confirmation**: delegate now prompts for the new email, blocks same-email, and shows a `window.confirm` referencing the previous assignee before reassigning.
+- Verified by testing_agent iteration_20 (backend 8/8 pytest incl. build::Deployments->12, Web flow->4, Common->8, learn-the-basics->18; frontend nested options + cascade + confirm dialog). 100%.
+- PENDING USER APPROVAL: Tab-1 ("Learn the Basics") plain-language rewrite (remove jargon: UX/UI/API/MVP/schema/stack/deploy/endpoint/OAuth/webhook/env-var/iterate) + new beginner topics incl. "bring a prompt from ChatGPT/other AI to Emergent". Topic list proposed to user; awaiting go-ahead before editing content.
+
 ## Completed work — June 2026 (Review Mode — Phase 2c: Dark mode + contrast + discoverability)
 - **Contrast fix**: inline Review page was white-on-white in dark theme because the Review pages hardcoded a light background while `DocContent` renders per-theme (white) text. Both `ReviewPage.jsx` and `ReviewConsole.jsx` now fully support light/dark (measured contrast: dark body ~13:1, headings ~19:1; light ~19:1) with a **theme toggle** (data-testid `theme-toggle`) in each header.
 - **Publish link fix**: Publish-tab page title now opens the inline review page `/review/<slug>` (data-testid `publish-title-<id>`) instead of the admin editor.

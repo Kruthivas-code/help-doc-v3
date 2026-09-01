@@ -57,10 +57,15 @@ export default function ReviewConsole() {
     const tabs = config?.navigation?.tabs || [];
     const opts = [];
     tabs.forEach(t => {
-      opts.push({ type: 'tab', id: t.id || t.label, label: `Tab: ${t.label}` });
-      (t.groups || []).forEach(g => {
-        opts.push({ type: 'group', id: `${t.id || t.label}::${g.group}`, label: `  Section: ${t.label} › ${g.group}` });
-      });
+      const tabId = t.id || t.label;
+      opts.push({ type: 'tab', id: tabId, label: `Tab: ${t.label}` });
+      const walk = (groups, prefix, depth) => {
+        (groups || []).forEach(g => {
+          opts.push({ type: 'group', id: `${tabId}::${g.group}`, label: `${'\u2003'.repeat(depth)}Section: ${prefix} › ${g.group}` });
+          walk(g.groups, `${prefix} › ${g.group}`, depth + 1);
+        });
+      };
+      walk(t.groups, t.label, 0);
     });
     documents.forEach(d => opts.push({ type: 'page', id: d.slug, label: `Page: ${d.title}` }));
     return opts;
@@ -72,20 +77,17 @@ export default function ReviewConsole() {
     const tabs = config?.navigation?.tabs || [];
     const slugOf = (p) => (typeof p === 'string' ? p : p.page);
     tabs.forEach(t => {
-      const tabKey = `tab:${t.id || t.label}`;
+      const tabId = t.id || t.label;
       const tabPages = [];
-      (t.groups || []).forEach(g => {
-        const grpKey = `group:${t.id || t.label}::${g.group}`;
-        const gp = [];
-        const collect = (gg) => {
-          (gg.pages || []).forEach(p => { const s = slugOf(p); if (s) gp.push(`page:${s}`); });
-          (gg.groups || []).forEach(collect);
-        };
-        collect(g);
-        map[grpKey] = gp;
-        tabPages.push(...gp);
-      });
-      map[tabKey] = tabPages;
+      const collect = (gg) => {
+        const acc = [];
+        (gg.pages || []).forEach(p => { const s = slugOf(p); if (s) acc.push(`page:${s}`); });
+        (gg.groups || []).forEach(sub => { acc.push(...collect(sub)); });
+        map[`group:${tabId}::${gg.group}`] = acc;
+        return acc;
+      };
+      (t.groups || []).forEach(g => { tabPages.push(...collect(g)); });
+      map[`tab:${tabId}`] = Array.from(new Set(tabPages));
     });
     return map;
   }, [config]);
@@ -229,14 +231,18 @@ export default function ReviewConsole() {
   };
 
   const delegate = async (a) => {
-    const email = window.prompt('Delegate this review to (email):');
+    const email = window.prompt(`Currently assigned to ${a.assignee_email}.\nReassign this review to which email?`);
     if (!email) return;
+    if (email.trim().toLowerCase() === (a.assignee_email || '').toLowerCase()) {
+      toast.info('Already assigned to that email'); return;
+    }
+    if (!window.confirm(`This was assigned to ${a.assignee_email}.\nAre you sure you want to reassign it to ${email.trim()}?`)) return;
     try {
-      await axios.post(`${API}/projects/${pid}/assignments/${a.id}/delegate`, { email });
+      await axios.post(`${API}/projects/${pid}/assignments/${a.id}/delegate`, { email: email.trim() });
       const asg = await axios.get(`${API}/projects/${pid}/assignments`);
       setAssignments(asg.data.assignments);
-      toast.success('Delegated');
-    } catch (e) { toast.error('Failed to delegate'); }
+      toast.success(`Reassigned to ${email.trim()}`);
+    } catch (e) { toast.error('Failed to reassign'); }
   };
 
   const publishDoc = async (doc, publish) => {
