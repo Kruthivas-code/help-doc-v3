@@ -712,7 +712,7 @@ const Editor = () => {
         {/* Sidebar Header */}
         <div className="h-14 px-4 flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800/50">
           <button 
-            onClick={() => navigate(`/admin/docs/${projectId}`)}
+            onClick={() => navigate('/admin/dashboard')}
             className="flex items-center gap-2 text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
