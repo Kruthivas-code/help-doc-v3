@@ -23,11 +23,20 @@ Verified by testing_agent **iteration_21** (backend 13/13, frontend 100%; datase
 - **Owner has "New assignment"; reviewers see "Delegate" instead** — plus a **Bulk delegate** panel (`bulk-delegate-panel`) available to BOTH: owner sees per-reviewer rows ("Delegate all N of X's reviews →"), reviewer sees their own queue. New backend `POST /assignments/delegate-bulk {from_email,to_email}` (owner, or reviewer delegating own; `is_owner`/assignee authz).
 - **Gate semantics CHANGED**: `PUT /assignments/{id}` status=done now requires the **assignee's verdict on every slug** (no longer comment-gated). `POST /documents/{id}/publish` is now **blocked while the page has unresolved comments**. (Note: verdicts are POSTed as the logged-in user, so only the assignee can satisfy the done-gate; owner force-close would need delegate/delete — intentional per spec.)
 
-## Status note — June 2026 (still pending)
-- **DONE this turn**: old-docs link sweep (item 1) — see section above.
-- **DEFERRED (not started, next turn):**
-  1. **Reviewer side-nav on ReviewPage** (`/review/:slug`): add a left sidebar listing ONLY the pages assigned to that reviewer, allowing navigation to the next assigned page from within the review view. Before navigating away, remind the reviewer of the verdict they gave (or that none was given) with an option to "review later" and proceed anyway.
-  2. **Re-enable Emergent Google OAuth** (remove `DISABLE_AUTH=true` bypass in `/app/backend/.env` + server.py bypass; must go through integration_expert). MUST be done LAST, after #1, so the user isn't locked out mid-testing. Retire the "Preview as reviewer" dev toggle at this point.
+## Completed work — June 2026 (Reviewer side-nav, progress, page-delegate, GO-LIVE auth)
+Verified: testing_agent **iteration_22** (side-nav/progress/nudge 100%), plus self-tests (curl + Playwright + snapshot/restore) for page-delegate and the auth cutover.
+
+- **Reviewer Side-Nav** (`ReviewPage.jsx`): left rail listing ONLY the pages assigned to that reviewer (`?reviewer=<email>` from console chips, else logged-in user). Current page highlighted; header + footer prev/next move through the queue in order.
+- **Progress bar**: "X of N reviewed" (`review-progress-*`) — reviewed = pages with a verdict by that reviewer; live-increments and turns the side-nav item emerald when a verdict is set.
+- **Verdict nudge**: leaving a page with no verdict (next/prev/side-nav/back) opens a modal — "Stay and leave a verdict" (scrolls to verdict rail) or "Review later, continue". With a verdict, navigation is direct.
+- **Reviewer page-level Delegate** (`ReviewConsole.jsx` + backend `POST /assignments/delegate-pages`): reviewers get a "Delegate pages" panel mirroring the owner's New-assignment picker — hierarchical Tab→Section→Page checkboxes over THEIR queue, Select all / filter, choose **all / several / one**, pick target email, Delegate. Backend splits multi-page assignments and merges delegated pages into a single "Delegated pages" assignment for the target (`delegated_from` set). Owners still have per-reviewer mass-delegate + New assignment.
+- **GO-LIVE: real Emergent Google OAuth re-enabled** — `DISABLE_AUTH=false`. `/admin/*` and `/review/*` require @emergent.sh Google login. Owner seed: **sarang@emergent.sh** (owner_invites). Login button redirects to `auth.emergentagent.com/?redirect=<origin>/admin/dashboard`; AuthProvider skips /me when a callback hash is present. The **"Preview as reviewer" dev toggle was retired**. Verified: 401 on protected endpoints unauth, login page renders, unauth routes bounce to login, owner session shows the Owner console.
+
+## Status note — June 2026 (open / next)
+- **OPTIONAL (user-requested, not started): reviewer inline editing** — user asked whether reviewers can optionally EDIT page content from the review flow ("optional, if they have the time"). Not built. Needs a decision on scope (edits become drafts → owner publishes) and authz (reviewer write access to their assigned pages only). Offer as next step.
+- **Public sidebar nested subgroup rendering** — possibly still open (Common / Web flow under Build → Deployments). The Review Console assignment picker recursion was fixed/verified, but PublicDocs sidebar nesting was never confirmed changed.
+- Voice-comment recording and Slack/email notifications remain deferred/out of scope.
+- All 121 docs remain in_review/draft (0 published) — owner publishes when ready.
 
 ## Status note — June 2026 (earlier partial turn)
 - **B5 DONE**: "watch-your-app-come-alive" now includes a short plain recap-of-what-was-built orientation (grounded, no new heading). Pages remain `in_review`.

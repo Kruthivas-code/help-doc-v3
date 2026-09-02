@@ -41,6 +41,12 @@ class BulkDelegateReq(BaseModel):
     to_email: str
 
 
+class DelegatePagesReq(BaseModel):
+    from_email: str
+    to_email: str
+    slugs: list[str] = []
+
+
 class CommentReq(BaseModel):
     doc_slug: str
     body: str = ""
@@ -261,6 +267,48 @@ def register_review_routes(api_router, ctx):
             {"$set": {"assignee_email": to, "delegated_from": frm,
                       "status": "in_review", "updated_at": _now()}})
         return {"reassigned": res.modified_count, "to_email": to}
+
+    @api_router.post("/projects/{project_id}/assignments/delegate-pages")
+    async def delegate_pages(project_id: str, req: DelegatePagesReq, user=Depends(get_current_user)):
+        """Delegate a chosen set of pages (all / several / one) from one reviewer to another.
+        Splits multi-page assignments as needed and merges the pages into the target's queue."""
+        frm = _norm(req.from_email)
+        to = _norm(req.to_email)
+        slugs = [s for s in (req.slugs or []) if s]
+        if not frm or not to or not slugs:
+            raise HTTPException(400, "from_email, to_email and at least one page are required")
+        if frm == to:
+            raise HTTPException(400, "Already assigned to that email")
+        if not is_owner(user) and _norm(user.email) != frm:
+            raise HTTPException(403, "Only the Owner or the current assignee can delegate these")
+        now = _now()
+        moved = 0
+        for slug in slugs:
+            # Pull the page out of every source-reviewer assignment that contains it.
+            src = await db.assignments.find(
+                {"project_id": project_id, "assignee_email": frm, "slugs": slug}).to_list(500)
+            if not src:
+                continue
+            for a in src:
+                remaining = [s for s in a.get("slugs", []) if s != slug]
+                if remaining:
+                    await db.assignments.update_one({"id": a["id"]}, {"$set": {"slugs": remaining, "updated_at": now}})
+                else:
+                    await db.assignments.delete_one({"id": a["id"]})
+            # Merge into a single delegated assignment for the target (create if none yet).
+            tgt = await db.assignments.find_one(
+                {"project_id": project_id, "assignee_email": to, "scope_type": "pages"})
+            if tgt:
+                await db.assignments.update_one(
+                    {"id": tgt["id"]}, {"$addToSet": {"slugs": slug}, "$set": {"updated_at": now, "status": "in_review"}})
+            else:
+                await db.assignments.insert_one({
+                    "id": str(uuid.uuid4()), "project_id": project_id, "scope_type": "pages",
+                    "scope_id": "pages", "scope_label": "Delegated pages", "assignee_email": to,
+                    "assigned_by": user.email, "status": "in_review", "slugs": [slug],
+                    "delegated_from": frm, "created_at": now, "updated_at": now})
+            moved += 1
+        return {"moved": moved, "to_email": to}
 
     # ---------------- Comments ----------------
     @api_router.get("/projects/{project_id}/comments")

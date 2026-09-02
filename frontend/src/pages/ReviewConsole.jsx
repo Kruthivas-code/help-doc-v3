@@ -4,7 +4,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import {
   Inbox, ClipboardList, BarChart3, Send, CheckCircle2, RotateCcw, Trash2,
-  ArrowLeft, MessageSquarePlus, Loader2, UserPlus, Sun, Moon, Filter, Users, Eye,
+  ArrowLeft, MessageSquarePlus, Loader2, UserPlus, Sun, Moon, Filter, Users,
 } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 
@@ -49,11 +49,57 @@ export default function ReviewConsole() {
   const [aEmail, setAEmail] = useState('');
   const [busy, setBusy] = useState(false);
   const [reviewerFilter, setReviewerFilter] = useState('');
-  const [viewAsReviewer, setViewAsReviewer] = useState(false);
+  // reviewer delegate form
+  const [dScopes, setDScopes] = useState([]);
+  const [dQuery, setDQuery] = useState('');
+  const [dEmail, setDEmail] = useState('');
   const { isDark, toggleTheme } = useTheme();
 
   const isOwner = role?.is_owner;
-  const effectiveOwner = isOwner && !viewAsReviewer;
+
+  // Whose queue the reviewer-delegate panel operates on: a real reviewer delegates their own.
+  const delegateFrom = (role?.email || '').toLowerCase();
+
+  const myQueue = useMemo(() => {
+    const s = new Set();
+    if (!delegateFrom) return s;
+    assignments.forEach((a) => {
+      if ((a.assignee_email || '').toLowerCase() === delegateFrom) (a.slugs || []).forEach((x) => s.add(x));
+    });
+    return s;
+  }, [assignments, delegateFrom]);
+
+  const toggleDScope = (o) => {
+    const key = `${o.type}:${o.id}`;
+    const kids = (descendants[key] || []).filter((k) => myQueue.has(k.replace(/^page:/, '')));
+    if (kids.length) {
+      setDScopes((prev) => {
+        const allIn = kids.every((k) => prev.includes(k));
+        return allIn ? prev.filter((k) => !kids.includes(k)) : Array.from(new Set([...prev, ...kids]));
+      });
+    } else {
+      setDScopes((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
+    }
+  };
+
+  const delegatePages = async () => {
+    const selectedSlugs = dScopes.filter((k) => k.startsWith('page:')).map((k) => k.slice(5));
+    if (!delegateFrom) { toast.error('Pick a reviewer first'); return; }
+    if (selectedSlugs.length === 0 || !dEmail.trim()) { toast.error('Pick at least one page and enter an email'); return; }
+    const to = dEmail.trim();
+    if (to.toLowerCase() === delegateFrom) { toast.info('Already assigned to that email'); return; }
+    if (!window.confirm(`Delegate ${selectedSlugs.length} page(s) from ${delegateFrom} to ${to}?`)) return;
+    setBusy(true);
+    try {
+      const { data } = await axios.post(`${API}/projects/${pid}/assignments/delegate-pages`, {
+        from_email: delegateFrom, to_email: to, slugs: selectedSlugs,
+      });
+      const asg = await axios.get(`${API}/projects/${pid}/assignments`);
+      setAssignments(asg.data.assignments);
+      setDScopes([]); setDEmail(''); setDQuery('');
+      toast.success(`Delegated ${data.moved} page(s) to ${to}`);
+    } catch (e) { toast.error(e.response?.data?.detail || 'Failed to delegate'); } finally { setBusy(false); }
+  };
 
   const byReviewer = useMemo(() => {
     const m = {};
@@ -109,6 +155,15 @@ export default function ReviewConsole() {
     });
     return map;
   }, [config]);
+
+  const delegateOptions = useMemo(() => {
+    if (myQueue.size === 0) return [];
+    return scopeOptions.filter((o) => {
+      if (o.type === 'page') return myQueue.has(o.id);
+      const kids = descendants[`${o.type}:${o.id}`] || [];
+      return kids.some((k) => myQueue.has(k.replace(/^page:/, '')));
+    });
+  }, [scopeOptions, descendants, myQueue]);
 
   const load = useCallback(async () => {
     try {
@@ -307,20 +362,9 @@ export default function ReviewConsole() {
         <div className="flex items-center gap-3">
           <button onClick={() => navigate('/admin/dashboard')} className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md" data-testid="review-back"><ArrowLeft className="w-4 h-4" /></button>
           <h1 className="font-semibold">Review Console</h1>
-          <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-400 font-medium" data-testid="review-role">{effectiveOwner ? 'Owner' : 'Reviewer'}</span>
-          {isOwner && viewAsReviewer && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400 font-medium">preview</span>}
+          <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-400 font-medium" data-testid="review-role">{isOwner ? 'Owner' : 'Reviewer'}</span>
         </div>
         <div className="flex items-center gap-3">
-          {isOwner && (
-            <button
-              onClick={() => { setViewAsReviewer(v => !v); setTab('assignments'); }}
-              className="text-xs px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center gap-1.5"
-              data-testid="toggle-view-as-reviewer"
-            >
-              <Eye className="w-3.5 h-3.5" />
-              {viewAsReviewer ? 'Back to owner view' : 'Preview as reviewer'}
-            </button>
-          )}
           <button onClick={toggleTheme} className="p-1.5 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400" data-testid="theme-toggle" aria-label="Toggle theme">
             {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
@@ -329,15 +373,15 @@ export default function ReviewConsole() {
       </header>
 
       <div className="px-6 py-3 flex items-center gap-2 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
-        {effectiveOwner && <TabBtn id="overview" icon={BarChart3} label="Overview" />}
-        <TabBtn id="assignments" icon={ClipboardList} label={effectiveOwner ? 'Assignments' : 'My Reviews'} />
-        {effectiveOwner && <TabBtn id="inbox" icon={Inbox} label="Review Inbox" badge={inbox.unread} />}
-        {effectiveOwner && <TabBtn id="publish" icon={Send} label="Publish" />}
+        {isOwner && <TabBtn id="overview" icon={BarChart3} label="Overview" />}
+        <TabBtn id="assignments" icon={ClipboardList} label={isOwner ? 'Assignments' : 'My Reviews'} />
+        {isOwner && <TabBtn id="inbox" icon={Inbox} label="Review Inbox" badge={inbox.unread} />}
+        {isOwner && <TabBtn id="publish" icon={Send} label="Publish" />}
       </div>
 
       <main className="p-6 max-w-5xl mx-auto">
         {/* OVERVIEW */}
-        {tab === 'overview' && effectiveOwner && (
+        {tab === 'overview' && isOwner && (
           <div className="grid grid-cols-2 gap-4" data-testid="review-overview">
             <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-5">
               <h3 className="font-semibold mb-3">Documents</h3>
@@ -361,7 +405,7 @@ export default function ReviewConsole() {
         {/* ASSIGNMENTS */}
         {tab === 'assignments' && (
           <div data-testid="review-assignments">
-            {effectiveOwner && (
+            {isOwner && (
               <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-5 mb-5">
                 <h3 className="font-semibold mb-3 flex items-center gap-2"><UserPlus className="w-4 h-4" /> New assignment</h3>
                 <div className="grid gap-3">
@@ -414,24 +458,73 @@ export default function ReviewConsole() {
               </div>
             )}
 
-            {/* Bulk delegate — owner: per-reviewer; reviewer: their own queue */}
-            <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-5 mb-5" data-testid="bulk-delegate-panel">
-              <h3 className="font-semibold mb-1 flex items-center gap-2"><Users className="w-4 h-4" /> {effectiveOwner ? 'Delegate all reviews (per reviewer)' : 'Delegate my reviews'}</h3>
-              <p className="text-xs text-zinc-500 mb-3">{effectiveOwner ? "Reassign everything currently on one reviewer's plate to someone else in one step." : 'Hand your whole review queue to another reviewer in one step.'}</p>
-              {byReviewer.length === 0 ? (
-                <p className="text-sm text-zinc-500 dark:text-zinc-400" data-testid="bulk-delegate-empty">No reviewers have assignments yet.</p>
-              ) : (
-                <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
-                  {byReviewer.map(([email, count]) => (
-                    <div key={email} className="flex items-center justify-between py-2 text-sm" data-testid={`bulk-delegate-row-${email}`}>
-                      <span className="text-zinc-700 dark:text-zinc-200">{email} <span className="text-zinc-400">· {count} review(s)</span></span>
-                      <button onClick={() => bulkDelegate(email, count)} className="text-xs px-2.5 py-1 rounded-md border border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800" data-testid={`bulk-delegate-btn-${email}`}>Delegate all →</button>
+            {/* Delegate — owner sees per-reviewer mass delegate; reviewer picks pages (all / several / one) */}
+            {isOwner ? (
+              <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-5 mb-5" data-testid="bulk-delegate-panel">
+                <h3 className="font-semibold mb-1 flex items-center gap-2"><Users className="w-4 h-4" /> Delegate all reviews (per reviewer)</h3>
+                <p className="text-xs text-zinc-500 mb-3">Reassign everything currently on one reviewer's plate to someone else in one step.</p>
+                {byReviewer.length === 0 ? (
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400" data-testid="bulk-delegate-empty">No reviewers have assignments yet.</p>
+                ) : (
+                  <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                    {byReviewer.map(([email, count]) => (
+                      <div key={email} className="flex items-center justify-between py-2 text-sm" data-testid={`bulk-delegate-row-${email}`}>
+                        <span className="text-zinc-700 dark:text-zinc-200">{email} <span className="text-zinc-400">· {count} review(s)</span></span>
+                        <button onClick={() => bulkDelegate(email, count)} className="text-xs px-2.5 py-1 rounded-md border border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800" data-testid={`bulk-delegate-btn-${email}`}>Delegate all →</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-5 mb-5" data-testid="reviewer-delegate-panel">
+                <h3 className="font-semibold mb-1 flex items-center gap-2"><Users className="w-4 h-4" /> Delegate pages</h3>
+                <p className="text-xs text-zinc-500 mb-3">Hand off some or all of your assigned pages to another reviewer — pick all, several, or just one.</p>
+                {!delegateFrom ? (
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400" data-testid="reviewer-delegate-hint">Type a reviewer's email in the “Show reviews for email…” box below to load their pages.</p>
+                ) : delegateOptions.length === 0 ? (
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400" data-testid="reviewer-delegate-empty">No pages assigned to {delegateFrom}.</p>
+                ) : (
+                  <div className="grid gap-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs text-zinc-500">Choose pages to delegate</label>
+                      <div className="flex gap-3">
+                        <button onClick={() => setDScopes(delegateOptions.filter((o) => o.type === 'page').map((o) => `page:${o.id}`))} className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline" data-testid="delegate-select-all">Select all</button>
+                        <button onClick={() => setDScopes([])} className="text-xs text-zinc-500 hover:underline" data-testid="delegate-clear">Clear</button>
+                      </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                    <input value={dQuery} onChange={(e) => setDQuery(e.target.value)} placeholder="Filter your pages…" data-testid="delegate-scope-search" className="w-full border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 rounded-md px-3 py-2 text-sm" />
+                    <div className="max-h-56 overflow-y-auto border border-zinc-200 dark:border-zinc-800 rounded-md divide-y divide-zinc-100 dark:divide-zinc-800" data-testid="delegate-scope-list">
+                      {delegateOptions
+                        .filter((o) => o.label.toLowerCase().includes(dQuery.toLowerCase()))
+                        .map((o) => {
+                          const key = `${o.type}:${o.id}`;
+                          const kids = (descendants[key] || []).filter((k) => myQueue.has(k.replace(/^page:/, '')));
+                          const checked = kids.length ? kids.every((k) => dScopes.includes(k)) : dScopes.includes(key);
+                          const some = kids.length ? kids.some((k) => dScopes.includes(k)) : false;
+                          return (
+                            <label key={key} style={{ paddingLeft: 12 + o.depth * 18 }} className={`flex items-center gap-2 pr-3 py-1.5 text-sm cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800 ${o.type !== 'page' ? 'font-medium' : ''}`} data-testid={`delegate-option-${o.type}-${o.id}`}>
+                              <input type="checkbox" checked={checked} ref={(el) => { if (el) el.indeterminate = some && !checked; }} onChange={() => toggleDScope(o)} className="accent-zinc-900 dark:accent-white" />
+                              <span className={`text-[10px] uppercase tracking-wide px-1 py-0.5 rounded ${o.type === 'tab' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-400' : o.type === 'group' ? 'bg-zinc-200 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300' : 'bg-transparent text-zinc-400'}`}>{o.type === 'tab' ? 'Tab' : o.type === 'group' ? 'Sec' : 'Pg'}</span>
+                              <span className={o.type === 'tab' ? 'text-indigo-700 dark:text-indigo-400' : o.type === 'group' ? 'text-zinc-700 dark:text-zinc-300' : 'text-zinc-500 dark:text-zinc-400'}>{o.label}</span>
+                            </label>
+                          );
+                        })}
+                    </div>
+                    {dScopes.length > 0 && <p className="text-xs text-zinc-500" data-testid="delegate-selected-count">{dScopes.filter((k) => k.startsWith('page:')).length} page(s) selected</p>}
+                    <div className="flex flex-wrap gap-2 items-center">
+                      <input value={dEmail} onChange={(e) => setDEmail(e.target.value)} placeholder="reviewer@emergent.sh" list="known-emails-delegate" data-testid="delegate-email" className="border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 rounded-md px-3 py-2 text-sm min-w-[240px]" />
+                      <datalist id="known-emails-delegate">{knownEmails.map((em) => <option key={em} value={em} />)}</datalist>
+                      <button onClick={delegatePages} disabled={busy} data-testid="delegate-submit" className="px-4 py-2 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-sm font-medium rounded-md disabled:opacity-50">
+                        Delegate {dScopes.filter((k) => k.startsWith('page:')).length > 0 ? `(${dScopes.filter((k) => k.startsWith('page:')).length})` : ''}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
+            {isOwner && (
             <div className="flex items-center gap-2 mb-3">
               <div className="relative flex-1 max-w-xs">
                 <Filter className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
@@ -445,6 +538,7 @@ export default function ReviewConsole() {
               </div>
               {reviewerFilter && <button onClick={() => setReviewerFilter('')} className="text-xs text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200">Clear</button>}
             </div>
+            )}
             <div className="space-y-2">
               {(() => {
                 const shown = assignments.filter(a => !reviewerFilter.trim() || (a.assignee_email || '').toLowerCase().includes(reviewerFilter.trim().toLowerCase()));
@@ -458,7 +552,7 @@ export default function ReviewConsole() {
                       {(a.slugs || []).map(s => {
                         const doc = documents.find(x => x.slug === s);
                         return (
-                          <button key={s} onClick={() => navigate(`/review/${s}`)} className="text-xs px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 text-zinc-600 dark:text-zinc-300" data-testid={`review-page-${s}`}>
+                          <button key={s} onClick={() => navigate(`/review/${s}?reviewer=${encodeURIComponent(a.assignee_email || '')}`)} className="text-xs px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 text-zinc-600 dark:text-zinc-300" data-testid={`review-page-${s}`}>
                             {doc?.title || s}
                           </button>
                         );
@@ -470,7 +564,7 @@ export default function ReviewConsole() {
                     {a.status !== 'done' && <button onClick={() => setAssignmentStatus(a, 'done')} className="text-xs px-2 py-1 rounded-md border border-emerald-300 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10" data-testid={`assignment-done-${a.id}`}>Mark done</button>}
                     {a.status === 'done' && <button onClick={() => setAssignmentStatus(a, 'in_review')} className="text-xs px-2 py-1 rounded-md border border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800">Reopen</button>}
                     <button onClick={() => delegate(a)} className="text-xs px-2 py-1 rounded-md border border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800" data-testid={`assignment-delegate-${a.id}`}>Delegate</button>
-                    {effectiveOwner && <button data-testid={`assignment-delete-btn-${a.id}`} onClick={async () => { await axios.delete(`${API}/projects/${pid}/assignments/${a.id}`); setAssignments(p => p.filter(x => x.id !== a.id)); }} className="p-1 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded"><Trash2 className="w-4 h-4" /></button>}
+                    {isOwner && <button data-testid={`assignment-delete-btn-${a.id}`} onClick={async () => { await axios.delete(`${API}/projects/${pid}/assignments/${a.id}`); setAssignments(p => p.filter(x => x.id !== a.id)); }} className="p-1 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded"><Trash2 className="w-4 h-4" /></button>}
                   </div>
                 </div>
                 ));
@@ -478,7 +572,7 @@ export default function ReviewConsole() {
             </div>
           </div>
         )}
-        {tab === 'inbox' && effectiveOwner && (
+        {tab === 'inbox' && isOwner && (
           <div className="space-y-2" data-testid="review-inbox">
             {inbox.comments.length === 0 && <p className="text-sm text-zinc-500">No comments yet.</p>}
             {inbox.comments.map(c => (
@@ -498,7 +592,7 @@ export default function ReviewConsole() {
         )}
 
         {/* PUBLISH */}
-        {tab === 'publish' && effectiveOwner && (
+        {tab === 'publish' && isOwner && (
           <div className="space-y-1" data-testid="review-publish">
             {documents.map(d => (
               <div key={d.id} className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 px-4 py-2.5 flex items-center justify-between">
