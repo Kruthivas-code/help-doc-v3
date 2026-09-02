@@ -1,0 +1,40 @@
+{
+  "summary": "Iteration 24 = fix-retest of iteration_23's 3 CRITICAL/HIGH missing owner gates. Minted owner (owner.qa@emergent.sh, role=owner) + reviewer (vishal.k@emergent.sh, role=member) Mongo sessions via iter23_setup.py. BACKEND (11/11 pytest passed, /app/backend/tests/test_iter24_owner_gates.py): all three gates now enforced — reviewer POST /api/projects/{pid}/documents => 403 'Owner access required'; reviewer DELETE /api/projects/{pid}/documents/{id} => 403 and the target doc (an owner-created throwaway) survived intact; reviewer PUT /api/projects/{pid}/config => 403; reviewer POST .../restore => 404/403. OWNER REGRESSION: owner create throwaway doc 200 + GET verified, owner PUT /config with the CURRENT navigation 200 with byte-identical navigation after, owner DELETE 200 and subsequent GET 404; doc count still 121, 0 published, no leftover test slugs. REVIEWER CONTENT EDIT (no regression): reviewer PUT on assigned doc put-your-app-live => 200 with reviewer_edited_by='vishal.k@emergent.sh' persisted; unassigned doc => 403 with content untouched; assignments scoped to exactly 18 slugs; reviewer 403 on /known-emails, /roles/owners, /roles/promote; owner /roles/owners 200 with sarang@emergent.sh and no _id leak. FRONTEND (Playwright, preview URL, cookie auth): OWNER on /admin/editor/{pid}/{docId} sees configurations-btn + version-history-btn + export-all-btn; REVIEWER on the same URL has all three HIDDEN (and no 'Unlinked Documents' section), can still open the editor and navigate sidebar pages (clicked 'Keep it safe' -> routed + content rendered). Role tabs: owner sees Overview/Assignments/Inbox/Publish/Team + 3 make-owner buttons on Team; reviewer sees ONLY review-tab-assignments. Reviewer /review/put-your-app-live still shows reviewpage-edit-btn + reviewpage-open-editor-btn. ALL DATA RESTORED via iter23_cleanup.py: 121 docs, 0 published, 0 reviewer_edited_by, 52 assignments, owner_invites=[sarang@emergent.sh], 0 qa_sess_ sessions, 0 qa users, navigation unchanged (no phantom 'New Tab').",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Editor sidebar (reviewer session)", "issue": "Structural controls that still 403 server-side remain visible to reviewers: 'New Tab' and the per-page '...' menus. Clicking 'New Tab' as a reviewer optimistically adds the tab, gets 403 on PUT /config, then silently re-fetches and reverts — NO toast/error is shown to the user (Editor.jsx handleSaveNavConfig ~583 only console.errors and calls fetchProjectData). Not destructive (server rejects), but confusing. Recommend hiding New Tab / page ... actions for !isOwner and adding a toast.error on 403.", "selector": "text=New Tab", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter24_owner_gates.py",
+    "/app/test_reports/pytest/iter24_results.xml",
+    "/app/backend/tests/iter23_setup.py",
+    "/app/backend/tests/iter23_cleanup.py"
+  ],
+  "action_items": [
+    "OPTIONAL/MEDIUM: hide 'New Tab' and per-page '...' (add/delete/reorder) controls in Editor.jsx for non-owner sessions, and surface a toast.error on the 403 in handleSaveNavConfig instead of a silent revert.",
+    "STILL OPEN from iteration_23 (unfixed, cosmetic): on every protected page load with a valid session cookie the first 2-3 /api/auth/me and /api/roles/me calls return 401 (console 'AxiosError', 'Failed to fetch project') before identical retries succeed. Reproduced again on both editor and review routes.",
+    "STILL OPEN (low): GET /projects/{pid}/documents returns all 121 docs to reviewers; the reviewer editor only needs the assigned subset."
+  ],
+  "critical_code_review_comments": [
+    "require_owner() (server.py ~438) is now applied to create_document (~627), delete_document (~739) and update_project_config (~917) and is verified working; consider a dependency (Depends(get_owner_user)) instead of per-route calls so future mutating routes can't be added ungated.",
+    "Editor.jsx is 1459 lines — over the 700-line guideline; the isOwner gating is now scattered across 7 call sites (185/745/878/891/998/1009/1152). Extracting an <OwnerOnly> wrapper or splitting the sidebar out would reduce the risk of another missed gate."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter24_owner_gates.py",
+    "/app/frontend/src/pages/Editor.jsx (added data-testid=\"configurations-btn\" and data-testid=\"version-history-btn\" only — no logic change)"
+  ],
+  "success_rate": {"backend": "100% (11/11)", "frontend": "100% of requested gating + regression flows verified"},
+  "seed_data_creation": "Temporary Mongo rows only (owner.qa@emergent.sh user + owner_invite, vishal.k users row, two qa_sess_* sessions) and two throwaway docs (test-iter24-throwaway, test-iter24-owner-doc) — all deleted. Doc content for put-your-app-live restored byte-identical; reviewer_edited_by cleared.",
+  "should_call_test_agent_after_fix": false,
+  "should_main_agent_self_test": true,
+  "test_credentials": "No passwords (Google OAuth). Run `python tests/iter23_setup.py` from /app/backend to mint owner+reviewer tokens into /app/test_reports/iter23_state.json; `python tests/iter23_cleanup.py` afterwards.",
+  "context_for_next_testing_agent": "All 3 iteration_23 CRITICAL owner gates are FIXED and verified (403 for reviewers, 200 for owner) — see /app/backend/tests/test_iter24_owner_gates.py (11/11, run it from /app/backend after iter23_setup.py). Editor UI gating for reviewers is correct for Configurations/Version History/Export all/Unlinked Documents. Remaining known non-blocking items: reviewer still sees 'New Tab' + per-page '...' controls (server 403s, UI silently reverts, no toast) and the recurring initial 401s on /api/auth/me + /api/roles/me. Data state verified clean after run: 121 docs / 0 published / 52 assignments / owner_invites=[sarang@emergent.sh] / navigation untouched.",
+  "rca_of_the_issue": "Fix confirmed: require_owner(user) raising HTTPException(403, 'Owner access required') is now the first statement of create_document, delete_document and update_project_config, so a role='member' session is rejected before any project lookup or mutation — no document or navigation state is touched (verified: throwaway doc still retrievable after the reviewer DELETE probe, navigation JSON byte-identical after the reviewer config PUT probe). Residual gap is presentational only: the frontend still renders navigation-mutating affordances for reviewers and swallows the resulting 403."
+}

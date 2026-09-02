@@ -436,6 +436,7 @@ export const EditorNavTree = ({
   documents,
   docId,
   deletingDocId,
+  readOnly = false,
   onSelect,           // (docId) => void
   onSaveNavConfig,    // (newConfig) => Promise<void>
   onSaveDocument,     // (docId, updates) => Promise<void>
@@ -556,6 +557,7 @@ export const EditorNavTree = ({
   return (
     <Fragment>
       {/* + New Tab — always at top so the tree is never an empty dead-end */}
+      {!readOnly && (
       <div className="px-2 pb-2 mb-1 border-b border-zinc-200 dark:border-zinc-800">
         <button
           onClick={handleAddTab}
@@ -566,6 +568,7 @@ export const EditorNavTree = ({
           New Tab
         </button>
       </div>
+      )}
 
       {!tabs.length ? (
         <div className="px-4 py-6 text-center text-xs text-zinc-500">

@@ -586,6 +586,7 @@ const Editor = () => {
       await axios.put(`${API}/projects/${projectId}/config`, { navigation: newConfig });
     } catch (err) {
       console.error('Failed to save nav config:', err);
+      toast.error(err.response?.data?.detail || 'Failed to update navigation');
       // Re-fetch to revert on failure
       await fetchProjectData();
     }
@@ -734,6 +735,7 @@ const Editor = () => {
                 documents={documents}
                 docId={docId}
                 deletingDocId={deletingDocId}
+                readOnly={!isOwner}
                 onSelect={(id) => navigate(`/admin/editor/${projectId}/${id}`)}
                 onSaveNavConfig={handleSaveNavConfig}
                 onSaveDocument={handleSaveDocMetadata}
@@ -741,8 +743,8 @@ const Editor = () => {
                 onCreatePage={handleCreatePageInGroup}
               />
               
-              {/* Unlinked Documents Section */}
-              {navConfig && (() => {
+              {/* Unlinked Documents Section — owner cleanup tooling */}
+              {isOwner && navConfig && (() => {
                 // Find documents not in any navigation group
                 const linkedSlugs = new Set();
                 const extractSlugs = (groups) => {
@@ -875,7 +877,9 @@ const Editor = () => {
             <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Settings</span>
           </div>
           <nav className="px-2 pb-2 space-y-0.5">
+            {isOwner && (
             <button 
+              data-testid="configurations-btn"
               onClick={() => setActivePanel(activePanel === 'config' ? null : 'config')}
               className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
                 activePanel === 'config' 
@@ -886,8 +890,10 @@ const Editor = () => {
               <Settings className="w-4 h-4" />
               <span className="text-sm">Configurations</span>
             </button>
-            {docId && (
+            )}
+            {isOwner && docId && (
               <button 
+                data-testid="version-history-btn"
                 onClick={() => setActivePanel(activePanel === 'history' ? null : 'history')}
                 className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
                   activePanel === 'history' 
@@ -1147,6 +1153,7 @@ const Editor = () => {
             </button>
 
             {/* Export all documents as JSON */}
+            {isOwner && (
             <button
               onClick={handleExport}
               disabled={exporting}
@@ -1161,6 +1168,7 @@ const Editor = () => {
               )}
               <span>Export all</span>
             </button>
+            )}
           </div>
         </header>
 

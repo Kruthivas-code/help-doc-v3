@@ -4,7 +4,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import {
   Inbox, ClipboardList, BarChart3, Send, CheckCircle2, RotateCcw, Trash2,
-  ArrowLeft, MessageSquarePlus, Loader2, UserPlus, Sun, Moon, Filter, Users,
+  ArrowLeft, MessageSquarePlus, Loader2, UserPlus, Sun, Moon, Filter, Users, ShieldCheck,
 } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 
@@ -49,6 +49,7 @@ export default function ReviewConsole() {
   const [aEmail, setAEmail] = useState('');
   const [busy, setBusy] = useState(false);
   const [reviewerFilter, setReviewerFilter] = useState('');
+  const [owners, setOwners] = useState([]);
   // reviewer delegate form
   const [dScopes, setDScopes] = useState([]);
   const [dQuery, setDQuery] = useState('');
@@ -179,16 +180,20 @@ export default function ReviewConsole() {
       const asg = await axios.get(`${API}/projects/${projectId}/assignments`);
       setAssignments(asg.data.assignments);
       try {
-        const ke = await axios.get(`${API}/projects/${projectId}/known-emails`);
-        setKnownEmails(ke.data.emails || []);
+        if (me.data.is_owner) {
+          const ke = await axios.get(`${API}/projects/${projectId}/known-emails`);
+          setKnownEmails(ke.data.emails || []);
+        }
       } catch (e) { /* suggestions are best-effort */ }
       if (me.data.is_owner) {
-        const [pr, ib] = await Promise.all([
+        const [pr, ib, ow] = await Promise.all([
           axios.get(`${API}/projects/${projectId}/review/progress`),
           axios.get(`${API}/projects/${projectId}/review/inbox`),
+          axios.get(`${API}/roles/owners`).catch(() => ({ data: { owners: [] } })),
         ]);
         setProgress(pr.data);
         setInbox(ib.data);
+        setOwners((ow.data.owners || []).map(o => (o.email || '').toLowerCase()));
       }
     } catch (e) {
       console.error(e);
@@ -319,6 +324,16 @@ export default function ReviewConsole() {
     } catch (e) { toast.error('Failed to reassign'); }
   };
 
+  const promote = async (email) => {
+    if (!window.confirm(`Make ${email} an Owner? Owners can assign, publish, and manage roles.`)) return;
+    try {
+      await axios.post(`${API}/roles/promote`, { email });
+      const ow = await axios.get(`${API}/roles/owners`);
+      setOwners((ow.data.owners || []).map(o => (o.email || '').toLowerCase()));
+      toast.success(`${email} is now an Owner`);
+    } catch (e) { toast.error(e.response?.data?.detail || 'Failed to promote'); }
+  };
+
   const bulkDelegate = async (fromEmail, count) => {
     const to = window.prompt(`Delegate all ${count} review(s) assigned to ${fromEmail} to which email?`);
     if (!to) return;
@@ -377,6 +392,7 @@ export default function ReviewConsole() {
         <TabBtn id="assignments" icon={ClipboardList} label={isOwner ? 'Assignments' : 'My Reviews'} />
         {isOwner && <TabBtn id="inbox" icon={Inbox} label="Review Inbox" badge={inbox.unread} />}
         {isOwner && <TabBtn id="publish" icon={Send} label="Publish" />}
+        {isOwner && <TabBtn id="team" icon={ShieldCheck} label="Team" />}
       </div>
 
       <main className="p-6 max-w-5xl mx-auto">
@@ -598,6 +614,7 @@ export default function ReviewConsole() {
               <div key={d.id} className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 px-4 py-2.5 flex items-center justify-between">
                 <button onClick={() => navigate(`/review/${d.slug}`)} className="text-sm text-left hover:underline" data-testid={`publish-title-${d.id}`}>{d.title}</button>
                 <div className="flex items-center gap-2">
+                  {d.reviewer_edited_by && <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400 font-medium" title={`Edited by ${d.reviewer_edited_by}`} data-testid={`edited-by-reviewer-${d.id}`}>Edited by reviewer</span>}
                   <button onClick={() => navigate(`/review/${d.slug}`)} className="text-xs px-2 py-1 rounded-md border border-indigo-300 dark:border-indigo-500/40 text-indigo-700 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10" data-testid={`review-doc-${d.id}`}>Review page ↗</button>
                   <StatusPill s={d.status || 'in_review'} />
                   {d.status === 'published'
@@ -606,6 +623,36 @@ export default function ReviewConsole() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {tab === 'team' && isOwner && (
+          <div className="max-w-2xl" data-testid="review-team">
+            <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-5 mb-5">
+              <h3 className="font-semibold mb-1 flex items-center gap-2"><ShieldCheck className="w-4 h-4" /> Owners</h3>
+              <p className="text-xs text-zinc-500 mb-3">Owners can assign reviews, publish pages, and promote others.</p>
+              <div className="flex flex-wrap gap-2" data-testid="team-owners">
+                {owners.length === 0 ? <span className="text-sm text-zinc-500">No owners yet.</span> : owners.map(em => (
+                  <span key={em} className="text-sm px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-400 font-medium" data-testid={`team-owner-${em}`}>{em}</span>
+                ))}
+              </div>
+            </div>
+            <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-5">
+              <h3 className="font-semibold mb-1 flex items-center gap-2"><Users className="w-4 h-4" /> Reviewers &amp; people</h3>
+              <p className="text-xs text-zinc-500 mb-3">Everyone the workspace knows. Promote a trusted reviewer to Owner in one click.</p>
+              {knownEmails.filter(em => !owners.includes(em)).length === 0 ? (
+                <p className="text-sm text-zinc-500 dark:text-zinc-400" data-testid="team-reviewers-empty">No other people yet — they'll appear here once they log in or get an assignment.</p>
+              ) : (
+                <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                  {knownEmails.filter(em => !owners.includes(em)).map(em => (
+                    <div key={em} className="flex items-center justify-between py-2 text-sm" data-testid={`team-person-${em}`}>
+                      <span className="text-zinc-700 dark:text-zinc-200">{em}</span>
+                      <button onClick={() => promote(em)} className="text-xs px-2.5 py-1 rounded-md border border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 flex items-center gap-1.5" data-testid={`make-owner-${em}`}><ShieldCheck className="w-3.5 h-3.5" /> Make owner</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </main>

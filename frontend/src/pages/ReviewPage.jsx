@@ -6,7 +6,7 @@ import { DocContent } from '@/components/docs/DocContent';
 import { useTheme } from '@/contexts/ThemeContext';
 import {
   ArrowLeft, MessageSquarePlus, CheckCircle2, RotateCcw, X, Sun, Moon,
-  ChevronLeft, ChevronRight, ListChecks, Circle,
+  ChevronLeft, ChevronRight, ListChecks, Circle, Pencil, ExternalLink, Save,
 } from 'lucide-react';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -32,6 +32,10 @@ export default function ReviewPage() {
   const [docsMap, setDocsMap] = useState({});        // slug -> title
   const [reviewedSet, setReviewedSet] = useState(new Set()); // slugs with a verdict by the reviewer
   const [pendingNav, setPendingNav] = useState(null); // { url } while the verdict nudge is open
+  const [editing, setEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [editContent, setEditContent] = useState('');
+  const [saving, setSaving] = useState(false);
 
   const isOwner = role?.is_owner;
   const reviewerEmail = (searchParams.get('reviewer') || role?.email || '').toLowerCase();
@@ -91,6 +95,23 @@ export default function ReviewPage() {
   const nextSlug = idx >= 0 && idx < queue.length - 1 ? queue[idx + 1] : null;
   const reviewedCount = useMemo(() => queue.filter((s) => reviewedSet.has(s)).length, [queue, reviewedSet]);
   const showNav = queue.length > 0;
+  const myEmail = (role?.email || '').toLowerCase();
+  // Reviewers may edit pages assigned to them; owners may edit anything.
+  const canEdit = !!doc && (isOwner || (reviewerEmail === myEmail && queue.includes(slug)));
+
+  const startEdit = () => { setEditTitle(doc.title || ''); setEditContent(doc.content || ''); setEditing(true); };
+  const saveDraft = async () => {
+    if (!doc) return;
+    setSaving(true);
+    try {
+      const { data } = await axios.put(`${API}/projects/${pid}/documents/${doc.id}`, { title: editTitle, content: editContent });
+      setDoc((d) => ({ ...d, title: data.title ?? editTitle, content: data.content ?? editContent }));
+      setEditing(false);
+      toast.success('Saved as draft — an owner can publish it');
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Failed to save');
+    } finally { setSaving(false); }
+  };
 
   const buildUrl = (targetSlug) => `/review/${targetSlug}${reviewerEmail ? `?reviewer=${encodeURIComponent(reviewerEmail)}` : ''}`;
 
@@ -102,7 +123,7 @@ export default function ReviewPage() {
   const goToSlug = (targetSlug) => { if (targetSlug) guardedNavigate(buildUrl(targetSlug)); };
 
   const onMouseUp = () => {
-    if (!reviewOn) return;
+    if (!reviewOn || editing) return;
     const s = window.getSelection();
     const text = s?.toString().trim();
     if (!text || text.length < 2) { setSel(null); return; }
@@ -162,6 +183,12 @@ export default function ReviewPage() {
           <button onClick={toggleTheme} className="p-1.5 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400" data-testid="theme-toggle" aria-label="Toggle theme">
             {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
+          {canEdit && !editing && (
+            <>
+              <button onClick={startEdit} className="hidden sm:flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800" data-testid="reviewpage-edit-btn"><Pencil className="w-3.5 h-3.5" /> Edit</button>
+              <button onClick={() => navigate(`/admin/editor/${pid}/${doc.id}`)} className="hidden md:flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800" data-testid="reviewpage-open-editor-btn"><ExternalLink className="w-3.5 h-3.5" /> Full editor</button>
+            </>
+          )}
           <label className="flex items-center gap-2 text-sm cursor-pointer select-none" data-testid="review-toggle">
             <span className="text-zinc-500 dark:text-zinc-400 hidden sm:inline">Review</span>
             <button onClick={() => setReviewOn((v) => !v)} aria-pressed={reviewOn} className={`relative w-10 h-5 rounded-full transition-colors ${reviewOn ? 'bg-indigo-600' : 'bg-zinc-300 dark:bg-zinc-700'}`} data-testid="review-toggle-btn">
@@ -206,12 +233,30 @@ export default function ReviewPage() {
           </nav>
         )}
 
-        <article onMouseUp={onMouseUp} className={`min-w-0 ${reviewOn ? 'cursor-text' : ''}`} data-testid="review-content">
-          <h1 className="text-3xl font-bold mb-4 text-zinc-950 dark:text-white">{doc.title}</h1>
-          <div className="doc-content">
-            <DocContent content={doc.content?.replace(new RegExp(`^#\\s*${(doc.title || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\n+`, 'i'), '') || doc.content} />
-          </div>
-          {showNav && (
+        <article onMouseUp={onMouseUp} className={`min-w-0 ${reviewOn && !editing ? 'cursor-text' : ''}`} data-testid="review-content">
+          {editing ? (
+            <div data-testid="reviewpage-editor">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400 font-medium">Editing draft</span>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => navigate(`/admin/editor/${pid}/${doc.id}`)} className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800" data-testid="reviewpage-open-editor-inline"><ExternalLink className="w-3.5 h-3.5" /> Open in full editor</button>
+                  <button onClick={() => setEditing(false)} className="text-xs px-2.5 py-1.5 rounded-md text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800" data-testid="reviewpage-edit-cancel">Cancel</button>
+                  <button onClick={saveDraft} disabled={saving} className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-medium disabled:opacity-50" data-testid="reviewpage-edit-save"><Save className="w-3.5 h-3.5" /> {saving ? 'Saving…' : 'Save draft'}</button>
+                </div>
+              </div>
+              <input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="w-full text-2xl font-bold mb-3 bg-transparent border-b border-zinc-200 dark:border-zinc-800 pb-2 focus:outline-none text-zinc-950 dark:text-white" data-testid="reviewpage-edit-title" />
+              <textarea value={editContent} onChange={(e) => setEditContent(e.target.value)} rows={24} spellCheck className="w-full font-mono text-sm border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 rounded-md p-3 leading-relaxed" data-testid="reviewpage-edit-content" />
+              <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-2">Markdown / MDX supported. Your changes save to the draft — an owner publishes when ready.</p>
+            </div>
+          ) : (
+            <>
+              <h1 className="text-3xl font-bold mb-4 text-zinc-950 dark:text-white">{doc.title}</h1>
+              <div className="doc-content">
+                <DocContent content={doc.content?.replace(new RegExp(`^#\\s*${(doc.title || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\n+`, 'i'), '') || doc.content} />
+              </div>
+            </>
+          )}
+          {showNav && !editing && (
             <div className="mt-10 pt-6 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
               <button onClick={() => goToSlug(prevSlug)} disabled={!prevSlug} className="flex items-center gap-1.5 text-sm text-zinc-600 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white disabled:opacity-30" data-testid="prev-page-footer"><ChevronLeft className="w-4 h-4" /> Previous</button>
               <button onClick={() => goToSlug(nextSlug)} disabled={!nextSlug} className="flex items-center gap-1.5 text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 disabled:opacity-30" data-testid="next-page-footer">Next page <ChevronRight className="w-4 h-4" /></button>

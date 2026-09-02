@@ -169,6 +169,7 @@ def register_review_routes(api_router, ctx):
             "published_content": doc.get("content", ""),
             "published_title": doc.get("title", ""),
             "published_at": now, "updated_at": now,
+            "reviewer_edited_by": None, "reviewer_edited_at": None,
         }})
         return {"status": "published", "published_at": now}
 
