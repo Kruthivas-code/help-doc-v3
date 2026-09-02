@@ -13,7 +13,7 @@ const AdminLogin = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (user && !loading) navigate("/admin/edit", { replace: true });
+        if (user && !loading) navigate("/admin/dashboard", { replace: true });
     }, [user, loading, navigate]);
 
     if (loading) {

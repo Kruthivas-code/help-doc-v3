@@ -4,7 +4,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import {
   Inbox, ClipboardList, BarChart3, Send, CheckCircle2, RotateCcw, Trash2,
-  ArrowLeft, MessageSquarePlus, Loader2, UserPlus, Sun, Moon, Filter,
+  ArrowLeft, MessageSquarePlus, Loader2, UserPlus, Sun, Moon, Filter, Users, Eye,
 } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 
@@ -49,25 +49,43 @@ export default function ReviewConsole() {
   const [aEmail, setAEmail] = useState('');
   const [busy, setBusy] = useState(false);
   const [reviewerFilter, setReviewerFilter] = useState('');
+  const [viewAsReviewer, setViewAsReviewer] = useState(false);
   const { isDark, toggleTheme } = useTheme();
 
   const isOwner = role?.is_owner;
+  const effectiveOwner = isOwner && !viewAsReviewer;
+
+  const byReviewer = useMemo(() => {
+    const m = {};
+    assignments.forEach(a => { const e = a.assignee_email || '—'; m[e] = (m[e] || 0) + 1; });
+    return Object.entries(m).sort((a, b) => b[1] - a[1]);
+  }, [assignments]);
 
   const scopeOptions = useMemo(() => {
     const tabs = config?.navigation?.tabs || [];
     const opts = [];
+    const seen = new Set();
+    const titleOf = (slug) => (documents.find(d => d.slug === slug)?.title) || slug;
+    const slugOf = (p) => (typeof p === 'string' ? p : p.page);
     tabs.forEach(t => {
       const tabId = t.id || t.label;
-      opts.push({ type: 'tab', id: tabId, label: `Tab: ${t.label}` });
-      const walk = (groups, prefix, depth) => {
+      opts.push({ type: 'tab', id: tabId, label: t.label, depth: 0 });
+      const walk = (groups, depth) => {
         (groups || []).forEach(g => {
-          opts.push({ type: 'group', id: `${tabId}::${g.group}`, label: `${'\u2003'.repeat(depth)}Section: ${prefix} › ${g.group}` });
-          walk(g.groups, `${prefix} › ${g.group}`, depth + 1);
+          opts.push({ type: 'group', id: `${tabId}::${g.group}`, label: g.group, depth });
+          (g.pages || []).forEach(p => {
+            const s = slugOf(p);
+            if (!s) return;
+            seen.add(s);
+            opts.push({ type: 'page', id: s, label: (typeof p === 'object' && p.title) || titleOf(s), depth: depth + 1 });
+          });
+          walk(g.groups, depth + 1);
         });
       };
-      walk(t.groups, t.label, 0);
+      walk(t.groups, 1);
     });
-    documents.forEach(d => opts.push({ type: 'page', id: d.slug, label: `Page: ${d.title}` }));
+    // pages that aren't linked anywhere in the nav tree
+    documents.filter(d => !seen.has(d.slug)).forEach(d => opts.push({ type: 'page', id: d.slug, label: d.title, depth: 0 }));
     return opts;
   }, [config, documents]);
 
@@ -96,6 +114,7 @@ export default function ReviewConsole() {
     try {
       const me = await axios.get(`${API}/roles/me`);
       setRole(me.data);
+      if (!me.data.is_owner) setTab('assignments');
       const dp = await axios.get(`${API}/public/default-project`, { withCredentials: false });
       const projectId = dp.data.project.id;
       setPid(projectId);
@@ -190,7 +209,7 @@ export default function ReviewConsole() {
         const opt = scopeOptions.find((o) => `${o.type}:${o.id}` === key);
         return axios.post(`${API}/projects/${pid}/assignments`, {
           scope_type: opt.type, scope_id: opt.id,
-          scope_label: opt.label.replace(/^\s*(Tab|Section|Page):\s*/, ''),
+          scope_label: opt.label,
           assignee_email: aEmail.trim(),
         });
       }));
@@ -245,6 +264,20 @@ export default function ReviewConsole() {
     } catch (e) { toast.error('Failed to reassign'); }
   };
 
+  const bulkDelegate = async (fromEmail, count) => {
+    const to = window.prompt(`Delegate all ${count} review(s) assigned to ${fromEmail} to which email?`);
+    if (!to) return;
+    const t = to.trim();
+    if (t.toLowerCase() === (fromEmail || '').toLowerCase()) { toast.info('Already assigned to that email'); return; }
+    if (!window.confirm(`Reassign all ${count} review(s) from ${fromEmail} to ${t}?`)) return;
+    try {
+      const { data } = await axios.post(`${API}/projects/${pid}/assignments/delegate-bulk`, { from_email: fromEmail, to_email: t });
+      const asg = await axios.get(`${API}/projects/${pid}/assignments`);
+      setAssignments(asg.data.assignments);
+      toast.success(`Reassigned ${data.reassigned} review(s) to ${t}`);
+    } catch (e) { toast.error(e.response?.data?.detail || 'Failed to delegate'); }
+  };
+
   const publishDoc = async (doc, publish) => {
     try {
       await axios.post(`${API}/projects/${pid}/documents/${doc.id}/${publish ? 'publish' : 'unpublish'}`);
@@ -274,9 +307,20 @@ export default function ReviewConsole() {
         <div className="flex items-center gap-3">
           <button onClick={() => navigate('/admin/dashboard')} className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md" data-testid="review-back"><ArrowLeft className="w-4 h-4" /></button>
           <h1 className="font-semibold">Review Console</h1>
-          <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-400 font-medium" data-testid="review-role">{isOwner ? 'Owner' : 'Reviewer'}</span>
+          <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-400 font-medium" data-testid="review-role">{effectiveOwner ? 'Owner' : 'Reviewer'}</span>
+          {isOwner && viewAsReviewer && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400 font-medium">preview</span>}
         </div>
         <div className="flex items-center gap-3">
+          {isOwner && (
+            <button
+              onClick={() => { setViewAsReviewer(v => !v); setTab('assignments'); }}
+              className="text-xs px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center gap-1.5"
+              data-testid="toggle-view-as-reviewer"
+            >
+              <Eye className="w-3.5 h-3.5" />
+              {viewAsReviewer ? 'Back to owner view' : 'Preview as reviewer'}
+            </button>
+          )}
           <button onClick={toggleTheme} className="p-1.5 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400" data-testid="theme-toggle" aria-label="Toggle theme">
             {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
@@ -285,15 +329,15 @@ export default function ReviewConsole() {
       </header>
 
       <div className="px-6 py-3 flex items-center gap-2 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
-        {isOwner && <TabBtn id="overview" icon={BarChart3} label="Overview" />}
-        <TabBtn id="assignments" icon={ClipboardList} label={isOwner ? 'Assignments' : 'My Reviews'} />
-        {isOwner && <TabBtn id="inbox" icon={Inbox} label="Review Inbox" badge={inbox.unread} />}
-        {isOwner && <TabBtn id="publish" icon={Send} label="Publish" />}
+        {effectiveOwner && <TabBtn id="overview" icon={BarChart3} label="Overview" />}
+        <TabBtn id="assignments" icon={ClipboardList} label={effectiveOwner ? 'Assignments' : 'My Reviews'} />
+        {effectiveOwner && <TabBtn id="inbox" icon={Inbox} label="Review Inbox" badge={inbox.unread} />}
+        {effectiveOwner && <TabBtn id="publish" icon={Send} label="Publish" />}
       </div>
 
       <main className="p-6 max-w-5xl mx-auto">
         {/* OVERVIEW */}
-        {tab === 'overview' && isOwner && (
+        {tab === 'overview' && effectiveOwner && (
           <div className="grid grid-cols-2 gap-4" data-testid="review-overview">
             <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-5">
               <h3 className="font-semibold mb-3">Documents</h3>
@@ -317,7 +361,7 @@ export default function ReviewConsole() {
         {/* ASSIGNMENTS */}
         {tab === 'assignments' && (
           <div data-testid="review-assignments">
-            {isOwner && (
+            {effectiveOwner && (
               <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-5 mb-5">
                 <h3 className="font-semibold mb-3 flex items-center gap-2"><UserPlus className="w-4 h-4" /> New assignment</h3>
                 <div className="grid gap-3">
@@ -340,9 +384,10 @@ export default function ReviewConsole() {
                           const checked = kids && kids.length ? kids.every((k) => aScopes.includes(k)) : aScopes.includes(key);
                           const some = kids && kids.length ? kids.some((k) => aScopes.includes(k)) : false;
                           return (
-                            <label key={key} className={`flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800 ${o.type !== 'page' ? 'font-medium' : ''}`} data-testid={`assign-option-${o.type}-${o.id}`}>
+                            <label key={key} style={{ paddingLeft: 12 + o.depth * 18 }} className={`flex items-center gap-2 pr-3 py-1.5 text-sm cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800 ${o.type !== 'page' ? 'font-medium' : ''}`} data-testid={`assign-option-${o.type}-${o.id}`}>
                               <input type="checkbox" checked={checked} ref={(el) => { if (el) el.indeterminate = some && !checked; }} onChange={() => toggleScope(key)} className="accent-zinc-900 dark:accent-white" />
-                              <span className={o.type === 'tab' ? 'text-indigo-700 dark:text-indigo-400' : o.type === 'group' ? 'text-zinc-700 dark:text-zinc-300' : 'text-zinc-500 dark:text-zinc-400'}>{o.label.trim()}</span>
+                              <span className={`text-[10px] uppercase tracking-wide px-1 py-0.5 rounded ${o.type === 'tab' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-400' : o.type === 'group' ? 'bg-zinc-200 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300' : 'bg-transparent text-zinc-400'}`}>{o.type === 'tab' ? 'Tab' : o.type === 'group' ? 'Sec' : 'Pg'}</span>
+                              <span className={o.type === 'tab' ? 'text-indigo-700 dark:text-indigo-400' : o.type === 'group' ? 'text-zinc-700 dark:text-zinc-300' : 'text-zinc-500 dark:text-zinc-400'}>{o.label}</span>
                             </label>
                           );
                         })}
@@ -368,6 +413,25 @@ export default function ReviewConsole() {
                 </div>
               </div>
             )}
+
+            {/* Bulk delegate — owner: per-reviewer; reviewer: their own queue */}
+            <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-5 mb-5" data-testid="bulk-delegate-panel">
+              <h3 className="font-semibold mb-1 flex items-center gap-2"><Users className="w-4 h-4" /> {effectiveOwner ? 'Delegate all reviews (per reviewer)' : 'Delegate my reviews'}</h3>
+              <p className="text-xs text-zinc-500 mb-3">{effectiveOwner ? "Reassign everything currently on one reviewer's plate to someone else in one step." : 'Hand your whole review queue to another reviewer in one step.'}</p>
+              {byReviewer.length === 0 ? (
+                <p className="text-sm text-zinc-500 dark:text-zinc-400" data-testid="bulk-delegate-empty">No reviewers have assignments yet.</p>
+              ) : (
+                <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                  {byReviewer.map(([email, count]) => (
+                    <div key={email} className="flex items-center justify-between py-2 text-sm" data-testid={`bulk-delegate-row-${email}`}>
+                      <span className="text-zinc-700 dark:text-zinc-200">{email} <span className="text-zinc-400">· {count} review(s)</span></span>
+                      <button onClick={() => bulkDelegate(email, count)} className="text-xs px-2.5 py-1 rounded-md border border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800" data-testid={`bulk-delegate-btn-${email}`}>Delegate all →</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <div className="flex items-center gap-2 mb-3">
               <div className="relative flex-1 max-w-xs">
                 <Filter className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
@@ -406,7 +470,7 @@ export default function ReviewConsole() {
                     {a.status !== 'done' && <button onClick={() => setAssignmentStatus(a, 'done')} className="text-xs px-2 py-1 rounded-md border border-emerald-300 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10" data-testid={`assignment-done-${a.id}`}>Mark done</button>}
                     {a.status === 'done' && <button onClick={() => setAssignmentStatus(a, 'in_review')} className="text-xs px-2 py-1 rounded-md border border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800">Reopen</button>}
                     <button onClick={() => delegate(a)} className="text-xs px-2 py-1 rounded-md border border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800" data-testid={`assignment-delegate-${a.id}`}>Delegate</button>
-                    {isOwner && <button data-testid={`assignment-delete-btn-${a.id}`} onClick={async () => { await axios.delete(`${API}/projects/${pid}/assignments/${a.id}`); setAssignments(p => p.filter(x => x.id !== a.id)); }} className="p-1 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded"><Trash2 className="w-4 h-4" /></button>}
+                    {effectiveOwner && <button data-testid={`assignment-delete-btn-${a.id}`} onClick={async () => { await axios.delete(`${API}/projects/${pid}/assignments/${a.id}`); setAssignments(p => p.filter(x => x.id !== a.id)); }} className="p-1 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded"><Trash2 className="w-4 h-4" /></button>}
                   </div>
                 </div>
                 ));
@@ -414,7 +478,7 @@ export default function ReviewConsole() {
             </div>
           </div>
         )}
-        {tab === 'inbox' && isOwner && (
+        {tab === 'inbox' && effectiveOwner && (
           <div className="space-y-2" data-testid="review-inbox">
             {inbox.comments.length === 0 && <p className="text-sm text-zinc-500">No comments yet.</p>}
             {inbox.comments.map(c => (
@@ -434,7 +498,7 @@ export default function ReviewConsole() {
         )}
 
         {/* PUBLISH */}
-        {tab === 'publish' && isOwner && (
+        {tab === 'publish' && effectiveOwner && (
           <div className="space-y-1" data-testid="review-publish">
             {documents.map(d => (
               <div key={d.id} className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 px-4 py-2.5 flex items-center justify-between">

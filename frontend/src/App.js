@@ -32,7 +32,6 @@ export const useAuth = () => {
 
 // Pages
 import Dashboard from "@/pages/Dashboard";
-import DocsView from "@/pages/DocsView";
 import Editor from "@/pages/Editor";
 import EditorEntry from "@/pages/EditorEntry";
 import Generator from "@/pages/Generator";
@@ -64,7 +63,7 @@ const AuthCallback = () => {
           if (response.data.token) {
             localStorage.setItem('auth_token', response.data.token);
           }
-          navigate("/admin/edit", { replace: true, state: { user: response.data } });
+          navigate("/admin/dashboard", { replace: true, state: { user: response.data } });
         } catch (error) {
           console.error("Auth error:", error);
           navigate("/admin", { replace: true });
@@ -183,8 +182,6 @@ function AppRouter() {
       <Route path="/admin" element={<AdminLogin />} />
       <Route path="/admin/edit" element={<ProtectedRoute><EditorEntry /></ProtectedRoute>} />
       <Route path="/admin/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-      <Route path="/admin/docs/:projectId" element={<ProtectedRoute><DocsView /></ProtectedRoute>} />
-      <Route path="/admin/docs/:projectId/:docSlug" element={<ProtectedRoute><DocsView /></ProtectedRoute>} />
       <Route path="/admin/editor/:projectId" element={<ProtectedRoute><Editor /></ProtectedRoute>} />
       <Route path="/admin/editor/:projectId/:docId" element={<ProtectedRoute><Editor /></ProtectedRoute>} />
       <Route path="/admin/generator" element={<ProtectedRoute><Generator /></ProtectedRoute>} />

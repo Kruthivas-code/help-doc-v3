@@ -3,7 +3,7 @@ import { useAuth, API } from "@/App";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import {
-    Book, Plus, LogOut, Sparkles, Trash2, MoreHorizontal, Clock, ArrowRight, Inbox,
+    Book, LogOut, Sparkles, Trash2, MoreHorizontal, ArrowRight, Inbox, ExternalLink,
 } from "lucide-react";
 import {
     DropdownMenu,
@@ -11,12 +11,6 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -35,11 +29,8 @@ const Dashboard = () => {
     const location = useLocation();
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [createOpen, setCreateOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [selectedProject, setSelectedProject] = useState(null);
-    const [projectName, setProjectName] = useState("");
-    const [creating, setCreating] = useState(false);
 
     useEffect(() => {
         if (location.state?.user) {
@@ -58,24 +49,6 @@ const Dashboard = () => {
             console.error("Failed to fetch projects:", error);
         } finally {
             setLoading(false);
-        }
-    };
-
-    const createProject = async (e) => {
-        e.preventDefault();
-        if (!projectName.trim()) return;
-        setCreating(true);
-        const slug = projectName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-        try {
-            const response = await axios.post(`${API}/projects`, { name: projectName, slug, description: "" });
-            setProjects([response.data, ...projects]);
-            setCreateOpen(false);
-            setProjectName("");
-            navigate(`/admin/docs/${response.data.id}`);
-        } catch (error) {
-            alert(error.response?.data?.detail || "Failed to create project");
-        } finally {
-            setCreating(false);
         }
     };
 
@@ -158,18 +131,8 @@ const Dashboard = () => {
                     <div>
                         <p className="eyebrow text-zinc-500 mb-2">Workspace</p>
                         <h1 className="h-display text-3xl sm:text-4xl text-zinc-950 dark:text-white">Documentation</h1>
-                        <p className="text-sm text-zinc-500 mt-2">Create, organize, and publish your documentation projects.</p>
+                        <p className="text-sm text-zinc-500 mt-2">Open a project to edit its pages, or view it live on the public docs.</p>
                     </div>
-                    <button
-                        type="button"
-                        onClick={() => setCreateOpen(true)}
-                        className="btn-press inline-flex h-10 items-center gap-2 px-4 rounded-md bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 text-sm font-bold hover:opacity-90 whitespace-nowrap"
-                        data-testid="create-project-button"
-                    >
-                        <Plus className="h-4 w-4" />
-                        <span className="hidden sm:inline">New project</span>
-                        <span className="sm:hidden">New</span>
-                    </button>
                 </div>
 
                 {loading ? (
@@ -187,23 +150,18 @@ const Dashboard = () => {
                             <Book className="h-6 w-6 text-zinc-400" />
                         </div>
                         <h3 className="h-section text-lg text-zinc-950 dark:text-white mb-1">No projects yet</h3>
-                        <p className="text-sm text-zinc-500 mb-6">Spin up your first documentation project to get started.</p>
-                        <button
-                            type="button"
-                            onClick={() => setCreateOpen(true)}
-                            className="btn-press inline-flex h-10 items-center gap-2 px-4 rounded-md bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 text-sm font-bold hover:opacity-90"
-                        >
-                            <Plus className="h-4 w-4" /> New project
-                        </button>
+                        <p className="text-sm text-zinc-500">No documentation projects are set up in this workspace.</p>
                     </div>
                 ) : (
                     <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         {projects.map((project, idx) => (
-                            <button
+                            <div
                                 key={project.id}
-                                type="button"
-                                onClick={() => navigate(`/admin/docs/${project.id}`)}
-                                className={`card-lift group relative text-left rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 hover:border-zinc-300 dark:hover:border-zinc-700 fade-up delay-${Math.min(idx, 5)}`}
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => navigate(`/admin/editor/${project.id}`)}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/admin/editor/${project.id}`); } }}
+                                className={`card-lift group relative text-left rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 hover:border-zinc-300 dark:hover:border-zinc-700 cursor-pointer fade-up delay-${Math.min(idx, 5)}`}
                                 data-testid={`project-card-${project.id}`}
                             >
                                 <div className="flex items-start justify-between mb-4">
@@ -247,54 +205,23 @@ const Dashboard = () => {
                                 </p>
 
                                 <div className="flex items-center justify-between mt-5 pt-4 border-t border-zinc-100 dark:border-zinc-800">
-                                    <div className="inline-flex items-center gap-1.5 text-[11px] text-zinc-500">
-                                        <Clock className="h-3 w-3" />
-                                        {new Date(project.created_at).toLocaleDateString()}
-                                    </div>
+                                    <a
+                                        href="/"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="inline-flex items-center gap-1.5 text-[11px] font-medium text-zinc-500 hover:text-brand transition-colors"
+                                        data-testid={`view-public-docs-${project.id}`}
+                                    >
+                                        <ExternalLink className="h-3 w-3" /> View public docs
+                                    </a>
                                     <ArrowRight className="h-3.5 w-3.5 text-zinc-400 group-hover:text-brand group-hover:translate-x-0.5 transition-all" />
                                 </div>
-                            </button>
+                            </div>
                         ))}
                     </div>
                 )}
             </main>
-
-            {/* Create Dialog */}
-            <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-                <DialogContent className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 sm:max-w-md" data-testid="create-project-dialog">
-                    <DialogHeader>
-                        <DialogTitle className="font-heading font-black text-zinc-950 dark:text-white text-xl tracking-tight">New project</DialogTitle>
-                    </DialogHeader>
-                    <form onSubmit={createProject} className="mt-4">
-                        <label className="eyebrow text-zinc-500 mb-2 block">Project name</label>
-                        <input
-                            value={projectName}
-                            onChange={(e) => setProjectName(e.target.value)}
-                            placeholder="e.g. Platform API Reference"
-                            className="adm-input2"
-                            autoFocus
-                            data-testid="project-name-input"
-                        />
-                        <div className="flex justify-end gap-2 mt-6">
-                            <button
-                                type="button"
-                                onClick={() => setCreateOpen(false)}
-                                className="btn-press h-10 px-4 text-sm font-bold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={creating || !projectName.trim()}
-                                className="btn-press h-10 px-4 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 rounded-md text-sm font-bold disabled:opacity-50 hover:opacity-90"
-                                data-testid="submit-project-button"
-                            >
-                                {creating ? "Creating…" : "Create project"}
-                            </button>
-                        </div>
-                    </form>
-                </DialogContent>
-            </Dialog>
 
             <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
                 <AlertDialogContent className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">

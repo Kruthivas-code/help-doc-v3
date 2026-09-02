@@ -11,12 +11,26 @@ Build a Mintlify-class documentation platform for **Emergent's Documentation** w
 - AI-powered documentation generation
 - WYSIWYG editor with bi-directional HTML/Markdown sync
 
-## Status note — June 2026 (partial turn)
+## Completed work — June 2026 (Admin entry cleanup + Review Console role UX)
+Verified by testing_agent **iteration_21** (backend 13/13, frontend 100%; dataset restored: 0 published, 18 vishal.k assignments, 0 stray verdicts/comments).
+**Context clarified with user:** there is only ONE project ("Emergent", id d901b4ab…, 121 docs). The old ~50-page docs the user referenced = the LIVE production site (help.emergent.sh); this 121-page preview is the newer, not-yet-published version (0 published → deploying now would show nothing until an Owner publishes).
+- **Admin entry → Dashboard first**: `AdminLogin.jsx` + `App.js` auth callback now redirect to `/admin/dashboard` (was `/admin/edit` which jumped straight into the editor).
+- **Project card → Editor**: Dashboard project card now opens `/admin/editor/<id>` (modern editor), not the legacy `/admin/docs` view. Card refactored from `<button>` to `role="button"` div so it can hold a nested **"View public docs ↗"** link (`view-public-docs-<id>`, opens `/` in a new tab).
+- **Removed "New project"** (button + create dialog + `createProject`) — internal single-project tool, served no purpose. Delete-project kept.
+- **DELETED legacy DocsView**: removed `DocsView.jsx`, its `/admin/docs/:projectId(/:docSlug)` routes in `App.js`, the import, and the barrel export. It was the app's ORIGINAL post-login doc browser (first commit) — a flat list + Edit/Delete, fully superseded by the public reader site (reading) and the Editor nav-tree (editing). `/admin/docs/*` now falls through to `/`.
+- **Review Console role-based UI** (`ReviewConsole.jsx`): reviewers (non-owner) land on the **Assignments ("My Reviews")** tab only — Overview/Inbox/Publish are owner-only (default tab set to 'assignments' for non-owners). Owner-only **"Preview as reviewer"** toggle (`toggle-view-as-reviewer`, dev aid while auth is bypassed; shows reviewer layout on owner data — flagged with a 'preview' badge) — remove/retire when real login is on.
+- **New-assignment scope list is now HIERARCHICAL**: Tab → Section → its Pages, indented via `depth` (Tab/Sec/Pg chips), pages folded under their section (was: all pages flat after all tabs+sections). Cascade-select + indeterminate preserved.
+- **Owner has "New assignment"; reviewers see "Delegate" instead** — plus a **Bulk delegate** panel (`bulk-delegate-panel`) available to BOTH: owner sees per-reviewer rows ("Delegate all N of X's reviews →"), reviewer sees their own queue. New backend `POST /assignments/delegate-bulk {from_email,to_email}` (owner, or reviewer delegating own; `is_owner`/assignee authz).
+- **Gate semantics CHANGED**: `PUT /assignments/{id}` status=done now requires the **assignee's verdict on every slug** (no longer comment-gated). `POST /documents/{id}/publish` is now **blocked while the page has unresolved comments**. (Note: verdicts are POSTed as the logged-in user, so only the assignee can satisfy the done-gate; owner force-close would need delegate/delete — intentional per spec.)
+
+## Status note — June 2026 (still pending)
+- **DONE this turn**: old-docs link sweep (item 1) — see section above.
+- **DEFERRED (not started, next turn):**
+  1. **Reviewer side-nav on ReviewPage** (`/review/:slug`): add a left sidebar listing ONLY the pages assigned to that reviewer, allowing navigation to the next assigned page from within the review view. Before navigating away, remind the reviewer of the verdict they gave (or that none was given) with an option to "review later" and proceed anyway.
+  2. **Re-enable Emergent Google OAuth** (remove `DISABLE_AUTH=true` bypass in `/app/backend/.env` + server.py bypass; must go through integration_expert). MUST be done LAST, after #1, so the user isn't locked out mid-testing. Retire the "Preview as reviewer" dev toggle at this point.
+
+## Status note — June 2026 (earlier partial turn)
 - **B5 DONE**: "watch-your-app-come-alive" now includes a short plain recap-of-what-was-built orientation (grounded, no new heading). Pages remain `in_review`.
-- **DEFERRED (not started, next turn)** — ran low on context budget, intentionally NOT done to avoid half-finished/untested work:
-  1. **Old-docs link audit**: some touch points still link back to the old Emergent docs (e.g. the admin-page main menu). Need to sweep all nav/links (App.js, Dashboard header/main-menu, editor, footer) and repoint them.
-  2. **Reviewer side-nav on ReviewPage** (`/review/:slug`): add a left sidebar listing ONLY the pages assigned to that reviewer, allowing navigation to the next assigned page from within the review view. Before navigating away, remind the reviewer of the verdict they gave (or that none was given) with an option to "review later" and proceed anyway.
-  3. **Re-enable Emergent Google OAuth** (remove `DISABLE_AUTH=true` bypass in `/app/backend/.env` + server.py bypass; must go through integration_expert). MUST be done LAST, after #2, so the user isn't locked out mid-testing.
 
 ## Completed work — June 2026 (Learn the Basics — plain-language rewrite)
 - Rewrote all 18 first-tab pages for non-technical readers via a grounded LLM pass (`scripts_edu/learn_rewrite.py`): "UX/UI"→"how your app looks and feels", "deploy/publish/put live"→"making it live", "environment variable/secret"→"a private key for your service", define-then-reuse for API ("a connection to another service (API)") and database ("where your app stores its information (database)"). Real product control names (the **Deploy** button, **Environment Variables** panel, doc-link titles) intentionally preserved for accuracy.

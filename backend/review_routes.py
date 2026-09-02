@@ -36,6 +36,11 @@ class DelegateReq(BaseModel):
     email: str
 
 
+class BulkDelegateReq(BaseModel):
+    from_email: str
+    to_email: str
+
+
 class CommentReq(BaseModel):
     doc_slug: str
     body: str = ""
@@ -148,6 +153,10 @@ def register_review_routes(api_router, ctx):
         doc = await db.documents.find_one({"id": doc_id, "project_id": project_id})
         if not doc:
             raise HTTPException(404, "Document not found")
+        open_ct = await db.review_comments.count_documents(
+            {"project_id": project_id, "doc_slug": doc.get("slug"), "resolved": False})
+        if open_ct > 0:
+            raise HTTPException(400, f"Resolve all {open_ct} open comment(s) on this page before publishing")
         now = _now()
         await db.documents.update_one({"id": doc_id}, {"$set": {
             "status": "published",
@@ -203,10 +212,18 @@ def register_review_routes(api_router, ctx):
         if not is_owner(user) and _norm(user.email) != a.get("assignee_email"):
             raise HTTPException(403, "Only the Owner or the assignee can update this")
         if req.status == "done":
-            open_ct = await db.review_comments.count_documents(
-                {"project_id": project_id, "doc_slug": {"$in": a.get("slugs", [])}, "resolved": False})
-            if open_ct > 0:
-                raise HTTPException(400, f"Resolve all {open_ct} open comment(s) before marking done")
+            slugs = a.get("slugs", [])
+            if slugs:
+                reviewer = a.get("assignee_email")
+                vds = await db.review_verdicts.find(
+                    {"project_id": project_id, "doc_slug": {"$in": slugs}, "reviewer_email": reviewer}
+                ).to_list(2000)
+                have = {v["doc_slug"] for v in vds if v.get("verdict")}
+                missing = [s for s in slugs if s not in have]
+                if missing:
+                    raise HTTPException(
+                        400,
+                        f"Add a verdict for every page before marking done ({len(missing)} of {len(slugs)} still need one)")
         await db.assignments.update_one({"id": aid}, {"$set": {"status": req.status, "updated_at": _now()}})
         return {"status": req.status}
 
@@ -227,6 +244,23 @@ def register_review_routes(api_router, ctx):
         ensure_owner(user)
         await db.assignments.delete_one({"id": aid, "project_id": project_id})
         return {"message": "deleted"}
+
+    @api_router.post("/projects/{project_id}/assignments/delegate-bulk")
+    async def delegate_bulk(project_id: str, req: BulkDelegateReq, user=Depends(get_current_user)):
+        frm = _norm(req.from_email)
+        to = _norm(req.to_email)
+        if not frm or not to:
+            raise HTTPException(400, "from_email and to_email are required")
+        if frm == to:
+            raise HTTPException(400, "Already assigned to that email")
+        # Owners can delegate anyone's queue; a reviewer may only delegate their own.
+        if not is_owner(user) and _norm(user.email) != frm:
+            raise HTTPException(403, "Only the Owner or the current assignee can delegate these")
+        res = await db.assignments.update_many(
+            {"project_id": project_id, "assignee_email": frm},
+            {"$set": {"assignee_email": to, "delegated_from": frm,
+                      "status": "in_review", "updated_at": _now()}})
+        return {"reassigned": res.modified_count, "to_email": to}
 
     # ---------------- Comments ----------------
     @api_router.get("/projects/{project_id}/comments")

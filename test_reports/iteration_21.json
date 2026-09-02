@@ -1,0 +1,29 @@
+{
+  "summary": "Iteration 21 full-stack verification. Backend: 13/13 pytest cases pass covering the NEW done-gate (assignee verdict required per slug, no longer comment-gated), the publish-gate (open comments block publish), and bulk delegate (unknown from_email -> reassigned:0, from==to -> 400, empty email -> 400, real reassign sets assignee_email/delegated_from/status). Frontend: admin entry flow, legacy /admin/docs removal, owner Review Console role UI + hierarchical scope list + cascade/indeterminate selection, bulk-delegate panel, preview-as-reviewer toggle, and done-gate error toast all verified working. Dataset restored: 109 in_review + 12 draft docs, 0 published, 18 assignments all on vishal.k@emergent.sh with delegated_from=None, 0 verdicts, 0 comments.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Review Console - preview-as-reviewer mode", "issues": ["In reviewer preview the assignment list still shows ALL assignments (vishal.k's 18) and the 'Delegate my reviews' panel lists vishal.k@emergent.sh rather than the current user's own queue. Expected for a preview built on owner data (backend list_assignments returns all for owners), but the panel copy 'Delegate my reviews' + another reviewer's email reads inconsistently. Cosmetic only."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter21_gates_and_bulk.py",
+    "/app/test_reports/pytest/iter21_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "review_routes.update_assignment done-gate only enforces verdicts when a.slugs is non-empty; an assignment created for a tab/group that flattens to zero slugs can be marked done with no verdict at all (edge case, no such data today).",
+    "Verdicts are always written under the authenticated user's email (POST /verdicts), so an Owner cannot record a verdict on behalf of a reviewer - the done-gate is therefore only satisfiable by the assignee themselves. Intentional? Owner cannot force-close a stale assignment without delegating it first.",
+    "No DELETE endpoint for review_verdicts; test/stale verdict rows can only be removed directly in Mongo."
+  ],
+  "updated_files": ["/app/backend/tests/test_iter21_gates_and_bulk.py"],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "seed_data_creation": "Temporary throwaway assignments (scope_label TEST_iter21*), verdicts for dev@local and comments prefixed TEST_iter21 were created and all deleted in teardown. One doc was published then immediately unpublished. Verified 0 leftovers.",
+  "should_call_test_agent_after_fix": false,
+  "should_main_agent_self_test": false,
+  "test_credentials": "Auth bypassed (DISABLE_AUTH=true): /admin/* auto-authenticates as dev@local / owner",
+  "context_for_next_testing_agent": "All iteration-21 features verified green. Reusable regression suite at /app/backend/tests/test_iter21_gates_and_bulk.py (self-cleaning; asserts dataset integrity: 18 vishal.k assignments, 0 published docs). Publish gate = open comments; done gate = assignee verdict on every slug. Note verdicts can only be POSTed as the logged-in user, so done-success tests must create a throwaway assignment with assignee_email=dev@local.",
+  "rca_of_the_issue": "N/A - no defects found this iteration."
+}
