@@ -388,6 +388,11 @@ def register_review_routes(api_router, ctx):
 
     @api_router.post("/projects/{project_id}/verdicts")
     async def set_verdict(project_id: str, req: VerdictReq, user=Depends(get_current_user)):
+        if not is_owner(user):
+            assigned = await db.assignments.find_one(
+                {"project_id": project_id, "assignee_email": _norm(user.email), "slugs": req.doc_slug})
+            if not assigned:
+                raise HTTPException(403, "You can only add a verdict to pages assigned to you")
         key = {"project_id": project_id, "doc_slug": req.doc_slug, "reviewer_email": _norm(user.email)}
         await db.review_verdicts.update_one(key, {"$set": {**key, "verdict": req.verdict,
             "reviewer_name": user.name, "updated_at": _now()}}, upsert=True)

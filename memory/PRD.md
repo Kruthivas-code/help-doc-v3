@@ -40,10 +40,16 @@ Verified: testing_agent **iteration_23** (features 100%, surfaced 3 missing owne
 - **Team tab** (`ReviewConsole.jsx`, owner-only): lists current Owners + known reviewers, each with one-click **"Make owner"** (`POST /roles/promote`). Reviewers don't see the Team tab.
 - **SECURITY (critical, found in iter23 / fixed in iter24)**: `is_admin()` treats any @emergent.sh as admin, so reviewers previously could create/delete docs and rewrite nav. Added `require_owner()` gate to **POST /documents, DELETE /documents/{id}, PUT /config** (reviewers → 403; owners → 200). Editor UI hides owner-only controls for non-owners (New Tab, Configurations, Version History, Export all, Unlinked-docs cleanup); remaining nav mutations 403 with a toast.
 
+## Completed work — June 2026 (Verdict gating + full-nav side-nav toggle)
+Self-verified (curl + Playwright; data restored).
+- **Verdicts gated** (`review_routes.py set_verdict`): a non-owner can only set a verdict on a page **assigned to them** (403 otherwise); owners unrestricted.
+- **Comments stay open**: any logged-in @emergent.sh user can comment on any page (unchanged, by request).
+- **ReviewPage side-nav = full navigation + toggle** (`ReviewPage.jsx`): the rail now lists the **entire nav** (121 pages, grouped by tab), with a top **"Only my assigned pages"** toggle that is **ON by default** (so default behavior is unchanged — assigned-only). Progress bar + prev/next follow the visible list; assigned pages render with a stronger marker. Verified: toggle ON → 18 items ("N / 18"); OFF → 121 items ("N / 121").
+
 ## Status note — June 2026 (open / next)
-- **Known non-blocking**: (a) recurring 2-3 initial 401s on `/auth/me` + `/roles/me` per protected page load before retries succeed (frontend double-mount/credential timing; cookie auth is consistently 200 via curl) — cosmetic; (b) per-page "..." menu still visible to reviewers in the editor (403s gracefully now); (c) `GET /documents` returns all 121 to reviewers (UI only needs assigned subset).
-- **Backlog**: consider a `Depends(get_owner_user)` dependency so future mutating routes can't be added ungated; Editor.jsx is 1459 lines (>700 guideline) — candidate for splitting. Public sidebar nested subgroup rendering (Build → Deployments → Common/Web flow) still to confirm. Voice comments / Slack-email notifications deferred.
-- All 121 docs remain in_review/draft (0 published); only owner = sarang@emergent.sh.
+- Known non-blocking (from iter23/24): initial 2-3 auth 401 retries per protected page load (cosmetic); reviewer editor still lists all 121 in the tree (edits gated).
+- Backlog: route-level owner dependency; split Editor.jsx (1459 lines); confirm public sidebar nested subgroups render; voice comments / notifications deferred.
+- 121 docs in_review/draft (0 published); only owner = sarang@emergent.sh.
 
 ## Status note — June 2026 (earlier partial turn)
 - **B5 DONE**: "watch-your-app-come-alive" now includes a short plain recap-of-what-was-built orientation (grounded, no new heading). Pages remain `in_review`.

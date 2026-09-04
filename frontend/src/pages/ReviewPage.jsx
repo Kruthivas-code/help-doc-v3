@@ -36,6 +36,8 @@ export default function ReviewPage() {
   const [editTitle, setEditTitle] = useState('');
   const [editContent, setEditContent] = useState('');
   const [saving, setSaving] = useState(false);
+  const [allPages, setAllPages] = useState([]);       // full navigation, ordered {slug,title,tab,section}
+  const [onlyAssigned, setOnlyAssigned] = useState(true);
 
   const isOwner = role?.is_owner;
   const reviewerEmail = (searchParams.get('reviewer') || role?.email || '').toLowerCase();
@@ -59,6 +61,21 @@ export default function ReviewPage() {
         docs.data.forEach((d) => { map[d.slug] = d.title; });
         setDocsMap(map);
         setDoc(docs.data.find((x) => x.slug === slug) || null);
+        // Full navigation, in order, for the side-nav
+        const nav = dp.data.config?.navigation;
+        const pages = [];
+        const slugOf = (p) => (typeof p === 'string' ? p : p.page);
+        (nav?.tabs || []).forEach((t) => {
+          const walk = (groups) => (groups || []).forEach((g) => {
+            (g.pages || []).forEach((p) => {
+              const s = slugOf(p);
+              if (s) pages.push({ slug: s, title: map[s] || (typeof p === 'object' && p.title) || s, tab: t.label, section: g.group });
+            });
+            walk(g.groups);
+          });
+          walk(t.groups);
+        });
+        setAllPages(pages);
         await loadComments(projectId);
 
         // Reviewer's assigned pages (queue) — in assignment order, de-duped
@@ -90,11 +107,18 @@ export default function ReviewPage() {
     })();
   }, [slug, loadComments, searchParams]);
 
-  const idx = queue.indexOf(slug);
-  const prevSlug = idx > 0 ? queue[idx - 1] : null;
-  const nextSlug = idx >= 0 && idx < queue.length - 1 ? queue[idx + 1] : null;
+  const assignedSet = useMemo(() => new Set(queue), [queue]);
+  const hasAssignments = assignedSet.size > 0;
+  const showOnlyAssigned = hasAssignments && onlyAssigned;
+  const visiblePages = useMemo(
+    () => (showOnlyAssigned ? allPages.filter((p) => assignedSet.has(p.slug)) : allPages),
+    [allPages, assignedSet, showOnlyAssigned]
+  );
+  const idx = visiblePages.findIndex((p) => p.slug === slug);
+  const prevSlug = idx > 0 ? visiblePages[idx - 1].slug : null;
+  const nextSlug = idx >= 0 && idx < visiblePages.length - 1 ? visiblePages[idx + 1].slug : null;
   const reviewedCount = useMemo(() => queue.filter((s) => reviewedSet.has(s)).length, [queue, reviewedSet]);
-  const showNav = queue.length > 0;
+  const showNav = allPages.length > 0;
   const myEmail = (role?.email || '').toLowerCase();
   // Reviewers may edit pages assigned to them; owners may edit anything.
   const canEdit = !!doc && (isOwner || (reviewerEmail === myEmail && queue.includes(slug)));
@@ -176,7 +200,7 @@ export default function ReviewPage() {
           {showNav && (
             <div className="hidden sm:flex items-center gap-1">
               <button onClick={() => goToSlug(prevSlug)} disabled={!prevSlug} className="p-1.5 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-30 disabled:hover:bg-transparent" data-testid="prev-page-btn" aria-label="Previous assigned page"><ChevronLeft className="w-4 h-4" /></button>
-              <span className="text-xs text-zinc-500 dark:text-zinc-400 tabular-nums">{idx >= 0 ? idx + 1 : '–'} / {queue.length}</span>
+              <span className="text-xs text-zinc-500 dark:text-zinc-400 tabular-nums">{idx >= 0 ? idx + 1 : '–'} / {visiblePages.length}</span>
               <button onClick={() => goToSlug(nextSlug)} disabled={!nextSlug} className="p-1.5 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-30 disabled:hover:bg-transparent" data-testid="next-page-btn" aria-label="Next assigned page"><ChevronRight className="w-4 h-4" /></button>
             </div>
           )}
@@ -199,34 +223,49 @@ export default function ReviewPage() {
       </header>
 
       <div className={`max-w-6xl mx-auto grid grid-cols-1 gap-8 px-6 py-8 ${showNav ? 'lg:grid-cols-[240px_1fr_300px]' : 'lg:grid-cols-[1fr_320px]'}`}>
-        {/* Reviewer side-nav: only the pages assigned to this reviewer */}
+        {/* Side-nav: full navigation with an "only my assigned pages" toggle (default on) */}
         {showNav && (
           <nav className="lg:sticky lg:top-20 h-fit order-first" data-testid="review-sidenav">
-            <div className="mb-3" data-testid="review-progress">
-              <div className="flex items-center justify-between text-xs mb-1.5">
-                <span className="flex items-center gap-1.5 font-semibold text-zinc-600 dark:text-zinc-300"><ListChecks className="w-3.5 h-3.5" /> Your reviews</span>
-                <span className="text-zinc-500 dark:text-zinc-400 tabular-nums" data-testid="review-progress-count">{reviewedCount} of {queue.length} reviewed</span>
+            {hasAssignments && (
+              <div className="mb-3" data-testid="review-progress">
+                <div className="flex items-center justify-between text-xs mb-1.5">
+                  <span className="flex items-center gap-1.5 font-semibold text-zinc-600 dark:text-zinc-300"><ListChecks className="w-3.5 h-3.5" /> Your reviews</span>
+                  <span className="text-zinc-500 dark:text-zinc-400 tabular-nums" data-testid="review-progress-count">{reviewedCount} of {queue.length} reviewed</span>
+                </div>
+                <div className="h-1.5 w-full rounded-full bg-zinc-200 dark:bg-zinc-800 overflow-hidden">
+                  <div className="h-full bg-indigo-600 transition-all" style={{ width: `${queue.length ? (reviewedCount / queue.length) * 100 : 0}%` }} data-testid="review-progress-bar" />
+                </div>
               </div>
-              <div className="h-1.5 w-full rounded-full bg-zinc-200 dark:bg-zinc-800 overflow-hidden">
-                <div className="h-full bg-indigo-600 transition-all" style={{ width: `${queue.length ? (reviewedCount / queue.length) * 100 : 0}%` }} data-testid="review-progress-bar" />
-              </div>
-            </div>
+            )}
+            {hasAssignments && (
+              <label className="flex items-center justify-between gap-2 text-xs mb-2 px-1 cursor-pointer select-none" data-testid="only-assigned-toggle">
+                <span className="text-zinc-600 dark:text-zinc-300">Only my assigned pages</span>
+                <button onClick={() => setOnlyAssigned((v) => !v)} aria-pressed={onlyAssigned} className={`relative w-9 h-5 rounded-full transition-colors flex-shrink-0 ${onlyAssigned ? 'bg-indigo-600' : 'bg-zinc-300 dark:bg-zinc-700'}`} data-testid="only-assigned-toggle-btn">
+                  <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${onlyAssigned ? 'translate-x-4' : ''}`} />
+                </button>
+              </label>
+            )}
             <div className="space-y-0.5 max-h-[70vh] overflow-y-auto pr-1">
-              {queue.map((s) => {
+              {visiblePages.map((p, i) => {
+                const s = p.slug;
                 const done = reviewedSet.has(s);
                 const active = s === slug;
+                const isAssigned = assignedSet.has(s);
+                const showTab = i === 0 || visiblePages[i - 1].tab !== p.tab;
                 return (
-                  <button
-                    key={s}
-                    onClick={() => goToSlug(s)}
-                    data-testid={`sidenav-item-${s}`}
-                    className={`w-full text-left flex items-start gap-2 px-2.5 py-1.5 rounded-md text-sm transition-colors ${active ? 'bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 font-medium' : 'text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'}`}
-                  >
-                    {done
-                      ? <CheckCircle2 className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-emerald-500" />
-                      : <Circle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-zinc-300 dark:text-zinc-600" />}
-                    <span className="line-clamp-2">{docsMap[s] || s}</span>
-                  </button>
+                  <div key={s}>
+                    {showTab && <div className="px-2 pt-3 pb-1 text-[10px] uppercase tracking-wide text-zinc-400 dark:text-zinc-600">{p.tab}</div>}
+                    <button
+                      onClick={() => goToSlug(s)}
+                      data-testid={`sidenav-item-${s}`}
+                      className={`w-full text-left flex items-start gap-2 px-2.5 py-1.5 rounded-md text-sm transition-colors ${active ? 'bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 font-medium' : 'text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'}`}
+                    >
+                      {done
+                        ? <CheckCircle2 className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-emerald-500" />
+                        : <Circle className={`w-3.5 h-3.5 mt-0.5 flex-shrink-0 ${isAssigned ? 'text-zinc-400 dark:text-zinc-500' : 'text-zinc-200 dark:text-zinc-700'}`} />}
+                      <span className="line-clamp-2">{p.title}</span>
+                    </button>
+                  </div>
                 );
               })}
             </div>
