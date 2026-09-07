@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -11,6 +11,37 @@ import {
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const VERDICTS = ['Looks correct', 'Needs small edits', 'Wrong info', 'More info needed', 'Outdated', 'Tone / clarity', 'Other'];
+
+// Lightweight @mention textarea: type "@" then filter people the app knows.
+function MentionInput({ value, onChange, options, placeholder, rows = 3, testid, autoFocus }) {
+  const ref = useRef(null);
+  const [menu, setMenu] = useState(null);
+  const handle = (e) => {
+    onChange(e.target.value);
+    const upto = e.target.value.slice(0, e.target.selectionStart);
+    const m = upto.match(/@([\w.\-+@]*)$/);
+    setMenu(m ? { q: m[1].toLowerCase() } : null);
+  };
+  const pick = (email) => {
+    const pos = ref.current.selectionStart;
+    const before = value.slice(0, pos).replace(/@([\w.\-+@]*)$/, '@' + email + ' ');
+    onChange(before + value.slice(pos));
+    setMenu(null); setTimeout(() => ref.current && ref.current.focus(), 0);
+  };
+  const matches = menu ? options.filter((o) => o.includes(menu.q)).slice(0, 6) : [];
+  return (
+    <div className="relative">
+      <textarea ref={ref} value={value} onChange={handle} placeholder={placeholder} rows={rows} autoFocus={autoFocus} data-testid={testid} className="w-full border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 rounded-md p-2 text-sm" />
+      {menu && matches.length > 0 && (
+        <div className="absolute z-50 left-2 bottom-full mb-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-md shadow-lg max-h-40 overflow-y-auto" data-testid="mention-menu">
+          {matches.map((m) => (
+            <button key={m} type="button" onMouseDown={(e) => { e.preventDefault(); pick(m); }} className="block w-full text-left px-3 py-1.5 text-xs hover:bg-zinc-100 dark:hover:bg-zinc-800 whitespace-nowrap" data-testid={`mention-opt-${m}`}>{m}</button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function ReviewPage() {
   const { slug } = useParams();
@@ -38,6 +69,9 @@ export default function ReviewPage() {
   const [saving, setSaving] = useState(false);
   const [allPages, setAllPages] = useState([]);       // full navigation, ordered {slug,title,tab,section}
   const [onlyAssigned, setOnlyAssigned] = useState(true);
+  const [knownEmails, setKnownEmails] = useState([]);
+  const [replyTo, setReplyTo] = useState(null);
+  const [replyBody, setReplyBody] = useState('');
 
   const isOwner = role?.is_owner;
   const reviewerEmail = (searchParams.get('reviewer') || role?.email || '').toLowerCase();
@@ -76,6 +110,7 @@ export default function ReviewPage() {
           walk(t.groups);
         });
         setAllPages(pages);
+        axios.get(`${API}/projects/${projectId}/known-emails`).then((r) => setKnownEmails(r.data.emails || [])).catch(() => {});
         await loadComments(projectId);
 
         // Reviewer's assigned pages (queue) — in assignment order, de-duped
@@ -157,16 +192,33 @@ export default function ReviewPage() {
 
   const startComment = () => { setComposer({ anchor_text: sel.text }); setSel(null); setBody(''); };
 
+  const mentionsIn = (text) => knownEmails.filter((e) => new RegExp('@' + e.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?!\\w)', 'i').test(text));
+  const renderBody = (text) => (text || '').split(/(@[\w.\-+@]+)/g).map((part, i) => (part.startsWith('@') && knownEmails.includes(part.slice(1).toLowerCase())
+    ? <span key={i} className="text-indigo-600 dark:text-indigo-400 font-medium">{part}</span> : part));
+
   const submitComment = async () => {
     if (!body.trim()) return;
     try {
       const { data } = await axios.post(`${API}/projects/${pid}/comments`, {
-        doc_slug: slug, body: body.trim(), anchor_text: composer?.anchor_text || null,
+        doc_slug: slug, body: body.trim(), anchor_text: composer?.anchor_text || null, mentions: mentionsIn(body),
       });
       setComments((prev) => [...prev, data]);
       setComposer(null); setBody('');
-      toast.success('Comment pinned to selection');
+      toast.success('Comment added');
     } catch (e) { toast.error('Failed to add comment'); }
+  };
+
+  const submitReply = async (parentId) => {
+    const b = replyBody.trim();
+    if (!b) return;
+    try {
+      const { data } = await axios.post(`${API}/projects/${pid}/comments`, {
+        doc_slug: slug, body: b, parent_id: parentId, mentions: mentionsIn(b),
+      });
+      setComments((prev) => [...prev, data]);
+      setReplyTo(null); setReplyBody('');
+      toast.success('Reply added');
+    } catch { toast.error('Failed to reply'); }
   };
 
   const resolve = async (c, r) => {
@@ -315,8 +367,10 @@ export default function ReviewPage() {
           <h3 className="text-sm font-semibold text-zinc-500 dark:text-zinc-400 mb-3">Comments ({comments.length})</h3>
           {reviewOn && <p className="text-xs text-zinc-400 dark:text-zinc-500 mb-3">Select any text in the page to pin a comment to it.</p>}
           <div className="space-y-2" data-testid="review-comments-rail">
-            {comments.length === 0 && <p className="text-xs text-zinc-400 dark:text-zinc-500">No comments yet.</p>}
-            {comments.map((c) => (
+            {comments.filter((c) => !c.parent_id).length === 0 && <p className="text-xs text-zinc-400 dark:text-zinc-500">No comments yet.</p>}
+            {comments.filter((c) => !c.parent_id).map((c) => {
+              const replies = comments.filter((r) => r.parent_id === c.id);
+              return (
               <div key={c.id} className={`rounded-lg border p-3 text-sm ${c.resolved ? 'border-emerald-200 bg-emerald-50/40 dark:border-emerald-500/30 dark:bg-emerald-500/10' : 'border-zinc-200 dark:border-zinc-800'}`} data-testid={`review-comment-${c.id}`}>
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300">{c.author_name || c.author_email}</span>
@@ -325,9 +379,40 @@ export default function ReviewPage() {
                     : <button onClick={() => resolve(c, true)} className="text-[11px] flex items-center gap-1 text-emerald-600 dark:text-emerald-400" data-testid={`reviewpage-resolve-${c.id}`}><CheckCircle2 className="w-3 h-3" /> Resolve</button>}
                 </div>
                 {c.anchor_text && <div className="text-xs italic text-zinc-500 dark:text-zinc-400 border-l-2 border-indigo-300 dark:border-indigo-500 pl-2 mb-1">“{c.anchor_text}”</div>}
-                <p className="text-zinc-700 dark:text-zinc-200">{c.body}</p>
+                <p className="text-zinc-700 dark:text-zinc-200 whitespace-pre-wrap">{renderBody(c.body)}</p>
+
+                {replies.length > 0 && (
+                  <div className="mt-2 pl-3 border-l-2 border-zinc-200 dark:border-zinc-700 space-y-2">
+                    {replies.map((r) => (
+                      <div key={r.id} data-testid={`review-reply-${r.id}`}>
+                        <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300">{r.author_name || r.author_email}</span>
+                        <p className="text-zinc-700 dark:text-zinc-200 whitespace-pre-wrap">{renderBody(r.body)}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {replyTo === c.id ? (
+                  <div className="mt-2">
+                    <MentionInput value={replyBody} onChange={setReplyBody} options={knownEmails} rows={2} autoFocus placeholder="Reply…  use @ to mention" testid={`reply-input-${c.id}`} />
+                    <div className="flex justify-end gap-2 mt-1">
+                      <button onClick={() => { setReplyTo(null); setReplyBody(''); }} className="text-[11px] px-2 py-1 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded">Cancel</button>
+                      <button onClick={() => submitReply(c.id)} disabled={!replyBody.trim()} className="text-[11px] px-2.5 py-1 bg-indigo-600 text-white rounded disabled:opacity-50" data-testid={`reply-submit-${c.id}`}>Reply</button>
+                    </div>
+                  </div>
+                ) : (
+                  <button onClick={() => { setReplyTo(c.id); setReplyBody(''); }} className="mt-1.5 text-[11px] text-zinc-500 dark:text-zinc-400 hover:text-indigo-600 dark:hover:text-indigo-400" data-testid={`reply-btn-${c.id}`}>Reply</button>
+                )}
               </div>
-            ))}
+              );
+            })}
+          </div>
+          {/* Start a new top-level comment (no selection needed) */}
+          <div className="mt-3" data-testid="new-comment-box">
+            <MentionInput value={replyTo === '__new__' ? replyBody : (replyTo ? '' : body)} onChange={(v) => { setReplyTo('__new__'); setReplyBody(v); }} options={knownEmails} rows={2} placeholder="Add a comment…  use @ to mention" testid="new-comment-input" />
+            <div className="flex justify-end mt-1">
+              <button onClick={async () => { const b = replyBody.trim(); if (!b) return; try { const { data } = await axios.post(`${API}/projects/${pid}/comments`, { doc_slug: slug, body: b, mentions: mentionsIn(b) }); setComments((p) => [...p, data]); setReplyTo(null); setReplyBody(''); toast.success('Comment added'); } catch { toast.error('Failed to add comment'); } }} disabled={replyTo !== '__new__' || !replyBody.trim()} className="text-xs px-3 py-1.5 bg-indigo-600 text-white rounded-md disabled:opacity-50" data-testid="new-comment-submit">Comment</button>
+            </div>
           </div>
         </aside>
       </div>
@@ -346,7 +431,7 @@ export default function ReviewPage() {
               <button onClick={() => setComposer(null)} className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded"><X className="w-4 h-4" /></button>
             </div>
             {composer.anchor_text && <div className="text-xs italic text-zinc-500 dark:text-zinc-400 border-l-2 border-indigo-300 dark:border-indigo-500 pl-2 mb-3 line-clamp-3">“{composer.anchor_text}”</div>}
-            <textarea autoFocus value={body} onChange={(e) => setBody(e.target.value)} placeholder="Your comment…" rows={4} className="w-full border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 rounded-md p-2 text-sm" data-testid="composer-input" />
+            <MentionInput value={body} onChange={setBody} options={knownEmails} rows={4} autoFocus placeholder="Your comment…  use @ to mention" testid="composer-input" />
             <div className="flex justify-end gap-2 mt-3">
               <button onClick={() => setComposer(null)} className="px-3 py-1.5 text-sm text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md">Cancel</button>
               <button onClick={submitComment} disabled={!body.trim()} className="px-4 py-1.5 bg-indigo-600 text-white text-sm font-medium rounded-md disabled:opacity-50" data-testid="composer-submit">Add comment</button>

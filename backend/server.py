@@ -731,7 +731,13 @@ async def delete_document(
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     
-    doc = await db.documents.find_one({"id": doc_id, "project_id": project_id}, {"_id": 0, "slug": 1})
+    doc = await db.documents.find_one({"id": doc_id, "project_id": project_id}, {"_id": 0, "slug": 1, "status": 1})
+    # Published pages can only be deleted by an owner; block others and name the owners to contact.
+    if doc and doc.get("status") == "published" and getattr(user, "role", "member") != "owner":
+        owner_docs = await db.owner_invites.find({}, {"_id": 0, "email": 1}).to_list(100)
+        owners = [o["email"] for o in owner_docs if o.get("email")]
+        contact = (", ".join(owners)) if owners else "an owner"
+        raise HTTPException(status_code=403, detail=f"This page is published — only an owner can delete it. Please contact: {contact}")
     result = await db.documents.delete_one(
         {"id": doc_id, "project_id": project_id}
     )

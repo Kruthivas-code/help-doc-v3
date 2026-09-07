@@ -387,3 +387,9 @@ Source: user-provided "User Education Gaps Tracker.csv" (219 rows) → complete 
 - Requires redeploy to reach production.
 
 **Previously Completed work**
+## 2026-06 — Part 2 (threading + mentions) & published-delete guard
+- Threaded comment replies on review page: comments carry `parent_id`; replies nest under parent. Reply box per comment.
+- @mention autocomplete from known people (owners, reviewers, prior commenters); `/known-emails` now open to any signed-in user. Mentions stored on comment; highlighted in body.
+- Published pages: only owners can delete. Non-owner delete returns 403 listing owner emails to contact ("Please contact: <emails>"). Editor surfaces this detail as a toast.
+- Comment creation/resolution remain open to all signed-in @emergent.sh users; verdicts still assigned-reviewer-gated; publish/unpublish/republish still owner-only.
+- Emails (Part 1) PARKED per user. Parts 3 (activity/history) and 4 (trash/restore, confirmations) still pending.

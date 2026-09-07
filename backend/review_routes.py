@@ -52,6 +52,8 @@ class CommentReq(BaseModel):
     body: str = ""
     anchor_text: Optional[str] = None
     audio_url: Optional[str] = None
+    parent_id: Optional[str] = None
+    mentions: Optional[list] = None
 
 
 class VerdictReq(BaseModel):
@@ -132,9 +134,7 @@ def register_review_routes(api_router, ctx):
 
     @api_router.get("/projects/{project_id}/known-emails")
     async def known_emails(project_id: str, user=Depends(get_current_user)):
-        """Suggestion list for the assign-email autocomplete: everyone we already know about
-        (users who have logged in, seeded owners, and previously-assigned reviewers)."""
-        ensure_owner(user)
+        """Suggestion list for @mention / assign autocomplete: everyone we already know about."""
         emails = set()
         async for u in db.users.find({}, {"_id": 0, "email": 1}):
             if u.get("email"):
@@ -325,6 +325,7 @@ def register_review_routes(api_router, ctx):
         c = {"id": str(uuid.uuid4()), "project_id": project_id, "doc_slug": req.doc_slug,
              "author_email": _norm(user.email), "author_name": user.name, "body": req.body,
              "anchor_text": req.anchor_text, "audio_url": req.audio_url, "transcript": None,
+             "parent_id": req.parent_id, "mentions": [_norm(m) for m in (req.mentions or [])],
              "resolved": False, "resolved_by": None, "read_by": [_norm(user.email)], "created_at": _now()}
         await db.review_comments.insert_one({**c})
         c.pop("_id", None)
