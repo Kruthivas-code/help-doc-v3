@@ -50,6 +50,7 @@ export default function ReviewConsole() {
   const [busy, setBusy] = useState(false);
   const [reviewerFilter, setReviewerFilter] = useState('');
   const [owners, setOwners] = useState([]);
+  const [scopeView, setScopeView] = useState('unassigned'); // unassigned | assigned | all
   // reviewer delegate form
   const [dScopes, setDScopes] = useState([]);
   const [dQuery, setDQuery] = useState('');
@@ -106,6 +107,13 @@ export default function ReviewConsole() {
     const m = {};
     assignments.forEach(a => { const e = a.assignee_email || '—'; m[e] = (m[e] || 0) + 1; });
     return Object.entries(m).sort((a, b) => b[1] - a[1]);
+  }, [assignments]);
+
+  // slug -> assignee email (first assignment that covers it)
+  const assignedMap = useMemo(() => {
+    const m = {};
+    assignments.forEach(a => (a.slugs || []).forEach(s => { if (!m[s]) m[s] = a.assignee_email; }));
+    return m;
   }, [assignments]);
 
   const scopeOptions = useMemo(() => {
@@ -165,6 +173,26 @@ export default function ReviewConsole() {
       return kids.some((k) => myQueue.has(k.replace(/^page:/, '')));
     });
   }, [scopeOptions, descendants, myQueue]);
+
+  // New-assignment picker: filter by assigned state + search
+  const pageOptCount = useMemo(() => scopeOptions.filter(o => o.type === 'page').length, [scopeOptions]);
+  const assignedPageCount = useMemo(() => scopeOptions.filter(o => o.type === 'page' && assignedMap[o.id]).length, [scopeOptions, assignedMap]);
+  const visibleScopeOptions = useMemo(() => {
+    const q = scopeQuery.toLowerCase();
+    const pageVisible = (slug) => scopeView === 'all' ? true : scopeView === 'assigned' ? !!assignedMap[slug] : !assignedMap[slug];
+    return scopeOptions.filter((o) => {
+      if (!o.label.toLowerCase().includes(q)) return false;
+      if (o.type === 'page') return pageVisible(o.id);
+      const kids = descendants[`${o.type}:${o.id}`] || [];
+      return kids.some((k) => pageVisible(k.replace(/^page:/, '')));
+    });
+  }, [scopeOptions, descendants, scopeView, scopeQuery, assignedMap]);
+
+  // Keep Overview numbers fresh after assignment changes (no manual refresh needed)
+  useEffect(() => {
+    if (!pid || !isOwner) return;
+    axios.get(`${API}/projects/${pid}/review/progress`).then(r => setProgress(r.data)).catch(() => {});
+  }, [assignments, pid, isOwner]);
 
   const load = useCallback(async () => {
     try {
@@ -434,20 +462,27 @@ export default function ReviewConsole() {
                       data-testid="assign-scope-search"
                       className="mt-1 w-full border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 rounded-md px-3 py-2 text-sm"
                     />
+                    <div className="mt-2 flex items-center gap-1 text-xs" data-testid="assign-scope-view">
+                      {[['unassigned', `Unassigned (${pageOptCount - assignedPageCount})`], ['assigned', `Assigned (${assignedPageCount})`], ['all', 'All']].map(([v, lbl]) => (
+                        <button key={v} onClick={() => setScopeView(v)} data-testid={`scope-view-${v}`} className={`px-2 py-1 rounded-md border ${scopeView === v ? 'bg-zinc-900 text-white border-zinc-900 dark:bg-white dark:text-zinc-900 dark:border-white' : 'border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800'}`}>{lbl}</button>
+                      ))}
+                    </div>
                     <div className="mt-2 max-h-56 overflow-y-auto border border-zinc-200 dark:border-zinc-800 rounded-md divide-y divide-zinc-100 dark:divide-zinc-800" data-testid="assign-scope-list">
-                      {scopeOptions
-                        .filter((o) => o.label.toLowerCase().includes(scopeQuery.toLowerCase()))
-                        .slice(0, 200)
+                      {visibleScopeOptions.length === 0 && <p className="px-3 py-3 text-sm text-zinc-500 dark:text-zinc-400" data-testid="assign-scope-empty">No {scopeView === 'unassigned' ? 'unassigned' : scopeView} pages.</p>}
+                      {visibleScopeOptions
+                        .slice(0, 300)
                         .map((o) => {
                           const key = `${o.type}:${o.id}`;
                           const kids = descendants[key];
                           const checked = kids && kids.length ? kids.every((k) => aScopes.includes(k)) : aScopes.includes(key);
                           const some = kids && kids.length ? kids.some((k) => aScopes.includes(k)) : false;
+                          const assignee = o.type === 'page' ? assignedMap[o.id] : null;
                           return (
                             <label key={key} style={{ paddingLeft: 12 + o.depth * 18 }} className={`flex items-center gap-2 pr-3 py-1.5 text-sm cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800 ${o.type !== 'page' ? 'font-medium' : ''}`} data-testid={`assign-option-${o.type}-${o.id}`}>
                               <input type="checkbox" checked={checked} ref={(el) => { if (el) el.indeterminate = some && !checked; }} onChange={() => toggleScope(key)} className="accent-zinc-900 dark:accent-white" />
                               <span className={`text-[10px] uppercase tracking-wide px-1 py-0.5 rounded ${o.type === 'tab' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-400' : o.type === 'group' ? 'bg-zinc-200 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300' : 'bg-transparent text-zinc-400'}`}>{o.type === 'tab' ? 'Tab' : o.type === 'group' ? 'Sec' : 'Pg'}</span>
                               <span className={o.type === 'tab' ? 'text-indigo-700 dark:text-indigo-400' : o.type === 'group' ? 'text-zinc-700 dark:text-zinc-300' : 'text-zinc-500 dark:text-zinc-400'}>{o.label}</span>
+                              {assignee && <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400 whitespace-nowrap" data-testid={`assigned-badge-${o.id}`}>→ {assignee}</span>}
                             </label>
                           );
                         })}

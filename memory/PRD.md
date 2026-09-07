@@ -46,10 +46,15 @@ Self-verified (curl + Playwright; data restored).
 - **Comments stay open**: any logged-in @emergent.sh user can comment on any page (unchanged, by request).
 - **ReviewPage side-nav = full navigation + toggle** (`ReviewPage.jsx`): the rail now lists the **entire nav** (121 pages, grouped by tab), with a top **"Only my assigned pages"** toggle that is **ON by default** (so default behavior is unchanged — assigned-only). Progress bar + prev/next follow the visible list; assigned pages render with a stronger marker. Verified: toggle ON → 18 items ("N / 18"); OFF → 121 items ("N / 121").
 
+## Completed work — June 2026 (Assignment picker assigned/unassigned filter + Overview auto-refresh)
+- **Assignment scope picker** (`ReviewConsole.jsx`): added an **Unassigned / Assigned / All** segmented control (default **Unassigned**) so already-assigned pages no longer clutter the New-assignment list; assigned pages show a green **"→ reviewer@…"** badge. Counts shown per view. (verified: with full coverage, Unassigned→"No unassigned pages"; Assigned→121 rows w/ badges)
+- **Overview stale numbers fixed**: added a `useEffect` that re-fetches `/review/progress` whenever `assignments` changes, so Overview updates without a manual refresh.
+- Data note: workspace currently has 121 assignments (full page coverage), up from 52 — leftover from automated test runs; harmless, can be reset on request.
+
 ## Status note — June 2026 (open / next)
-- Known non-blocking (from iter23/24): initial 2-3 auth 401 retries per protected page load (cosmetic); reviewer editor still lists all 121 in the tree (edits gated).
-- Backlog: route-level owner dependency; split Editor.jsx (1459 lines); confirm public sidebar nested subgroups render; voice comments / notifications deferred.
-- 121 docs in_review/draft (0 published); only owner = sarang@emergent.sh.
+- ⚠️ **Authz audit still recommended** (the "route-level owner dependency" item): project create/update/**delete**, asset upload/delete, and document version restore/delete are still reachable by any @emergent.sh reviewer (only create/delete *document* + PUT /config were locked). Convert owner-only routes to a `Depends(require_owner)` dependency and lock these down.
+- Known non-blocking: initial 2-3 auth 401 retries per protected load (cosmetic); reviewer full-editor tree still lists all 121 (edits gated).
+- Backlog: split Editor.jsx (1459 lines); confirm public sidebar nested subgroups render; voice comments / notifications deferred.
 
 ## Status note — June 2026 (earlier partial turn)
 - **B5 DONE**: "watch-your-app-come-alive" now includes a short plain recap-of-what-was-built orientation (grounded, no new heading). Pages remain `in_review`.
