@@ -1,72 +1,81 @@
-# "Learn the Basics" — plain-language rewrite & content additions
+# Plan (v4): Emails, comment threads + mentions, activity/page history, safe deletes, permissions
 
-Goal: make the first tab ("Learn the Basics", 18 pages) fully understandable to non-technical
-readers, and fold a few missing beginner topics into existing pages — **no new pages, no new
-standalone sections**. Everything stays grounded in what the product actually does (no invented
-features).
+Final scope. Independent pieces.
 
 ---
 
-## Part A — Plain-language cleanup (approved)
+## Part 1 — Notification emails
+Emergent managed email (no keys/domain setup). Sender name **"Emergent Docs"**; reply-to =
+whoever triggered the email.
 
-Reword technical terms wherever they appear:
+Triggers:
+- **New assignment → reviewer** (only assignments created from ship-date onward; the
+  backlog already on the preview is not emailed retroactively).
+- **Delegation → new assignee.**
+- **New comment →** page's assigned reviewer(s) + owners (not the author).
+- **Reply →** thread participants + mentioned people (not the replier).
+- **@mention →** the tagged person.
+- **Comment resolved →** the author (skipped if they resolved their own).
 
-| Term today | Rewrite as |
-|---|---|
-| UX / UI | "how your app looks and feels" |
-| deploy / publish / "put live" | "making it live" |
-| environment variable / secret | "a private key for your service" |
-| iterate | left as-is |
-
-Define-then-reuse rule (first time the term appears **on a page**, use the plain phrase with the
-term in brackets; after that the short term is fine):
-- **API** → first mention: "a connection to another service (API)"; later: "API".
-- **schema / database** → first mention: "where your app stores its information (database)"; later: "database".
-
-Wording only — page meaning and structure stay the same.
+One summary email per action; transactional; always on.
 
 ---
 
-## Part B — Content folded into existing pages (no new pages/sections)
-
-### B1 + B3 — Starting from a rough idea (use plan mode, not an outside AI)
-One combined theme. Teaches: you don't need a perfect request to begin. Start from a rough idea and
-use the product's **plan mode** to turn it into a clear plan before building — plan mode has the full
-context of your app, so it shapes a better plan than writing the request in one shot.
-- **Do NOT suggest using an outside AI to write the prompt.** Point readers to plan mode instead.
-- Explains the flow plainly: describe your rough idea → plan mode asks questions and proposes a plan
-  → you approve → it builds.
-- **Placement: split across both** — a short line in **"Talk it through (free)"** pointing to plan
-  mode for shaping an idea, and the fuller paragraph in **"Write prompts that work"**.
-
-### B2 — Copy-paste prompt starters
-A few ready-made example prompts a beginner can copy and adapt (e.g. common app types). **Folded
-into the existing "Write prompts that work" page** as examples — no new page, no separate section.
-
-### B5 — "A recap of what was built for you" (PENDING — user reviewing)
-Intent: a couple of plain sentences orienting the reader to the summary the assistant prints after a
-build round ("here's what I made / changed; open your app to try it"). Not a feature, just
-orientation. **Open question:** include it or drop it, and if included, place in "Watch your app
-come alive" (default) or "Try it before you share it". Awaiting user decision.
-
-### B6 — Costs at a glance (approved)
-Short plain-words cost intro folded into the existing **"How credits work"** page.
+## Part 2 — Comment threads + @mentions
+- **Threaded replies** under each comment.
+- **@mention with autocomplete (option A, confirmed):** type `@` and pick from people the
+  app knows (owners, reviewers, prior commenters); mentioned people are highlighted and
+  notified even if not assigned. (A company-wide address book would need a separate Google
+  Workspace integration — out of scope unless requested.)
+- **Resolving is open to anyone** (no longer owner-only); the author still gets the email.
 
 ---
 
-## Not included
-- **B4 — "What you can and can't ask for (yet)"**: excluded — boundary not clear enough yet.
+## Part 3 — Activity log + per-page history
+A shared audit trail, viewable two ways:
+- **By person / global feed** (owner-visible Activity log): who did what, when — assigned,
+  delegated, edited, commented, resolved, published, deleted, restored — newest first,
+  filterable by person.
+- **By page (page history):** open any page and see its timeline — who it was assigned to,
+  who edited it, who commented, verdicts given, when it was published, and any
+  delete/restore. Answers "who reviewed or edited this page."
+
+Also an inline "assigned by <name>" label on assignment rows.
 
 ---
 
-## Grounding / guardrails
-- Use only facts already in the reviewed docs; no invented features or claims.
-- Keep additions short and woven into existing pages (no new headings that read as new sections).
+## Part 4 — Safe deletes: confirmation + 90-day restore + delete tracker
+- **Confirmation prompt** (names the item) before: delete page, delete image/asset,
+  restore an old version (overwrites current), delete a saved version.
+- **Soft-delete + 90-day restore for pages:** deleted pages go to **Trash**, kept 90 days
+  (then purged), restorable (content + navigation spot).
+- **Delete tracker:** every deletion logs what / who / when (feeds the page history above).
+- **Restore is unrestricted** (anyone can restore, matching Part 5).
+- Assumption (flag if wrong): 90-day trash/restore covers **pages** only; images/assets and
+  saved versions get the confirmation prompt but not the trash.
 
-## To confirm before building
-1. B5 — include it? If yes, which page (default "Watch your app come alive")?
-2. Everything else (A, B1+B3 split, B2 in "Write prompts that work", B6 in "How credits work") — good?
+---
 
-## Noted separately (not part of this rewrite)
-- The nav sidebar shows "Deployments 0" with no visible pages — its pages sit in nested subgroups
-  (Common / Web flow) that the sidebar isn't rendering. Separate bug fix, handled outside this plan.
+## Part 5 — Permission model: only publishing is owner-gated
+Simplify to one rule. **Owner-only: publish / unpublish / republish.** Everything else is
+**unrestricted** for any signed-in `@emergent.sh` user.
+
+- A **published** page can be *edited* by anyone in the admin, but the edit **cannot go
+  live** (republish) without an owner — so live content is never changed without owner
+  sign-off.
+- This **reverses the recent lockdown**: the owner-only gates added to *create page*,
+  *delete page*, and *edit navigation/config*, and the "reviewers may only edit their
+  assigned pages" limit, are **removed** — those become unrestricted again. (The earlier
+  "lock down project/asset/version deletes to owners" audit is therefore dropped;
+  safety now comes from Part 4's confirmations + restore, not from blocking.)
+- **Kept as-is:** **verdicts** remain limited to the assigned reviewer (per your earlier
+  instruction) — that's a review-integrity rule, not gatekeeping.
+- Reviewer-focused UI helpers (assigned-pages side-nav toggle, "My Reviews" default) stay
+  as conveniences; they no longer imply hard blocks.
+
+---
+
+## Open items (defaults in parentheses — say if you disagree)
+1. Confirm Part 5 is intended: revert the create/delete/config + reviewer-edit locks, keep
+   only publish owner-gated, keep verdicts assigned-only. (assumed: yes)
+2. 90-day trash/restore for **pages only**, or also images + saved versions? (pages only)

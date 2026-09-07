@@ -332,7 +332,6 @@ def register_review_routes(api_router, ctx):
 
     @api_router.post("/projects/{project_id}/comments/{cid}/resolve")
     async def resolve_comment(project_id: str, cid: str, user=Depends(get_current_user)):
-        ensure_owner(user)
         await db.review_comments.update_one({"id": cid, "project_id": project_id},
             {"$set": {"resolved": True, "resolved_by": user.email}})
         return {"resolved": True}

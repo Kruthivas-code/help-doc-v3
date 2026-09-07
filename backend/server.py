@@ -624,7 +624,6 @@ async def create_document(
     user: User = Depends(get_current_user)
 ):
     """Create a new document"""
-    require_owner(user)
     # Verify project access (admins can access any project)
     project = await get_project_with_admin_check(project_id, user)
     if not project:
@@ -698,21 +697,12 @@ async def update_document(
     update_data = {k: v for k, v in data.model_dump().items() if v is not None}
     update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
 
-    # Reviewers (non-owner @emergent.sh users) may only edit the CONTENT of pages
-    # assigned to them for review; their save is stamped so owners see it in Publish.
+    # Any signed-in @emergent.sh user may edit; only publishing is owner-gated (edits to a
+    # published page do not go live until an owner republishes). Non-owner edits are stamped.
     if getattr(user, "role", "member") != "owner":
-        assigned = await db.assignments.find_one({
-            "project_id": project_id,
-            "assignee_email": (user.email or "").lower(),
-            "slugs": doc.get("slug"),
-        })
-        if not assigned:
-            raise HTTPException(status_code=403, detail="You can only edit pages assigned to you for review")
-        update_data = {k: v for k, v in update_data.items() if k in {"title", "content", "icon", "description", "updated_at"}}
         update_data["reviewer_edited_by"] = user.email
         update_data["reviewer_edited_at"] = datetime.now(timezone.utc).isoformat()
     else:
-        # An owner editing becomes the latest editor — clear any reviewer-edited flag.
         update_data["reviewer_edited_by"] = None
         update_data["reviewer_edited_at"] = None
 
@@ -736,7 +726,6 @@ async def delete_document(
     user: User = Depends(get_current_user)
 ):
     """Delete a document"""
-    require_owner(user)
     # Verify project access (admins can access any project)
     project = await get_project_with_admin_check(project_id, user)
     if not project:
@@ -914,7 +903,6 @@ async def update_project_config(
     user: User = Depends(get_current_user)
 ):
     """Update project configuration"""
-    require_owner(user)
     project = await get_project_with_admin_check(project_id, user)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")

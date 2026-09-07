@@ -121,7 +121,7 @@ export default function ReviewPage() {
   const showNav = allPages.length > 0;
   const myEmail = (role?.email || '').toLowerCase();
   // Reviewers may edit pages assigned to them; owners may edit anything.
-  const canEdit = !!doc && (isOwner || (reviewerEmail === myEmail && queue.includes(slug)));
+  const canEdit = !!doc; // Part 5: any signed-in @emergent.sh user may edit; only publishing is owner-gated.
 
   const startEdit = () => { setEditTitle(doc.title || ''); setEditContent(doc.content || ''); setEditing(true); };
   const saveDraft = async () => {
@@ -320,9 +320,9 @@ export default function ReviewPage() {
               <div key={c.id} className={`rounded-lg border p-3 text-sm ${c.resolved ? 'border-emerald-200 bg-emerald-50/40 dark:border-emerald-500/30 dark:bg-emerald-500/10' : 'border-zinc-200 dark:border-zinc-800'}`} data-testid={`review-comment-${c.id}`}>
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300">{c.author_name || c.author_email}</span>
-                  {isOwner && (c.resolved
+                  {c.resolved
                     ? <button onClick={() => resolve(c, false)} className="text-[11px] flex items-center gap-1 text-zinc-500 dark:text-zinc-400" data-testid={`reviewpage-reopen-${c.id}`}><RotateCcw className="w-3 h-3" /> Reopen</button>
-                    : <button onClick={() => resolve(c, true)} className="text-[11px] flex items-center gap-1 text-emerald-600 dark:text-emerald-400" data-testid={`reviewpage-resolve-${c.id}`}><CheckCircle2 className="w-3 h-3" /> Resolve</button>)}
+                    : <button onClick={() => resolve(c, true)} className="text-[11px] flex items-center gap-1 text-emerald-600 dark:text-emerald-400" data-testid={`reviewpage-resolve-${c.id}`}><CheckCircle2 className="w-3 h-3" /> Resolve</button>}
                 </div>
                 {c.anchor_text && <div className="text-xs italic text-zinc-500 dark:text-zinc-400 border-l-2 border-indigo-300 dark:border-indigo-500 pl-2 mb-1">“{c.anchor_text}”</div>}
                 <p className="text-zinc-700 dark:text-zinc-200">{c.body}</p>

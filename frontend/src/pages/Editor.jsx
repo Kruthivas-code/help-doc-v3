@@ -735,7 +735,7 @@ const Editor = () => {
                 documents={documents}
                 docId={docId}
                 deletingDocId={deletingDocId}
-                readOnly={!isOwner}
+                readOnly={false}
                 onSelect={(id) => navigate(`/admin/editor/${projectId}/${id}`)}
                 onSaveNavConfig={handleSaveNavConfig}
                 onSaveDocument={handleSaveDocMetadata}
@@ -743,8 +743,8 @@ const Editor = () => {
                 onCreatePage={handleCreatePageInGroup}
               />
               
-              {/* Unlinked Documents Section — owner cleanup tooling */}
-              {isOwner && navConfig && (() => {
+              {/* Unlinked Documents Section */}
+              {navConfig && (() => {
                 // Find documents not in any navigation group
                 const linkedSlugs = new Set();
                 const extractSlugs = (groups) => {
@@ -877,7 +877,6 @@ const Editor = () => {
             <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Settings</span>
           </div>
           <nav className="px-2 pb-2 space-y-0.5">
-            {isOwner && (
             <button 
               data-testid="configurations-btn"
               onClick={() => setActivePanel(activePanel === 'config' ? null : 'config')}
@@ -890,8 +889,7 @@ const Editor = () => {
               <Settings className="w-4 h-4" />
               <span className="text-sm">Configurations</span>
             </button>
-            )}
-            {isOwner && docId && (
+            {docId && (
               <button 
                 data-testid="version-history-btn"
                 onClick={() => setActivePanel(activePanel === 'history' ? null : 'history')}
@@ -1153,7 +1151,6 @@ const Editor = () => {
             </button>
 
             {/* Export all documents as JSON */}
-            {isOwner && (
             <button
               onClick={handleExport}
               disabled={exporting}
@@ -1168,7 +1165,6 @@ const Editor = () => {
               )}
               <span>Export all</span>
             </button>
-            )}
           </div>
         </header>
 

@@ -51,8 +51,17 @@ Self-verified (curl + Playwright; data restored).
 - **Overview stale numbers fixed**: added a `useEffect` that re-fetches `/review/progress` whenever `assignments` changes, so Overview updates without a manual refresh.
 - Data note: workspace currently has 121 assignments (full page coverage), up from 52 — leftover from automated test runs; harmless, can be reset on request.
 
+## Plan v4 execution — June 2026 (IN PROGRESS — Part 5 done, Parts 1–4 pending)
+**Part 5 (permission model) — DONE & verified (curl):** reversed the earlier lockdown. Now only **publish/unpublish/republish are owner-gated**; everything else (create/delete page, edit content, edit nav/config) is **unrestricted** for any signed-in @emergent.sh user. Removed `require_owner` from create_document/delete_document/PUT config; removed the reviewer-assigned-page edit restriction in `update_document` (non-owner edits still stamp `reviewer_edited_by`; published content still can't go live without an owner republish). Reverted the Editor UI hiding (New Tab, Configurations, Version History, Export, Unlinked section, nav-tree readOnly). **Kept:** verdicts remain assigned-reviewer-only. Verified: reviewer edit any page→200, resolve comment→200, publish→403.
+**Part 2 (partial) — DONE:** comment **resolve/reopen is now open to anyone** (removed owner gate, backend + ReviewPage UI).
+
+**BLOCKED — Part 1 (emails):** integration_expert could NOT verify a no-key Emergent-managed email module; pod probe found **no email env credential and no `emergentintegrations.email` module**. Real email delivery needs the Emergent Integration Agent to provision the module/credential first. NOT implemented (no fabricated sender).
+
+**STILL PENDING (not started):** Part 2 (threaded replies + @mention autocomplete + notifications), Part 3 (activity log + per-page history + "assigned by" label), Part 4 (delete confirmations + 90-day page trash/restore + delete tracker).
+
 ## Status note — June 2026 (open / next)
-- ⚠️ **Authz audit still recommended** (the "route-level owner dependency" item): project create/update/**delete**, asset upload/delete, and document version restore/delete are still reachable by any @emergent.sh reviewer (only create/delete *document* + PUT /config were locked). Convert owner-only routes to a `Depends(require_owner)` dependency and lock these down.
+- ⚠️ ~~Authz audit~~ SUPERSEDED by Plan v4 Part 5 (locks intentionally removed; safety moves to Part 4 confirmations/restore).
+- ⚠️ **Authz audit (obsolete)** (the "route-level owner dependency" item): project create/update/**delete**, asset upload/delete, and document version restore/delete are still reachable by any @emergent.sh reviewer (only create/delete *document* + PUT /config were locked). Convert owner-only routes to a `Depends(require_owner)` dependency and lock these down.
 - Known non-blocking: initial 2-3 auth 401 retries per protected load (cosmetic); reviewer full-editor tree still lists all 121 (edits gated).
 - Backlog: split Editor.jsx (1459 lines); confirm public sidebar nested subgroups render; voice comments / notifications deferred.
 
