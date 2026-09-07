@@ -393,3 +393,14 @@ Source: user-provided "User Education Gaps Tracker.csv" (219 rows) → complete 
 - Published pages: only owners can delete. Non-owner delete returns 403 listing owner emails to contact ("Please contact: <emails>"). Editor surfaces this detail as a toast.
 - Comment creation/resolution remain open to all signed-in @emergent.sh users; verdicts still assigned-reviewer-gated; publish/unpublish/republish still owner-only.
 - Emails (Part 1) PARKED per user. Parts 3 (activity/history) and 4 (trash/restore, confirmations) still pending.
+
+## 2026-06 — Part 3 (Activity log + page history) & Part 4 (Safe deletes)
+- Activity log: durable `activity_log` collection. Emitted on assigned, delegated, edited, commented, replied, resolved, published, unpublished, deleted, restored, purged, verdict.
+- Owner-only global Activity tab in Review Console (newest-first timeline, filter by person). GET /projects/{pid}/activity (owner) + /activity/page/{slug} (any signed-in).
+- Per-page History panel on the review page (data-testid page-history-*).
+- Assignments now store assigned_by_name; "assigned by <name>" shown on assignment rows.
+- Safe deletes: page delete is now SOFT (deleted_at/deleted_by/trash_nav), 90-day retention, lazy purge on trash read. Excluded from editor list, public docs, sitemap, review progress via {"deleted_at": None} filter.
+- Editor Trash panel (sidebar): list trashed pages, Restore (re-inserts nav placement) and Delete forever (confirm). Endpoints: GET /trash, POST /documents/{id}/restore-page, DELETE /trash/{id}.
+- Confirmations: version restore now confirms (overwrites current); version delete + page delete already confirm.
+- Owner-gate messaging: ensure_owner (review routes) + published-page delete now return "Only an owner can do this. Please contact: <owner emails>". Editor surfaces detail via toast.
+- Part 1 emails still PARKED per user.

@@ -60,6 +60,7 @@ export const VersionHistoryPanel = ({ projectId, documentId, documentTitle, onCl
   };
 
   const restoreVersion = async (versionId) => {
+    if (!window.confirm('Restore this version? Your current content will be overwritten (an automatic backup is saved first).')) return;
     setRestoring(true);
     try {
       await axios.post(`${API}/projects/${projectId}/documents/${documentId}/restore`, {

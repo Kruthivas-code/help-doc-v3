@@ -441,6 +441,70 @@ def require_owner(user: User):
     if getattr(user, "role", "member") != "owner":
         raise HTTPException(status_code=403, detail="Owner access required")
 
+async def log_activity(project_id, action, actor_email, actor_name=None, doc_slug=None, doc_title=None, meta=None):
+    """Append an audit entry to the activity log (best-effort; never blocks the request)."""
+    try:
+        await db.activity_log.insert_one({
+            "id": str(uuid.uuid4()), "project_id": project_id, "action": action,
+            "actor_email": (actor_email or "").lower(), "actor_name": actor_name or actor_email,
+            "doc_slug": doc_slug, "doc_title": doc_title, "meta": meta or {},
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        })
+    except Exception as e:
+        logger.error(f"activity log failed: {e}")
+
+def _find_nav_location(nav, slug):
+    """Return {tab_id, groups:[names], index, entry} for a page slug in the nav tree, or None."""
+    def walk(groups, trail):
+        for g in groups:
+            for i, p in enumerate(g.get("pages", [])):
+                s = p.get("page") if isinstance(p, dict) else p
+                if s == slug:
+                    return {"groups": trail + [g.get("group")], "index": i, "entry": p}
+            r = walk(g.get("groups", []), trail + [g.get("group")])
+            if r:
+                return r
+        return None
+    for t in nav.get("tabs", []):
+        r = walk(t.get("groups", []), [])
+        if r:
+            r["tab_id"] = t.get("id")
+            return r
+    r = walk(nav.get("groups", []), [])
+    if r:
+        r["tab_id"] = None
+    return r
+
+def _insert_nav_location(nav, loc, slug):
+    """Re-insert a page slug back into the nav tree at its former location (best-effort)."""
+    entry = (loc or {}).get("entry") or slug
+    def find_group(groups, names):
+        if not names:
+            return None
+        for g in groups:
+            if g.get("group") == names[0]:
+                return g if len(names) == 1 else find_group(g.get("groups", []), names[1:])
+        return None
+    target = None
+    if loc:
+        if loc.get("tab_id"):
+            for t in nav.get("tabs", []):
+                if t.get("id") == loc["tab_id"]:
+                    target = find_group(t.get("groups", []), loc.get("groups", []))
+                    break
+        else:
+            target = find_group(nav.get("groups", []), loc.get("groups", []))
+    if target is None:
+        tabs = nav.get("tabs", [])
+        if tabs and tabs[0].get("groups"):
+            target = tabs[0]["groups"][0]
+    if target is not None:
+        pages = target.setdefault("pages", [])
+        if not any((p.get("page") if isinstance(p, dict) else p) == slug for p in pages):
+            idx = min((loc or {}).get("index", len(pages)), len(pages))
+            pages.insert(idx, entry)
+    return nav
+
 async def get_project_with_admin_check(project_id: str, user: User):
     """Get project - admins can access any project, others only their own"""
     if is_admin(user):
@@ -567,7 +631,7 @@ async def get_documents(project_id: str, user: User = Depends(get_current_user))
         raise HTTPException(status_code=404, detail="Project not found")
     
     documents = await db.documents.find(
-        {"project_id": project_id},
+        {"project_id": project_id, "deleted_at": None},
         {"_id": 0}
     ).sort("order", 1).to_list(500)
     
@@ -587,7 +651,7 @@ async def export_project(project_id: str, user: User = Depends(get_current_user)
         raise HTTPException(status_code=404, detail="Project not found")
 
     documents = await db.documents.find(
-        {"project_id": project_id},
+        {"project_id": project_id, "deleted_at": None},
         {"_id": 0}
     ).sort("order", 1).to_list(1000)
 
@@ -710,6 +774,8 @@ async def update_document(
         {"id": doc_id},
         {"$set": update_data}
     )
+    await log_activity(project_id, "edited", user.email, getattr(user, "name", None),
+                       doc_slug=doc.get("slug"), doc_title=doc.get("title"))
     
     updated = await db.documents.find_one({"id": doc_id}, {"_id": 0})
     if isinstance(updated.get("created_at"), str):
@@ -731,41 +797,107 @@ async def delete_document(
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     
-    doc = await db.documents.find_one({"id": doc_id, "project_id": project_id}, {"_id": 0, "slug": 1, "status": 1})
+    doc = await db.documents.find_one({"id": doc_id, "project_id": project_id}, {"_id": 0})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
     # Published pages can only be deleted by an owner; block others and name the owners to contact.
-    if doc and doc.get("status") == "published" and getattr(user, "role", "member") != "owner":
+    if doc.get("status") == "published" and getattr(user, "role", "member") != "owner":
         owner_docs = await db.owner_invites.find({}, {"_id": 0, "email": 1}).to_list(100)
         owners = [o["email"] for o in owner_docs if o.get("email")]
         contact = (", ".join(owners)) if owners else "an owner"
         raise HTTPException(status_code=403, detail=f"This page is published — only an owner can delete it. Please contact: {contact}")
-    result = await db.documents.delete_one(
-        {"id": doc_id, "project_id": project_id}
-    )
-    
-    if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Document not found")
 
-    # Prune the slug from navigation config so no dangling "missing" nav entry remains
-    if doc and doc.get("slug"):
-        slug = doc["slug"]
+    slug = doc.get("slug")
+    trash_nav = None
+    # Prune the slug from navigation (so no dangling nav entry remains) but remember its
+    # location so Restore can put it back where it was.
+    cfg = await db.project_configs.find_one({"project_id": project_id})
+    nav = (cfg or {}).get("navigation")
+    if slug and nav:
+        trash_nav = _find_nav_location(nav, slug)
+        def prune(group):
+            group["pages"] = [p for p in group.get("pages", [])
+                              if (p.get("page") if isinstance(p, dict) else p) != slug]
+            for sg in group.get("groups", []):
+                prune(sg)
+        for t in nav.get("tabs", []):
+            for g in t.get("groups", []):
+                prune(g)
+        for g in nav.get("groups", []):
+            prune(g)
+        await db.project_configs.update_one(
+            {"project_id": project_id},
+            {"$set": {"navigation": nav, "updated_at": datetime.now(timezone.utc).isoformat()}})
+
+    # Soft-delete: move the page to Trash (90-day retention) rather than destroying the row.
+    now_iso = datetime.now(timezone.utc).isoformat()
+    await db.documents.update_one({"id": doc_id, "project_id": project_id}, {"$set": {
+        "deleted_at": now_iso, "deleted_by": user.email,
+        "deleted_by_name": getattr(user, "name", None), "trash_nav": trash_nav,
+        "updated_at": now_iso}})
+    await log_activity(project_id, "deleted", user.email, getattr(user, "name", None),
+                       doc_slug=slug, doc_title=doc.get("title"))
+    return {"message": "Document moved to Trash"}
+
+@api_router.get("/projects/{project_id}/trash")
+async def list_trash(project_id: str, user: User = Depends(get_current_user)):
+    """List soft-deleted pages (90-day retention). Anything older than 90 days is purged on read."""
+    project = await get_project_with_admin_check(project_id, user)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=90)).isoformat()
+    await db.documents.delete_many({"project_id": project_id, "deleted_at": {"$ne": None, "$lt": cutoff}})
+    items = await db.documents.find(
+        {"project_id": project_id, "deleted_at": {"$ne": None}},
+        {"_id": 0, "id": 1, "slug": 1, "title": 1, "status": 1, "deleted_at": 1, "deleted_by": 1, "deleted_by_name": 1}
+    ).sort("deleted_at", -1).to_list(500)
+    now = datetime.now(timezone.utc)
+    for it in items:
+        try:
+            it["days_left"] = max(0, 90 - (now - datetime.fromisoformat(it["deleted_at"])).days)
+        except Exception:
+            it["days_left"] = 90
+    return {"trash": items}
+
+@api_router.post("/projects/{project_id}/documents/{doc_id}/restore-page")
+async def restore_page(project_id: str, doc_id: str, user: User = Depends(get_current_user)):
+    """Restore a trashed page and put it back into the navigation where it used to live."""
+    project = await get_project_with_admin_check(project_id, user)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    doc = await db.documents.find_one({"id": doc_id, "project_id": project_id}, {"_id": 0})
+    if not doc or not doc.get("deleted_at"):
+        raise HTTPException(status_code=404, detail="Trashed document not found")
+    now_iso = datetime.now(timezone.utc).isoformat()
+    await db.documents.update_one({"id": doc_id}, {"$set": {
+        "deleted_at": None, "deleted_by": None, "deleted_by_name": None, "trash_nav": None,
+        "updated_at": now_iso}})
+    slug = doc.get("slug")
+    if slug:
         cfg = await db.project_configs.find_one({"project_id": project_id})
         nav = (cfg or {}).get("navigation")
         if nav:
-            def prune(group):
-                group["pages"] = [p for p in group.get("pages", [])
-                                  if (p.get("page") if isinstance(p, dict) else p) != slug]
-                for sg in group.get("groups", []):
-                    prune(sg)
-            for t in nav.get("tabs", []):
-                for g in t.get("groups", []):
-                    prune(g)
-            for g in nav.get("groups", []):
-                prune(g)
-            await db.project_configs.update_one(
-                {"project_id": project_id},
-                {"$set": {"navigation": nav, "updated_at": datetime.now(timezone.utc).isoformat()}})
+            _insert_nav_location(nav, doc.get("trash_nav"), slug)
+            await db.project_configs.update_one({"project_id": project_id},
+                {"$set": {"navigation": nav, "updated_at": now_iso}})
+    await log_activity(project_id, "restored", user.email, getattr(user, "name", None),
+                       doc_slug=slug, doc_title=doc.get("title"))
+    return {"message": "Document restored", "id": doc_id}
 
-    return {"message": "Document deleted successfully"}
+@api_router.delete("/projects/{project_id}/trash/{doc_id}")
+async def purge_trashed_document(project_id: str, doc_id: str, user: User = Depends(get_current_user)):
+    """Permanently delete a trashed page (irreversible)."""
+    project = await get_project_with_admin_check(project_id, user)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    doc = await db.documents.find_one({"id": doc_id, "project_id": project_id},
+                                      {"_id": 0, "slug": 1, "title": 1, "deleted_at": 1})
+    if not doc or not doc.get("deleted_at"):
+        raise HTTPException(status_code=404, detail="Trashed document not found")
+    await db.documents.delete_one({"id": doc_id, "project_id": project_id})
+    await log_activity(project_id, "purged", user.email, getattr(user, "name", None),
+                       doc_slug=doc.get("slug"), doc_title=doc.get("title"))
+    return {"message": "Permanently deleted"}
 
 # ==================== AI GENERATION ROUTES ====================
 
@@ -1258,7 +1390,7 @@ async def get_default_project():
     
     # Get documents — PUBLIC GATE: only PUBLISHED pages, served from the published snapshot.
     raw_docs = await db.documents.find(
-        {"project_id": project["id"], "status": "published"},
+        {"project_id": project["id"], "status": "published", "deleted_at": None},
         {"_id": 0}
     ).sort("order", 1).to_list(500)
 
@@ -1293,7 +1425,7 @@ async def get_public_project(project_slug: str):
     
     # Get documents — PUBLIC GATE: only PUBLISHED pages, served from the published snapshot.
     raw_docs = await db.documents.find(
-        {"project_id": project["id"], "status": "published"},
+        {"project_id": project["id"], "status": "published", "deleted_at": None},
         {"_id": 0}
     ).sort("order", 1).to_list(500)
 
@@ -1836,7 +1968,7 @@ async def _build_llms_txt(base_url: str, full: bool = False) -> str:
 
     config = await db.project_configs.find_one({"project_id": project["id"]}, {"_id": 0}) or {}
     docs = await db.documents.find(
-        {"project_id": project["id"], "status": "published"},
+        {"project_id": project["id"], "status": "published", "deleted_at": None},
         {"_id": 0, "slug": 1, "title": 1, "description": 1, "content": 1},
     ).to_list(1000)
     by_slug = {d.get("slug"): d for d in docs if d.get("slug")}
@@ -1906,7 +2038,7 @@ async def _build_sitemap(base_url: str) -> str:
         return empty
 
     documents = await db.documents.find(
-        {"project_id": project["id"], "status": "published"},
+        {"project_id": project["id"], "status": "published", "deleted_at": None},
         {"_id": 0, "slug": 1, "updated_at": 1},
     ).to_list(1000)
 
@@ -2026,6 +2158,7 @@ register_review_routes(api_router, {
     "storage_put_object": storage_put_object,
     "storage_build_path": storage_build_path,
     "storage_public_url": storage_public_url,
+    "log_activity": log_activity,
 })
 
 

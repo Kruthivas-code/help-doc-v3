@@ -4,7 +4,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import {
   Inbox, ClipboardList, BarChart3, Send, CheckCircle2, RotateCcw, Trash2,
-  ArrowLeft, MessageSquarePlus, Loader2, UserPlus, Sun, Moon, Filter, Users, ShieldCheck,
+  ArrowLeft, MessageSquarePlus, Loader2, UserPlus, Sun, Moon, Filter, Users, ShieldCheck, History,
 } from 'lucide-react';
 import { useTheme } from '@/contexts/ThemeContext';
 
@@ -14,6 +14,13 @@ const VERDICTS = [
   'Looks correct', 'Needs small edits', 'Wrong info', 'More info needed',
   'Outdated', 'Tone / clarity', 'Other',
 ];
+
+const ACTION_LABEL = {
+  assigned: 'assigned', delegated: 'delegated', edited: 'edited',
+  commented: 'commented on', replied: 'replied on', resolved: 'resolved a comment on',
+  published: 'published', unpublished: 'unpublished', deleted: 'moved to trash',
+  restored: 'restored', purged: 'permanently deleted', verdict: 'set a verdict on',
+};
 
 const StatusPill = ({ s }) => {
   const map = {
@@ -55,6 +62,9 @@ export default function ReviewConsole() {
   const [dScopes, setDScopes] = useState([]);
   const [dQuery, setDQuery] = useState('');
   const [dEmail, setDEmail] = useState('');
+  const [activity, setActivity] = useState([]);
+  const [activityPeople, setActivityPeople] = useState([]);
+  const [activityPerson, setActivityPerson] = useState('');
   const { isDark, toggleTheme } = useTheme();
 
   const isOwner = role?.is_owner;
@@ -193,6 +203,16 @@ export default function ReviewConsole() {
     if (!pid || !isOwner) return;
     axios.get(`${API}/projects/${pid}/review/progress`).then(r => setProgress(r.data)).catch(() => {});
   }, [assignments, pid, isOwner]);
+
+  // Load the global activity feed when the Activity tab (or its person filter) changes
+  useEffect(() => {
+    if (!pid || !isOwner || tab !== 'activity') return;
+    const q = activityPerson ? `?person=${encodeURIComponent(activityPerson)}` : '';
+    axios.get(`${API}/projects/${pid}/activity${q}`).then(r => {
+      setActivity(r.data.activity || []);
+      setActivityPeople(r.data.people || []);
+    }).catch(() => {});
+  }, [tab, activityPerson, pid, isOwner]);
 
   const load = useCallback(async () => {
     try {
@@ -421,6 +441,7 @@ export default function ReviewConsole() {
         {isOwner && <TabBtn id="inbox" icon={Inbox} label="Review Inbox" badge={inbox.unread} />}
         {isOwner && <TabBtn id="publish" icon={Send} label="Publish" />}
         {isOwner && <TabBtn id="team" icon={ShieldCheck} label="Team" />}
+        {isOwner && <TabBtn id="activity" icon={History} label="Activity" />}
       </div>
 
       <main className="p-6 max-w-5xl mx-auto">
@@ -598,7 +619,7 @@ export default function ReviewConsole() {
                 <div key={a.id} className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 p-4 flex items-center justify-between" data-testid={`assignment-${a.id}`}>
                   <div className="flex-1">
                     <div className="font-medium">{a.scope_label} <span className="text-xs text-zinc-400">({a.scope_type})</span></div>
-                    <div className="text-xs text-zinc-500">{a.assignee_email} · {a.slugs?.length || 0} page(s){a.delegated_from ? ` · delegated from ${a.delegated_from}` : ''}</div>
+                    <div className="text-xs text-zinc-500">{a.assignee_email} · {a.slugs?.length || 0} page(s){(a.assigned_by_name || a.assigned_by) ? ` · assigned by ${a.assigned_by_name || a.assigned_by}` : ''}{a.delegated_from ? ` · delegated from ${a.delegated_from}` : ''}</div>
                     <div className="flex flex-wrap gap-1 mt-2">
                       {(a.slugs || []).map(s => {
                         const doc = documents.find(x => x.slug === s);
@@ -690,9 +711,39 @@ export default function ReviewConsole() {
             </div>
           </div>
         )}
+        {tab === 'activity' && isOwner && (
+          <div data-testid="review-activity">
+            <div className="flex items-center gap-2 mb-4">
+              <History className="w-4 h-4 text-zinc-500" />
+              <h3 className="font-semibold">Activity</h3>
+              <select value={activityPerson} onChange={e => setActivityPerson(e.target.value)} data-testid="activity-person-filter" className="ml-auto text-sm border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-800 rounded-md px-2 py-1">
+                <option value="">Everyone</option>
+                {activityPeople.map(p => <option key={p} value={p}>{p}</option>)}
+              </select>
+            </div>
+            {activity.length === 0 ? (
+              <p className="text-sm text-zinc-500 dark:text-zinc-400" data-testid="activity-empty">No activity yet.</p>
+            ) : (
+              <div className="relative pl-4 border-l border-zinc-200 dark:border-zinc-800 space-y-4" data-testid="activity-feed">
+                {activity.map(ev => (
+                  <div key={ev.id} className="relative" data-testid={`activity-${ev.id}`}>
+                    <span className="absolute -left-[21px] top-1.5 w-2 h-2 rounded-full bg-indigo-500" />
+                    <div className="text-sm text-zinc-700 dark:text-zinc-200">
+                      <span className="font-medium">{ev.actor_name || ev.actor_email}</span>{' '}
+                      {ACTION_LABEL[ev.action] || ev.action}
+                      {(ev.doc_title || ev.doc_slug) ? <> <button onClick={() => (ev.doc_slug ? navigate(`/review/${ev.doc_slug}`) : null)} className="text-indigo-600 dark:text-indigo-400 hover:underline">{ev.doc_title || ev.doc_slug}</button></> : null}
+                      {ev.meta?.assignee ? <span className="text-zinc-500"> → {ev.meta.assignee}</span> : null}
+                      {ev.meta?.to ? <span className="text-zinc-500"> ({ev.meta.from} → {ev.meta.to})</span> : null}
+                      {ev.meta?.verdict ? <span className="text-zinc-500"> — “{ev.meta.verdict}”</span> : null}
+                    </div>
+                    <div className="text-xs text-zinc-400 mt-0.5">{new Date(ev.created_at).toLocaleString()}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </main>
-
-      {/* Doc review drawer */}
       {activeDoc && (
         <div className="fixed inset-0 z-50 flex justify-end bg-black/30" onClick={() => setActiveDoc(null)}>
           <div className="w-[440px] h-full bg-white dark:bg-zinc-900 border-l border-zinc-200 dark:border-zinc-800 shadow-xl p-5 overflow-y-auto" onClick={e => e.stopPropagation()} data-testid="review-drawer">

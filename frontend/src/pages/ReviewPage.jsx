@@ -6,11 +6,17 @@ import { DocContent } from '@/components/docs/DocContent';
 import { useTheme } from '@/contexts/ThemeContext';
 import {
   ArrowLeft, MessageSquarePlus, CheckCircle2, RotateCcw, X, Sun, Moon,
-  ChevronLeft, ChevronRight, ListChecks, Circle, Pencil, ExternalLink, Save,
+  ChevronLeft, ChevronRight, ListChecks, Circle, Pencil, ExternalLink, Save, History,
 } from 'lucide-react';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const VERDICTS = ['Looks correct', 'Needs small edits', 'Wrong info', 'More info needed', 'Outdated', 'Tone / clarity', 'Other'];
+const ACTION_LABEL = {
+  assigned: 'assigned', delegated: 'delegated', edited: 'edited', commented: 'commented on',
+  replied: 'replied on', resolved: 'resolved a comment', published: 'published',
+  unpublished: 'unpublished', deleted: 'moved to trash', restored: 'restored',
+  purged: 'permanently deleted', verdict: 'set a verdict',
+};
 
 // Lightweight @mention textarea: type "@" then filter people the app knows.
 function MentionInput({ value, onChange, options, placeholder, rows = 3, testid, autoFocus }) {
@@ -72,6 +78,8 @@ export default function ReviewPage() {
   const [knownEmails, setKnownEmails] = useState([]);
   const [replyTo, setReplyTo] = useState(null);
   const [replyBody, setReplyBody] = useState('');
+  const [showHistory, setShowHistory] = useState(false);
+  const [history, setHistory] = useState([]);
 
   const isOwner = role?.is_owner;
   const reviewerEmail = (searchParams.get('reviewer') || role?.email || '').toLowerCase();
@@ -157,7 +165,6 @@ export default function ReviewPage() {
   const myEmail = (role?.email || '').toLowerCase();
   // Reviewers may edit pages assigned to them; owners may edit anything.
   const canEdit = !!doc; // Part 5: any signed-in @emergent.sh user may edit; only publishing is owner-gated.
-
   const startEdit = () => { setEditTitle(doc.title || ''); setEditContent(doc.content || ''); setEditing(true); };
   const saveDraft = async () => {
     if (!doc) return;
@@ -265,6 +272,7 @@ export default function ReviewPage() {
               <button onClick={() => navigate(`/admin/editor/${pid}/${doc.id}`)} className="hidden md:flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800" data-testid="reviewpage-open-editor-btn"><ExternalLink className="w-3.5 h-3.5" /> Full editor</button>
             </>
           )}
+          <button onClick={() => { setShowHistory(true); if (doc?.slug) axios.get(`${API}/projects/${pid}/activity/page/${doc.slug}`).then(r => setHistory(r.data.activity || [])).catch(() => {}); }} className="hidden sm:flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800" data-testid="reviewpage-history-btn"><History className="w-3.5 h-3.5" /> History</button>
           <label className="flex items-center gap-2 text-sm cursor-pointer select-none" data-testid="review-toggle">
             <span className="text-zinc-500 dark:text-zinc-400 hidden sm:inline">Review</span>
             <button onClick={() => setReviewOn((v) => !v)} aria-pressed={reviewOn} className={`relative w-10 h-5 rounded-full transition-colors ${reviewOn ? 'bg-indigo-600' : 'bg-zinc-300 dark:bg-zinc-700'}`} data-testid="review-toggle-btn">
@@ -450,6 +458,33 @@ export default function ReviewPage() {
               <button onClick={() => { setPendingNav(null); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="w-full px-3 py-2 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-sm font-medium rounded-md" data-testid="nudge-stay">Stay and leave a verdict</button>
               <button onClick={() => { const url = pendingNav.url; setPendingNav(null); navigate(url); }} className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 text-sm rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-800" data-testid="nudge-review-later">Review later, continue</button>
             </div>
+          </div>
+        </div>
+      )}
+      {showHistory && (
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/30" onClick={() => setShowHistory(false)} data-testid="page-history-overlay">
+          <div className="w-[380px] h-full bg-white dark:bg-zinc-900 border-l border-zinc-200 dark:border-zinc-800 shadow-xl p-5 overflow-y-auto" onClick={e => e.stopPropagation()} data-testid="page-history-panel">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold flex items-center gap-2"><History className="w-4 h-4" /> Page history</h3>
+              <button onClick={() => setShowHistory(false)} className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded" data-testid="page-history-close"><X className="w-4 h-4" /></button>
+            </div>
+            {history.length === 0 ? (
+              <p className="text-sm text-zinc-500 dark:text-zinc-400" data-testid="page-history-empty">No history for this page yet.</p>
+            ) : (
+              <div className="relative pl-4 border-l border-zinc-200 dark:border-zinc-800 space-y-4">
+                {history.map(ev => (
+                  <div key={ev.id} className="relative" data-testid={`page-history-${ev.id}`}>
+                    <span className="absolute -left-[21px] top-1.5 w-2 h-2 rounded-full bg-indigo-500" />
+                    <div className="text-sm text-zinc-700 dark:text-zinc-200">
+                      <span className="font-medium">{ev.actor_name || ev.actor_email}</span> {ACTION_LABEL[ev.action] || ev.action}
+                      {ev.meta?.verdict ? <span className="text-zinc-500"> — “{ev.meta.verdict}”</span> : null}
+                      {ev.meta?.to ? <span className="text-zinc-500"> ({ev.meta.from} → {ev.meta.to})</span> : null}
+                    </div>
+                    <div className="text-xs text-zinc-400 mt-0.5">{new Date(ev.created_at).toLocaleString()}</div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -67,13 +67,19 @@ def register_review_routes(api_router, ctx):
     storage_put_object = ctx["storage_put_object"]
     storage_build_path = ctx["storage_build_path"]
     storage_public_url = ctx["storage_public_url"]
+    log_activity = ctx.get("log_activity")
 
     def is_owner(user):
         return getattr(user, "role", "member") == "owner"
 
-    def ensure_owner(user):
+    async def _owner_contact_str():
+        docs = await db.owner_invites.find({}, {"_id": 0, "email": 1}).to_list(100)
+        owners = [o["email"] for o in docs if o.get("email")]
+        return ", ".join(owners) if owners else "an owner"
+
+    async def _owner_only(user):
         if not is_owner(user):
-            raise HTTPException(status_code=403, detail="Owner role required")
+            raise HTTPException(status_code=403, detail=f"Only an owner can do this. Please contact: {await _owner_contact_str()}")
 
     async def flatten_scope_slugs(project_id, scope_type, scope_id):
         if scope_type == "page":
@@ -128,7 +134,7 @@ def register_review_routes(api_router, ctx):
 
     @api_router.get("/roles/owners")
     async def roles_owners(user=Depends(get_current_user)):
-        ensure_owner(user)
+        await _owner_only(user)
         invites = await db.owner_invites.find({}, {"_id": 0}).to_list(200)
         return {"owners": invites}
 
@@ -149,13 +155,13 @@ def register_review_routes(api_router, ctx):
 
     @api_router.post("/roles/promote")
     async def roles_promote(req: PromoteReq, user=Depends(get_current_user)):
-        ensure_owner(user)
+        await _owner_only(user)
         return await grant_owner(req.email)
 
     # ---------------- Publish gate ----------------
     @api_router.post("/projects/{project_id}/documents/{doc_id}/publish")
     async def publish_doc(project_id: str, doc_id: str, user=Depends(get_current_user)):
-        ensure_owner(user)
+        await _owner_only(user)
         doc = await db.documents.find_one({"id": doc_id, "project_id": project_id})
         if not doc:
             raise HTTPException(404, "Document not found")
@@ -171,11 +177,14 @@ def register_review_routes(api_router, ctx):
             "published_at": now, "updated_at": now,
             "reviewer_edited_by": None, "reviewer_edited_at": None,
         }})
+        if log_activity:
+            await log_activity(project_id, "published", user.email, getattr(user, "name", None),
+                               doc_slug=doc.get("slug"), doc_title=doc.get("title"))
         return {"status": "published", "published_at": now}
 
     @api_router.post("/projects/{project_id}/documents/{doc_id}/unpublish")
     async def unpublish_doc(project_id: str, doc_id: str, user=Depends(get_current_user)):
-        ensure_owner(user)
+        await _owner_only(user)
         doc = await db.documents.find_one({"id": doc_id, "project_id": project_id})
         if not doc:
             raise HTTPException(404, "Document not found")
@@ -183,16 +192,20 @@ def register_review_routes(api_router, ctx):
             "status": "in_review", "published_content": None, "published_title": None,
             "published_at": None, "updated_at": _now(),
         }})
+        if log_activity:
+            await log_activity(project_id, "unpublished", user.email, getattr(user, "name", None),
+                               doc_slug=doc.get("slug"), doc_title=doc.get("title"))
         return {"status": "in_review"}
 
     # ---------------- Assignments ----------------
     @api_router.post("/projects/{project_id}/assignments")
     async def create_assignment(project_id: str, req: AssignmentReq, user=Depends(get_current_user)):
-        ensure_owner(user)
+        await _owner_only(user)
         slugs = await flatten_scope_slugs(project_id, req.scope_type, req.scope_id)
         a = {"id": str(uuid.uuid4()), "project_id": project_id, "scope_type": req.scope_type,
              "scope_id": req.scope_id, "scope_label": req.scope_label or req.scope_id,
              "assignee_email": _norm(req.assignee_email), "assigned_by": user.email,
+             "assigned_by_name": getattr(user, "name", None),
              "status": "in_review", "slugs": slugs, "delegated_from": None,
              "created_at": _now(), "updated_at": _now()}
         await db.assignments.insert_one({**a})
@@ -201,6 +214,12 @@ def register_review_routes(api_router, ctx):
                 {"project_id": project_id, "slug": {"$in": slugs}, "status": "draft"},
                 {"$set": {"status": "in_review", "updated_at": _now()}})
         a.pop("_id", None)
+        if log_activity:
+            await log_activity(project_id, "assigned", user.email, getattr(user, "name", None),
+                               doc_slug=(slugs[0] if len(slugs) == 1 else None),
+                               doc_title=req.scope_label or req.scope_id,
+                               meta={"assignee": _norm(req.assignee_email),
+                                     "scope": req.scope_label or req.scope_id, "count": len(slugs)})
         return a
 
     @api_router.get("/projects/{project_id}/assignments")
@@ -244,11 +263,15 @@ def register_review_routes(api_router, ctx):
         await db.assignments.update_one({"id": aid}, {"$set": {
             "assignee_email": _norm(req.email), "delegated_from": a.get("assignee_email"),
             "status": "in_review", "updated_at": _now()}})
+        if log_activity:
+            await log_activity(project_id, "delegated", user.email, getattr(user, "name", None),
+                               meta={"from": a.get("assignee_email"), "to": _norm(req.email),
+                                     "scope": a.get("scope_label")})
         return {"assignee_email": _norm(req.email), "delegated_from": a.get("assignee_email")}
 
     @api_router.delete("/projects/{project_id}/assignments/{aid}")
     async def delete_assignment(project_id: str, aid: str, user=Depends(get_current_user)):
-        ensure_owner(user)
+        await _owner_only(user)
         await db.assignments.delete_one({"id": aid, "project_id": project_id})
         return {"message": "deleted"}
 
@@ -267,6 +290,9 @@ def register_review_routes(api_router, ctx):
             {"project_id": project_id, "assignee_email": frm},
             {"$set": {"assignee_email": to, "delegated_from": frm,
                       "status": "in_review", "updated_at": _now()}})
+        if log_activity:
+            await log_activity(project_id, "delegated", user.email, getattr(user, "name", None),
+                               meta={"from": frm, "to": to, "count": res.modified_count})
         return {"reassigned": res.modified_count, "to_email": to}
 
     @api_router.post("/projects/{project_id}/assignments/delegate-pages")
@@ -306,9 +332,13 @@ def register_review_routes(api_router, ctx):
                 await db.assignments.insert_one({
                     "id": str(uuid.uuid4()), "project_id": project_id, "scope_type": "pages",
                     "scope_id": "pages", "scope_label": "Delegated pages", "assignee_email": to,
-                    "assigned_by": user.email, "status": "in_review", "slugs": [slug],
+                    "assigned_by": user.email, "assigned_by_name": getattr(user, "name", None),
+                    "status": "in_review", "slugs": [slug],
                     "delegated_from": frm, "created_at": now, "updated_at": now})
             moved += 1
+        if log_activity and moved:
+            await log_activity(project_id, "delegated", user.email, getattr(user, "name", None),
+                               meta={"from": frm, "to": to, "count": moved})
         return {"moved": moved, "to_email": to}
 
     # ---------------- Comments ----------------
@@ -329,12 +359,19 @@ def register_review_routes(api_router, ctx):
              "resolved": False, "resolved_by": None, "read_by": [_norm(user.email)], "created_at": _now()}
         await db.review_comments.insert_one({**c})
         c.pop("_id", None)
+        if log_activity:
+            await log_activity(project_id, "replied" if req.parent_id else "commented",
+                               user.email, user.name, doc_slug=req.doc_slug,
+                               meta={"mentions": c["mentions"]})
         return c
 
     @api_router.post("/projects/{project_id}/comments/{cid}/resolve")
     async def resolve_comment(project_id: str, cid: str, user=Depends(get_current_user)):
+        c = await db.review_comments.find_one({"id": cid, "project_id": project_id}, {"_id": 0, "doc_slug": 1})
         await db.review_comments.update_one({"id": cid, "project_id": project_id},
             {"$set": {"resolved": True, "resolved_by": user.email}})
+        if log_activity:
+            await log_activity(project_id, "resolved", user.email, user.name, doc_slug=(c or {}).get("doc_slug"))
         return {"resolved": True}
 
     @api_router.post("/projects/{project_id}/comments/{cid}/reopen")
@@ -396,12 +433,15 @@ def register_review_routes(api_router, ctx):
         key = {"project_id": project_id, "doc_slug": req.doc_slug, "reviewer_email": _norm(user.email)}
         await db.review_verdicts.update_one(key, {"$set": {**key, "verdict": req.verdict,
             "reviewer_name": user.name, "updated_at": _now()}}, upsert=True)
+        if log_activity:
+            await log_activity(project_id, "verdict", user.email, user.name,
+                               doc_slug=req.doc_slug, meta={"verdict": req.verdict})
         return {"verdict": req.verdict}
 
     # ---------------- Inbox / progress ----------------
     @api_router.get("/projects/{project_id}/review/inbox")
     async def review_inbox(project_id: str, user=Depends(get_current_user)):
-        ensure_owner(user)
+        await _owner_only(user)
         comments = await db.review_comments.find({"project_id": project_id}, {"_id": 0}).sort("created_at", -1).to_list(1000)
         me = _norm(user.email)
         unread = sum(1 for c in comments if me not in (c.get("read_by") or []) and c.get("author_email") != me)
@@ -410,15 +450,40 @@ def register_review_routes(api_router, ctx):
 
     @api_router.get("/projects/{project_id}/review/progress")
     async def review_progress(project_id: str, user=Depends(get_current_user)):
-        ensure_owner(user)
+        await _owner_only(user)
         assignments = await db.assignments.find({"project_id": project_id}, {"_id": 0}).to_list(500)
         by_status = {}
         for a in assignments:
             by_status[a["status"]] = by_status.get(a["status"], 0) + 1
-        docs = await db.documents.find({"project_id": project_id}, {"_id": 0, "status": 1}).to_list(2000)
+        docs = await db.documents.find({"project_id": project_id, "deleted_at": None}, {"_id": 0, "status": 1}).to_list(2000)
         doc_status = {}
         for d in docs:
             s = d.get("status", "draft")
             doc_status[s] = doc_status.get(s, 0) + 1
         return {"assignments_by_status": by_status, "docs_by_status": doc_status,
                 "total_assignments": len(assignments)}
+
+    # ---------------- Activity log ----------------
+    @api_router.get("/projects/{project_id}/activity")
+    async def get_activity(project_id: str, person: str = None, limit: int = 200, user=Depends(get_current_user)):
+        await _owner_only(user)
+        q = {"project_id": project_id}
+        if person:
+            q["actor_email"] = person.lower()
+        items = await db.activity_log.find(q, {"_id": 0}).sort("created_at", -1).to_list(min(limit, 500))
+        people = await db.activity_log.distinct("actor_email", {"project_id": project_id})
+        slugs = list({i["doc_slug"] for i in items if i.get("doc_slug") and not i.get("doc_title")})
+        if slugs:
+            docs = await db.documents.find(
+                {"project_id": project_id, "slug": {"$in": slugs}}, {"_id": 0, "slug": 1, "title": 1}).to_list(1000)
+            tmap = {d["slug"]: d.get("title") for d in docs}
+            for i in items:
+                if i.get("doc_slug") and not i.get("doc_title"):
+                    i["doc_title"] = tmap.get(i["doc_slug"])
+        return {"activity": items, "people": sorted([p for p in people if p])}
+
+    @api_router.get("/projects/{project_id}/activity/page/{slug}")
+    async def get_page_activity(project_id: str, slug: str, user=Depends(get_current_user)):
+        items = await db.activity_log.find(
+            {"project_id": project_id, "doc_slug": slug}, {"_id": 0}).sort("created_at", -1).to_list(500)
+        return {"activity": items}

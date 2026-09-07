@@ -25,7 +25,7 @@ import {
 import { ConfigurationsPanel } from "@/components/editor/ConfigurationsPanel";
 import { UnifiedEditor } from "@/components/editor/UnifiedEditor";
 import { VersionHistoryPanel } from "@/components/editor/VersionHistoryPanel";
-import { EditorNavTree } from "@/components/editor/EditorNavTree";
+import { TrashPanel } from "@/components/editor/TrashPanel";import { EditorNavTree } from "@/components/editor/EditorNavTree";
 import { LiveEditor } from "@/components/editor/LiveEditor";
 import { TipTapWYSIWYG } from "@/components/editor/TipTapWYSIWYG";
 import { WritingAssistant, WritingAssistantTrigger } from "@/components/editor/WritingAssistant";
@@ -903,6 +903,18 @@ const Editor = () => {
                 <span className="text-sm">Version History</span>
               </button>
             )}
+            <button
+              data-testid="trash-btn"
+              onClick={() => setActivePanel(activePanel === 'trash' ? null : 'trash')}
+              className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+                activePanel === 'trash'
+                  ? 'bg-brand/10 text-brand'
+                  : 'text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:text-zinc-950 dark:hover:text-white'
+              }`}
+            >
+              <Trash2 className="w-4 h-4" />
+              <span className="text-sm">Trash</span>
+            </button>
           </nav>
           
           {/* Theme toggle (new design system) */}
@@ -930,6 +942,13 @@ const Editor = () => {
                   // Refresh document content after restore
                   fetchDocument();
                 }}
+              />
+            )}
+            {activePanel === 'trash' && (
+              <TrashPanel
+                projectId={projectId}
+                onClose={() => setActivePanel(null)}
+                onChange={() => fetchProjectData()}
               />
             )}
           </div>
