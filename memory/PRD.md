@@ -404,3 +404,10 @@ Source: user-provided "User Education Gaps Tracker.csv" (219 rows) → complete 
 - Confirmations: version restore now confirms (overwrites current); version delete + page delete already confirm.
 - Owner-gate messaging: ensure_owner (review routes) + published-page delete now return "Only an owner can do this. Please contact: <owner emails>". Editor surfaces detail via toast.
 - Part 1 emails still PARKED per user.
+
+## 2026-06 — Reviewer link, list ordering & one-assignee-per-page
+- Deep-link after login: ProtectedRoute stores intended path; AuthCallback returns the user there (so a shared /admin/review or /review/<slug> link lands them on the right page after Google login). OAuth redirect URL unchanged (/admin/dashboard).
+- My Reviews list now sorted by navigation/doc order (pageOrder from scopeOptions) to match the delegate picker; delegate panel stays on top.
+- ONE ASSIGNEE PER PAGE invariant: added _unassign_slugs() in review_routes; applied in create_assignment, delegate_assignment, delegate_bulk (delegate_pages already moved). Re-assigning a page moves it off the previous reviewer; re-assigning to the same person is idempotent (count unchanged).
+- One-time data cleanup: newest assignment wins per slug; 32 duplicate assignment docs removed. Result: all 121 pages assigned to exactly one reviewer, 0 double-assignments. Counts — vishal.k=18, sarang=19, amol=34, karthikraghuram=23, vinish=11, tejas=9, akash=4, mihir=3.
+- Note: 'How the agent runs (workflow & stop reasons)' (slug how-the-agent-runs-workflow-stop-reasons) exists and is in nav; earlier 'can't find it' was the list-order mismatch, now fixed.

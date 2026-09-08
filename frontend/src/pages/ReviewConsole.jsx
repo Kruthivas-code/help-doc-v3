@@ -154,6 +154,13 @@ export default function ReviewConsole() {
     return opts;
   }, [config, documents]);
 
+  // Position of each page slug in the navigation (used to order the review list like the docs)
+  const pageOrder = useMemo(() => {
+    const m = {}; let i = 0;
+    scopeOptions.forEach(o => { if (o.type === 'page' && !(o.id in m)) m[o.id] = i++; });
+    return m;
+  }, [scopeOptions]);
+
   // For each tab/section option key -> the list of descendant page keys (page:<slug>)
   const descendants = useMemo(() => {
     const map = {};
@@ -613,7 +620,13 @@ export default function ReviewConsole() {
             )}
             <div className="space-y-2">
               {(() => {
-                const shown = assignments.filter(a => !reviewerFilter.trim() || (a.assignee_email || '').toLowerCase().includes(reviewerFilter.trim().toLowerCase()));
+                const shown = assignments
+                  .filter(a => !reviewerFilter.trim() || (a.assignee_email || '').toLowerCase().includes(reviewerFilter.trim().toLowerCase()))
+                  .slice()
+                  .sort((x, y) => {
+                    const ord = (a) => Math.min(...((a.slugs || []).map(s => (s in pageOrder ? pageOrder[s] : 1e9))), 1e9);
+                    return ord(x) - ord(y);
+                  });
                 if (shown.length === 0) return <p className="text-sm text-zinc-500 dark:text-zinc-400" data-testid="assign-empty">{assignments.length === 0 ? 'No assignments yet.' : 'No reviews match that email.'}</p>;
                 return shown.map(a => (
                 <div key={a.id} className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 p-4 flex items-center justify-between" data-testid={`assignment-${a.id}`}>

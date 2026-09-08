@@ -81,6 +81,23 @@ def register_review_routes(api_router, ctx):
         if not is_owner(user):
             raise HTTPException(status_code=403, detail=f"Only an owner can do this. Please contact: {await _owner_contact_str()}")
 
+    async def _unassign_slugs(project_id, slugs, keep_id=None):
+        """Enforce one-assignee-per-page: strip these slugs from every other assignment
+        doc (deleting any that become empty) so a page is never assigned to two reviewers."""
+        sset = {s for s in (slugs or []) if s}
+        if not sset:
+            return
+        docs = await db.assignments.find(
+            {"project_id": project_id, "slugs": {"$in": list(sset)}}, {"_id": 0}).to_list(2000)
+        for a in docs:
+            if keep_id and a.get("id") == keep_id:
+                continue
+            remaining = [s for s in (a.get("slugs") or []) if s not in sset]
+            if remaining:
+                await db.assignments.update_one({"id": a["id"]}, {"$set": {"slugs": remaining, "updated_at": _now()}})
+            else:
+                await db.assignments.delete_one({"id": a["id"]})
+
     async def flatten_scope_slugs(project_id, scope_type, scope_id):
         if scope_type == "page":
             return [scope_id]
@@ -202,6 +219,8 @@ def register_review_routes(api_router, ctx):
     async def create_assignment(project_id: str, req: AssignmentReq, user=Depends(get_current_user)):
         await _owner_only(user)
         slugs = await flatten_scope_slugs(project_id, req.scope_type, req.scope_id)
+        # One assignee per page: pull these pages out of any existing assignment first.
+        await _unassign_slugs(project_id, slugs)
         a = {"id": str(uuid.uuid4()), "project_id": project_id, "scope_type": req.scope_type,
              "scope_id": req.scope_id, "scope_label": req.scope_label or req.scope_id,
              "assignee_email": _norm(req.assignee_email), "assigned_by": user.email,
@@ -260,6 +279,8 @@ def register_review_routes(api_router, ctx):
             raise HTTPException(404, "Assignment not found")
         if not is_owner(user) and _norm(user.email) != a.get("assignee_email"):
             raise HTTPException(403, "Only the Owner or the current assignee can delegate")
+        # Move these pages off any other reviewer so the target owns them uniquely.
+        await _unassign_slugs(project_id, a.get("slugs") or [], keep_id=aid)
         await db.assignments.update_one({"id": aid}, {"$set": {
             "assignee_email": _norm(req.email), "delegated_from": a.get("assignee_email"),
             "status": "in_review", "updated_at": _now()}})
@@ -286,6 +307,11 @@ def register_review_routes(api_router, ctx):
         # Owners can delegate anyone's queue; a reviewer may only delegate their own.
         if not is_owner(user) and _norm(user.email) != frm:
             raise HTTPException(403, "Only the Owner or the current assignee can delegate these")
+        # Dedupe against the target's existing pages so nothing ends up double-assigned.
+        frm_docs = await db.assignments.find(
+            {"project_id": project_id, "assignee_email": frm}, {"_id": 0}).to_list(2000)
+        for d in frm_docs:
+            await _unassign_slugs(project_id, d.get("slugs") or [], keep_id=d["id"])
         res = await db.assignments.update_many(
             {"project_id": project_id, "assignee_email": frm},
             {"$set": {"assignee_email": to, "delegated_from": frm,

@@ -63,7 +63,15 @@ const AuthCallback = () => {
           if (response.data.token) {
             localStorage.setItem('auth_token', response.data.token);
           }
-          navigate("/admin/dashboard", { replace: true, state: { user: response.data } });
+          // Return the user to the page they originally opened (e.g. a shared
+          // /admin/review link), falling back to the dashboard.
+          let dest = '/admin/dashboard';
+          try {
+            const saved = localStorage.getItem('post_login_redirect');
+            if (saved && saved.startsWith('/') && saved !== '/admin') dest = saved;
+            localStorage.removeItem('post_login_redirect');
+          } catch (e) { /* ignore storage errors */ }
+          navigate(dest, { replace: true, state: { user: response.data } });
         } catch (error) {
           console.error("Auth error:", error);
           navigate("/admin", { replace: true });
@@ -112,7 +120,14 @@ const ProtectedRoute = ({ children }) => {
     setIsChecking(true);
     checkAuth()
       .then(() => setIsChecking(false))
-      .catch(() => navigate("/admin", { replace: true }));
+      .catch(() => {
+        // Remember where they were headed so login can send them straight back.
+        const dest = location.pathname + location.search;
+        if (dest && dest.startsWith('/') && dest !== '/admin') {
+          try { localStorage.setItem('post_login_redirect', dest); } catch (e) { /* ignore */ }
+        }
+        navigate("/admin", { replace: true });
+      });
   }, [user, loading, location.state, checkAuth, navigate]);
 
   if (loading || isChecking) {
