@@ -631,8 +631,15 @@ export default function ReviewConsole() {
                 return shown.map(a => (
                 <div key={a.id} className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 p-4 flex items-center justify-between" data-testid={`assignment-${a.id}`}>
                   <div className="flex-1">
-                    <div className="font-medium">{a.scope_label} <span className="text-xs text-zinc-400">({a.scope_type})</span></div>
+                    {(a.slugs || []).length === 1 ? (
+                      <button onClick={() => navigate(`/review/${a.slugs[0]}?reviewer=${encodeURIComponent(a.assignee_email || '')}`)} className="font-medium text-left text-indigo-700 dark:text-indigo-400 hover:underline" data-testid={`review-page-${a.slugs[0]}`}>
+                        {a.scope_label}
+                      </button>
+                    ) : (
+                      <div className="font-medium">{a.scope_label} <span className="text-xs text-zinc-400">({a.scope_type})</span></div>
+                    )}
                     <div className="text-xs text-zinc-500">{a.assignee_email} · {a.slugs?.length || 0} page(s){(a.assigned_by_name || a.assigned_by) ? ` · assigned by ${a.assigned_by_name || a.assigned_by}` : ''}{a.delegated_from ? ` · delegated from ${a.delegated_from}` : ''}</div>
+                    {(a.slugs || []).length > 1 && (
                     <div className="flex flex-wrap gap-1 mt-2">
                       {(a.slugs || []).map(s => {
                         const doc = documents.find(x => x.slug === s);
@@ -643,6 +650,7 @@ export default function ReviewConsole() {
                         );
                       })}
                     </div>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     <StatusPill s={a.status} />
