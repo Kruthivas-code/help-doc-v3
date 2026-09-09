@@ -32,6 +32,27 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 // build-time prerendered pages emit correct absolute URLs (not localhost).
 const SITE_ORIGIN = (process.env.REACT_APP_SITE_URL || (typeof window !== 'undefined' ? window.location.origin : '')).replace(/\/$/, '');
 
+// Recursively collect page slugs from a group (own pages + nested subgroups), in nav order.
+const slugOf = (p) => (typeof p === 'string' ? p : p.page);
+const collectGroupSlugs = (group) => {
+    const out = [];
+    (group.pages || []).forEach((p) => out.push(slugOf(p)));
+    (group.groups || []).forEach((sub) => out.push(...collectGroupSlugs(sub)));
+    return out;
+};
+const groupHasSlug = (group, slug) =>
+    collectGroupSlugs(group).some((s) => s?.toLowerCase() === slug?.toLowerCase());
+// Deepest (most specific) group label that contains slug — a subgroup wins over its parent.
+const findGroupLabel = (group, slug) => {
+    for (const sub of (group.groups || [])) {
+        const inner = findGroupLabel(sub, slug);
+        if (inner !== null) return inner;
+    }
+    if ((group.pages || []).some((p) => slugOf(p)?.toLowerCase() === slug?.toLowerCase())) return group.group || '';
+    return null;
+};
+
+
 /* ============================================================
    TOP HEADER — sticky, backdrop-blur, full-width
    ============================================================ */
@@ -403,10 +424,8 @@ const SearchDialog = ({ open, onClose, onSelect, config }) => {
     const getBreadcrumb = (slug) => {
         for (const tab of tabs) {
             for (const g of (tab.groups || [])) {
-                for (const p of (g.pages || [])) {
-                    const ps = typeof p === 'string' ? p : p.page;
-                    if (ps?.toLowerCase() === slug?.toLowerCase()) return `${tab.label} › ${g.group || ''}`;
-                }
+                const label = findGroupLabel(g, slug);
+                if (label !== null) return `${tab.label} › ${label}`;
             }
         }
         return null;
@@ -623,8 +642,7 @@ const PublicDocs = () => {
     const getFirstNavDoc = useCallback(() => {
         for (const t of tabs) {
             for (const g of (t.groups || [])) {
-                for (const p of (g.pages || [])) {
-                    const slug = typeof p === 'string' ? p : p.page;
+                for (const slug of collectGroupSlugs(g)) {
                     const doc = documents.find(d => d.slug?.toLowerCase() === slug?.toLowerCase());
                     if (doc) return doc;
                 }
@@ -667,10 +685,7 @@ const PublicDocs = () => {
         if (!selectedDoc || tabs.length === 0) return;
         for (const t of tabs) {
             for (const g of (t.groups || [])) {
-                const found = (g.pages || []).some(
-                    p => (typeof p === 'string' ? p : p.page)?.toLowerCase() === selectedDoc.slug?.toLowerCase()
-                );
-                if (found) { setActiveTabId(t.id); return; }
+                if (groupHasSlug(g, selectedDoc.slug)) { setActiveTabId(t.id); return; }
             }
         }
         setActiveTabId(prev => prev || tabs[0]?.id);
@@ -686,8 +701,7 @@ const PublicDocs = () => {
         const tab = tabs.find(t => t.id === tabId);
         if (!tab) return;
         for (const g of (tab.groups || [])) {
-            for (const p of (g.pages || [])) {
-                const slug = typeof p === 'string' ? p : p.page;
+            for (const slug of collectGroupSlugs(g)) {
                 const doc = documents.find(d => d.slug?.toLowerCase() === slug?.toLowerCase());
                 if (doc) { handleDocSelect(slug); return; }
             }
@@ -739,8 +753,8 @@ const PublicDocs = () => {
         if (!selectedDoc) return null;
         for (const t of tabs) {
             for (const g of (t.groups || [])) {
-                const found = (g.pages || []).some(p => (typeof p === 'string' ? p : p.page)?.toLowerCase() === selectedDoc.slug?.toLowerCase());
-                if (found) return { tab: t.label, group: g.group };
+                const label = findGroupLabel(g, selectedDoc.slug);
+                if (label !== null) return { tab: t.label, group: label };
             }
         }
         return null;
@@ -750,11 +764,10 @@ const PublicDocs = () => {
     // tab's first page, no next on its last page (navigation never crosses tabs).
     const { prevDoc, nextDoc } = useMemo(() => {
         if (!selectedDoc) return { prevDoc: null, nextDoc: null };
-        const slugOf = (p) => (typeof p === 'string' ? p : p.page);
         let tabSlugs = null;
         for (const t of tabs) {
             const slugs = [];
-            for (const g of (t.groups || [])) for (const p of (g.pages || [])) slugs.push(slugOf(p));
+            for (const g of (t.groups || [])) slugs.push(...collectGroupSlugs(g));
             if (slugs.some(s => s?.toLowerCase() === selectedDoc.slug?.toLowerCase())) { tabSlugs = slugs; break; }
         }
         if (!tabSlugs) return { prevDoc: null, nextDoc: null };
