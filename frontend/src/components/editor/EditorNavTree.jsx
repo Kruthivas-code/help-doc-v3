@@ -153,6 +153,7 @@ const SortableGroup = ({
   documents, docId, expanded, setExpanded,
   deletingDocId, onSelect, onOpenMeta, onPagesReorder,
   onRenameGroup, onDeleteGroup, onCreatePage, onRemovePage,
+  onSubPagesReorder, onRemoveSubPage,
 }) => {
   const [editing, setEditing] = useState(false);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -166,6 +167,18 @@ const SortableGroup = ({
   const pages = group.pages || [];
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
   const getDocForSlug = (slug) => documents.find((d) => d.slug?.toLowerCase() === slug?.toLowerCase());
+  const subgroups = group.groups || [];
+  const totalCount = pages.length + subgroups.reduce((n, s) => n + ((s.pages || []).length), 0);
+
+  const handleSubDrag = (subIndex, subPages) => (event) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const ids = subPages.map((p, i) => `${groupId}::sub::${subIndex}::page::${i}::${typeof p === 'string' ? p : p.page}`);
+    const oldIndex = ids.indexOf(active.id);
+    const newIndex = ids.indexOf(over.id);
+    if (oldIndex < 0 || newIndex < 0) return;
+    onSubPagesReorder?.(tabPath, subIndex, arrayMove(subPages, oldIndex, newIndex));
+  };
 
   const handlePageDrag = (event) => {
     const { active, over } = event;
@@ -210,7 +223,7 @@ const SortableGroup = ({
             {isOpen ? <ChevronDown className="w-3 h-3 flex-shrink-0" /> : <ChevronRight className="w-3 h-3 flex-shrink-0" />}
             <FolderOpen className="w-3.5 h-3.5 flex-shrink-0 text-zinc-500" />
             <span className="text-xs font-medium truncate">{group.group || 'Unnamed Group'}</span>
-            <span className="text-[10px] text-zinc-400 dark:text-zinc-600 ml-auto flex-shrink-0">{pages.length}</span>
+            <span className="text-[10px] text-zinc-400 dark:text-zinc-600 ml-auto flex-shrink-0">{totalCount}</span>
           </button>
         )}
         {!editing && (
@@ -282,6 +295,47 @@ const SortableGroup = ({
               })}
             </SortableContext>
           </DndContext>
+
+          {subgroups.map((sub, sIdx) => {
+            const subPages = sub.pages || [];
+            return (
+              <div key={`${groupId}::sub::${sIdx}`} className="mt-1" data-testid={`nav-subgroup-${sub.group || 'unnamed'}`}>
+                <div className="flex items-center gap-2 px-1 py-1 text-zinc-500 dark:text-zinc-500">
+                  <FolderOpen className="w-3 h-3 flex-shrink-0 opacity-70" />
+                  <span className="text-[11px] font-medium truncate">{sub.group || 'Unnamed'}</span>
+                  <span className="text-[10px] text-zinc-400 dark:text-zinc-600 ml-auto flex-shrink-0">{subPages.length}</span>
+                </div>
+                <div className="ml-3 space-y-0.5">
+                  <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleSubDrag(sIdx, subPages)}>
+                    <SortableContext
+                      items={subPages.map((p, i) => `${groupId}::sub::${sIdx}::page::${i}::${typeof p === 'string' ? p : p.page}`)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      {subPages.map((page, idx) => {
+                        const slug = typeof page === 'string' ? page : page.page;
+                        const doc = getDocForSlug(slug);
+                        const pageId = `${groupId}::sub::${sIdx}::page::${idx}::${slug}`;
+                        return (
+                          <SortablePage
+                            key={pageId}
+                            pageId={pageId}
+                            page={page}
+                            doc={doc}
+                            isActive={doc?.id === docId}
+                            isMissing={!doc}
+                            isDeleting={deletingDocId === doc?.id}
+                            onSelect={onSelect}
+                            onOpenMeta={onOpenMeta}
+                            onRemovePage={onRemoveSubPage ? () => onRemoveSubPage(tabPath, sIdx, slug) : undefined}
+                          />
+                        );
+                      })}
+                    </SortableContext>
+                  </DndContext>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
@@ -295,6 +349,7 @@ const SortableTab = ({
   deletingDocId, onSelect, onOpenMeta, onGroupsReorder, onPagesReorder,
   onRenameTab, onDeleteTab, onAddGroup,
   onRenameGroup, onDeleteGroup, onCreatePage, onRemovePage,
+  onSubPagesReorder, onRemoveSubPage,
 }) => {
   const [editing, setEditing] = useState(false);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -420,6 +475,8 @@ const SortableTab = ({
                   onDeleteGroup={onDeleteGroup}
                   onCreatePage={onCreatePage}
                   onRemovePage={onRemovePage}
+                  onSubPagesReorder={onSubPagesReorder}
+                  onRemoveSubPage={onRemoveSubPage}
                 />
               );
             })}
@@ -554,6 +611,40 @@ export const EditorNavTree = ({
     onSaveNavConfig({ ...navConfig, tabs: newTabs });
   }, [tabs, navConfig, onSaveNavConfig]);
 
+  const handleSubPagesReorder = useCallback((tabPath, subIndex, newPages) => {
+    const { tabIndex, groupIndex } = tabPath;
+    const newTabs = tabs.map((t, ti) => {
+      if (ti !== tabIndex) return t;
+      const newGroups = (t.groups || []).map((g, gi) => {
+        if (gi !== groupIndex) return g;
+        const newSubs = (g.groups || []).map((s, si) => (si === subIndex ? { ...s, pages: newPages } : s));
+        return { ...g, groups: newSubs };
+      });
+      return { ...t, groups: newGroups };
+    });
+    onSaveNavConfig({ ...navConfig, tabs: newTabs });
+  }, [tabs, navConfig, onSaveNavConfig]);
+
+  const handleRemoveSubPage = useCallback((tabPath, subIndex, pageSlug) => {
+    const { tabIndex, groupIndex } = tabPath;
+    const newTabs = tabs.map((t, ti) => {
+      if (ti !== tabIndex) return t;
+      const newGroups = (t.groups || []).map((g, gi) => {
+        if (gi !== groupIndex) return g;
+        const newSubs = (g.groups || []).map((s, si) => {
+          if (si !== subIndex) return s;
+          const newPages = (s.pages || []).filter(
+            (p) => (typeof p === 'string' ? p : p.page) !== pageSlug,
+          );
+          return { ...s, pages: newPages };
+        });
+        return { ...g, groups: newSubs };
+      });
+      return { ...t, groups: newGroups };
+    });
+    onSaveNavConfig({ ...navConfig, tabs: newTabs });
+  }, [tabs, navConfig, onSaveNavConfig]);
+
   return (
     <Fragment>
       {/* + New Tab — always at top so the tree is never an empty dead-end */}
@@ -604,6 +695,8 @@ export const EditorNavTree = ({
                   onDeleteGroup={handleDeleteGroup}
                   onCreatePage={handleCreatePage}
                   onRemovePage={handleRemovePage}
+                  onSubPagesReorder={handleSubPagesReorder}
+                  onRemoveSubPage={handleRemoveSubPage}
                 />
               );
             })}
