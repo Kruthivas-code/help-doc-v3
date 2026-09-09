@@ -418,3 +418,14 @@ Source: user-provided "User Education Gaps Tracker.csv" (219 rows) → complete 
 - OMITTED all "Yet to Publish"/BLOCKED items (C1-C15): certification status, exact erasure/backup day-numbers, encryption cipher specifics, Service-Data-training nuance, object-storage-cannot-delete, sub-processor objection-scope, ad vendors/MiniMax/DPDP/EU-US DPF/security-questionnaire specifics, EU-migration pricing, and the in-app analytics/PostHog script (Q24/Q25).
 - FAQ (slug 'faqs'): appended "Common questions by topic" section covering ALL 39 FAQ Master questions, grouped by category (Prompting, Models, Credits, Plans, Prompt windows, Mobile, Web<->Mobile, Custom domain, Changing name, Deployment, GitHub, Integrations, Security & privacy, Platform). 42 -> 81 accordions.
 - Verified: MDX renders (Callout/Note/CardGroup/Steps/AccordionGroup), nav group has 12 pages in order, all 39 master Qs present.
+
+## 2026-06 — Placeholder "Draft - needs review" stub cleanup (Learn the Basics)
+- Removed all "needs product confirmation before publishing" / "Draft - needs review" placeholder stubs (originated from the original 121-doc pass, NOT from user-uploaded files).
+- share-it-with-the-world: deleted empty "Watching visits and collecting feedback" section.
+- write-prompts-that-work: deleted empty "copy-paste library"; stripped draft callout on "Use specific examples".
+- connect-your-tools: deleted empty "Advanced: MCP" section.
+- when-something-breaks: deleted empty draft section.
+- add-login-user-accounts: stripped "other OAuth providers" callout.
+- get-found-on-google: stripped 4 draft callouts (real content remained).
+- get-your-first-users: was ~90% placeholder; rewrote with real, grounded content (pre-launch checklist, where to share, asking for feedback, turning feedback into prompts via the agent) — no invented analytics/feedback features. Project-wide placeholder count now 0.
+- NOT touched: the word "placeholder" appears in 8 other docs (figma-design-to-code, paddle, ai-media-generation, etc.) but as legitimate wording, not stubs.
