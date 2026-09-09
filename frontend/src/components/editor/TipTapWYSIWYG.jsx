@@ -43,12 +43,36 @@ turndown.addRule('fencedCodeBlock', {
         return `\n\n\`\`\`${lang}\n${text}\n\`\`\`\n\n`;
     },
 });
-// Preserve custom JSX-ish components (Callout, CardGroup, Steps, Tabs etc.)
-turndown.keep((node) => {
-    if (node.nodeType !== 1) return false;
-    const tag = node.tagName?.toLowerCase();
-    return ['callout', 'card', 'cardgroup', 'columns', 'steps', 'step', 'tabs', 'tab', 'accordion', 'accordionitem'].includes(tag);
+// All MDX-ish components: emit the wrapper tag and convert their children back to markdown
+// (so bold / links / inline code inside them round-trip as markdown, not raw HTML). This
+// recurses through turndown, so nested components (Steps > Step, CardGroup > Card) work too.
+const MDX_TAGS = ['Callout', 'Card', 'CardGroup', 'Columns', 'Steps', 'Step', 'Tabs', 'Tab', 'Accordion', 'AccordionGroup', 'AccordionItem', 'Note', 'Warning', 'Tip', 'Info'];
+const MDX_TAGS_LC = MDX_TAGS.map((t) => t.toLowerCase());
+const MDX_TAGS_CASE = Object.fromEntries(MDX_TAGS.map((t) => [t.toLowerCase(), t]));
+turndown.addRule('mdxComponents', {
+    filter: (node) => node.nodeType === 1 && MDX_TAGS_LC.includes(node.tagName?.toLowerCase()),
+    replacement: (content, node) => {
+        const name = MDX_TAGS_CASE[node.tagName.toLowerCase()];
+        const attrs = [...node.attributes].map((a) => `${a.name}="${a.value}"`).join(' ');
+        const open = attrs ? `<${name} ${attrs}>` : `<${name}>`;
+        return `\n\n${open}\n${content.trim()}\n</${name}>\n\n`;
+    },
 });
+
+// Prose components whose inner markdown we pre-render on load (marked leaves it raw).
+const INLINE_MDX_TAGS = ['Callout', 'Step', 'Tip', 'Note', 'Warning', 'Info'];
+
+// On load, `marked` passes component blocks through as raw HTML and does NOT parse the
+// markdown inside them. Pre-render the inner markdown of prose components so the WYSIWYG
+// shows bold / links / inline code exactly as readers see them.
+const INLINE_TAG_RE = new RegExp(`<(${INLINE_MDX_TAGS.join('|')})(?=[\\s/>])([^>]*)>([\\s\\S]*?)</\\1\\s*>`, 'g');
+function renderMdxInline(md) {
+    if (!md) return md;
+    return md.replace(INLINE_TAG_RE, (_m, tag, attrs, inner) => {
+        const innerHtml = marked.parse(inner.trim());
+        return `<${tag}${attrs}>\n${innerHtml}\n</${tag}>`;
+    });
+}
 
 const ToolbarButton = ({ active, onClick, title, children, testId }) => (
     <button
@@ -95,7 +119,7 @@ export const TipTapWYSIWYG = ({ content, onChange, placeholder = 'Start writing 
         // Seed with the initial markdown rendered to HTML so the editor mounts
         // with the user's existing content immediately (no flash of empty doc
         // when switching from Markdown view to Visual view).
-        content: content ? marked.parse(content) : '',
+        content: content ? marked.parse(renderMdxInline(content)) : '',
         editorProps: {
             attributes: {
                 class: 'tiptap-wysiwyg prose prose-zinc dark:prose-invert max-w-none focus:outline-none px-6 py-8 min-h-full',
@@ -120,7 +144,7 @@ export const TipTapWYSIWYG = ({ content, onChange, placeholder = 'Start writing 
         const incoming = content || '';
         // Skip if this update came from our own onUpdate emission
         if (incoming === lastEmittedMd.current) return;
-        const html = marked.parse(incoming);
+        const html = marked.parse(renderMdxInline(incoming));
         editor.commands.setContent(html, { emitUpdate: false });
         lastEmittedMd.current = incoming;
     }, [content, editor]);

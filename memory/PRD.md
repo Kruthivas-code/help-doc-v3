@@ -429,3 +429,9 @@ Source: user-provided "User Education Gaps Tracker.csv" (219 rows) → complete 
 - get-found-on-google: stripped 4 draft callouts (real content remained).
 - get-your-first-users: was ~90% placeholder; rewrote with real, grounded content (pre-launch checklist, where to share, asking for feedback, turning feedback into prompts via the agent) — no invented analytics/feedback features. Project-wide placeholder count now 0.
 - NOT touched: the word "placeholder" appears in 8 other docs (figma-design-to-code, paddle, ai-media-generation, etc.) but as legitimate wording, not stubs.
+
+## 2026-06 — Visual editor renders inline markdown inside MDX components
+- Fixed TipTapWYSIWYG.jsx: markdown (bold, links, inline code) inside <Callout>/<Step>/<Tip>/<Note>/<Warning>/<Info> now renders in Visual mode to match the reader (previously showed raw **text** / [text](url) because marked passes component blocks through as raw HTML).
+- Load path: renderMdxInline() pre-parses inner markdown of these prose components before marked.parse. Regex uses a (?=[\s/>]) lookahead so 'Step' no longer mis-matches 'Steps'.
+- Save path: replaced turndown.keep for components with a single recursive 'mdxComponents' rule covering all MDX tags (Callout/Card/CardGroup/Columns/Steps/Step/Tabs/Tab/Accordion/AccordionGroup/AccordionItem/Note/Warning/Tip/Info) — children convert back to markdown, wrapper+attrs preserved. Verified round-trip: **bold**, [links](url), nested <Steps><Step title="..."> all preserved; no raw <strong>/<a> leaks.
+- Verified live in Visual editor on put-your-app-live: links + bold render, zero literal ** or ](.
