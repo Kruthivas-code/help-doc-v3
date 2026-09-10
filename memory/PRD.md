@@ -500,3 +500,8 @@ Source: user-provided "User Education Gaps Tracker.csv" (219 rows) → complete 
 - Cascade delete: soft-delete (trash) AND permanent purge now remove the page from assignments (delete assignment when it becomes empty) — prevents orphans.
 - Review Inbox comments now clickable: open /review/<slug>?focus=<anchor>; ReviewPage honors ?focus= to scroll+highlight the pinned text.
 - Verified: MIS endpoint via curl (7 reviewers, funnel 130/130/4/4/126) and MIS tab via screenshot (all sections render, no page errors). Nothing published.
+
+## 2026-06 — Editor: open-to-first-page + toolbar reconciliation
+- BUG FIX: opening the full editor from the dashboard (/admin/editor/{projectId}, no docId) showed a blank "Untitled" page. fetchProjectData now, when there is no docId, finds the first navigation page (recursing tabs>groups>subgroups) that maps to a live doc and navigate(..., {replace:true}) to /admin/editor/{projectId}/{docId}. Falls back to documents[0].
+- TOOLBAR reconciled (was different between markdown/visual and overflowed on written pages): Assist / Insert / Add Image now render in ALL view modes (disabled + greyed with "Switch to Markdown or Split to use" tooltip in Visual). Copy link + Export all moved into an always-present "⋯" (MoreHorizontal) overflow Popover so they never get cut off by the page title/status badges. Same toolbar button set now shows in Markdown and Visual.
+- Verified via screenshots: dashboard editor opens on "Start with your idea" (not Untitled); Markdown & Visual toolbars match; no page errors.

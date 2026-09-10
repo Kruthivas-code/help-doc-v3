@@ -286,11 +286,24 @@ const Editor = () => {
       ]);
       setProject(projectRes.data);
       setDocuments(docsRes.data);
-      setNavConfig(configRes.data?.navigation || null);
+      const navCfg = configRes.data?.navigation || null;
+      setNavConfig(navCfg);
+      // Opened without a specific page (e.g. from the dashboard) -> jump to the first nav page.
+      if (!docId) {
+        const firstFromGroup = (g) => {
+          for (const p of (g.pages || [])) { const s = typeof p === 'string' ? p : p.page; if (s) return s; }
+          for (const sub of (g.groups || [])) { const r = firstFromGroup(sub); if (r) return r; }
+          return null;
+        };
+        let firstSlug = null;
+        for (const t of (navCfg?.tabs || [])) { for (const g of (t.groups || [])) { firstSlug = firstFromGroup(g); if (firstSlug) break; } if (firstSlug) break; }
+        const target = (firstSlug && docsRes.data.find(d => d.slug === firstSlug)) || docsRes.data[0];
+        if (target) { navigate(`/admin/editor/${projectId}/${target.id}`, { replace: true }); return; }
+      }
     } catch (error) {
       console.error("Failed to fetch project:", error);
     }
-  }, [projectId]);
+  }, [projectId, docId, navigate]);
 
   const fetchDocument = useCallback(async () => {
     try {
@@ -1089,17 +1102,19 @@ const Editor = () => {
               </button>
             </div>
 
-            {/* Writing Assistant trigger - Only in Markdown view */}
-            {(viewMode === 'markdown' || viewMode === 'split') && (
+            {/* Writing Assistant trigger */}
+            <span className={viewMode === 'visual' ? 'opacity-40 pointer-events-none' : ''} title={viewMode === 'visual' ? 'Switch to Markdown or Split to use' : ''}>
               <WritingAssistantTrigger onOpen={() => setAssistantOpen(true)} />
-            )}
+            </span>
 
             {/* Insert Component menu - visible alternative to the "/" shortcut */}
-            {(viewMode === 'markdown' || viewMode === 'split') && (
+            {true && (
               <Popover open={insertMenuOpen} onOpenChange={setInsertMenuOpen}>
                 <PopoverTrigger asChild>
                   <button
-                    className="flex items-center gap-2 px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white text-sm rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                    disabled={viewMode === 'visual'}
+                    title={viewMode === 'visual' ? 'Switch to Markdown or Split to use' : ''}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white text-sm rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                     data-testid="insert-component-btn"
                   >
                     <Plus className="w-4 h-4" />
@@ -1141,14 +1156,16 @@ const Editor = () => {
               </Popover>
             )}
 
-            {/* Image Picker Button - Only shown in Markdown view */}
-            {(viewMode === 'markdown' || viewMode === 'split') && (
+            {/* Image Picker Button */}
+            {true && (
               <button
+                disabled={viewMode === 'visual'}
+                title={viewMode === 'visual' ? 'Switch to Markdown or Split to use' : ''}
                 onClick={() => {
                   setImagePickerMode('image');
                   setImagePickerOpen(true);
                 }}
-                className="flex items-center gap-2 px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white text-sm rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                className="flex items-center gap-2 px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white text-sm rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 data-testid="image-picker-btn"
               >
                 <ImageIcon className="w-4 h-4" />
@@ -1156,34 +1173,32 @@ const Editor = () => {
               </button>
             )}
 
-            {/* Copy Link Button */}
-            <button 
-              onClick={async () => {
-                const url = `${window.location.origin}/p/${project?.slug}`;
-                await navigator.clipboard.writeText(url);
-                toast.success('Link copied to clipboard');
-              }}
-              className="flex items-center gap-2 px-3 py-1.5 text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white text-sm rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-            >
-              <Share2 className="w-4 h-4" />
-              <span>Copy Link</span>
-            </button>
-
-            {/* Export all documents as JSON */}
-            <button
-              onClick={handleExport}
-              disabled={exporting}
-              className="flex items-center gap-2 px-3 py-1.5 text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white text-sm rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors disabled:opacity-50"
-              data-testid="export-all-btn"
-              title="Download all pages as a single JSON file"
-            >
-              {exporting ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Download className="w-4 h-4" />
-              )}
-              <span>Export all</span>
-            </button>
+            {/* More overflow menu — always present, keeps the toolbar consistent across views/states */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="flex items-center gap-1 px-2 py-1.5 text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white text-sm rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors" data-testid="editor-more-menu" title="More">
+                  <MoreHorizontal className="w-5 h-5" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-52 p-1" data-testid="editor-more-content">
+                <button
+                  onClick={async () => { await navigator.clipboard.writeText(`${window.location.origin}/p/${project?.slug}`); toast.success('Link copied to clipboard'); }}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-left text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                  data-testid="copy-link-btn"
+                >
+                  <Share2 className="w-4 h-4" /> Copy link
+                </button>
+                <button
+                  onClick={handleExport}
+                  disabled={exporting}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-left text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors disabled:opacity-50"
+                  data-testid="export-all-btn"
+                  title="Download all pages as a single JSON file"
+                >
+                  {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />} Export all
+                </button>
+              </PopoverContent>
+            </Popover>
           </div>
         </header>
 
