@@ -484,3 +484,7 @@ Source: user-provided "User Education Gaps Tracker.csv" (219 rows) → complete 
 - Clarity: Take down tooltip ("returns to In review, removes from public site"); publish blocked-state shows "N open" rose pill + disabled Publish/Republish with tooltip when open comments exist.
 - Data cleanup: deleted 2 fully-orphaned assignments (mihir 'Data privacy'→data-privacy, 'Data leakage'→data-leakage; verified their slugs resolve to no live doc). Now 130 assignments / 130 docs.
 - Unchanged: publishing owner-only + manual; resolve-comments-before-publish gate; public frozen-copy model. FYI the 4 Wingman docs are currently published (user action, pre-existing this task).
+
+## 2026-06 — Renamed Build "How credits work" -> "Managing credit usage" (slug too)
+- The Build > Credits, Plans & Billing page (slug how-credits-work) renamed: title "Managing credit usage", slug "managing-credit-usage". The separate Learn the Basics > Reference page (how-credits-work-basics, title "How credits work") is unchanged.
+- Cascaded: doc slug+title; nav entry (page+title, icon gauge kept); 1 assignment slug+scope_label; 11 docs' content cross-links (/how-credits-work -> /managing-credit-usage) via regex excluding -basics; verdicts/comments/activity (none existed). 0 stray refs remain. Verified renamed page loads at /review/managing-credit-usage, basics page intact.
