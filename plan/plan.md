@@ -1,98 +1,64 @@
-# Plan — Read-only MIS (management dashboard) tab in the Review Console
+# Plan — Restructure "Data & Trust" from 12 pages to 8 (information architecture only)
 
-A new **MIS** tab at `/admin/review`, read-only, one page, fast. **Visible to anyone signed in with an
-`@emergent.sh` account** — everyone can see every reviewer's progress (not limited to their own
-row). Built entirely from data already stored (the activity/event log + current assignment and page
-state). No existing review, assignment, publish, or comment behavior changes except the two
-deliberate ones below (Mark-done reinstated, and the NEEDS-REVIEW→comment conversion).
+## Goal
+Reduce the Data & Trust section (under "Data, Trust & Support") from 12 pages to 8 by merging and
+retiring pages. Information-architecture only: moved wording is carried **verbatim** — no
+privacy/legal statement is rewritten, softened, or expanded; every `privacy@emergent.sh` note and
+every Callout/Note/Warning is preserved exactly. All pages stay in **draft / in-review** — nothing
+is published. The exact replacement bodies supplied by the user are used as-is (not reproduced here).
 
-Decisions from the refinement rounds are locked and folded in; listed here so the user can confirm
-the final shape before building.
+## Final 8 pages, in this order
+1. Privacy & GDPR overview *(unchanged)*
+2. Data Processing Agreement (DPA) *(unchanged)*
+3. Where your data is stored & who processes it *(merge target)*
+4. AI & model training *(unchanged)*
+5. Deletion & retention *(unchanged)*
+6. Your responsibilities as a controller *(new, merged)*
+7. Security, breach & audit *(unchanged)*
+8. Your data & ownership *(body trimmed)*
 
----
+## Operations
+- **Op 1** — Merge "Sub-processors" into "Where your data is stored": keep slug
+  `where-your-data-is-stored`, retitle to "Where your data is stored & who processes it", replace
+  body with supplied text. Delete `sub-processors`.
+- **Op 2** — Merge "Data subject rights" + "Special category data" + "Regulators & supervisory
+  authorities" into a new page "Your responsibilities as a controller"
+  (slug `controller-responsibilities`) with the supplied body. Delete the three source pages.
+- **Op 3** — Retire "Data isolation & leakage" (`data-isolation-leakage`): isolation claims are not
+  re-added anywhere; secrets-hygiene steps are appended to "Keep it safe" **only if** it doesn't
+  already cover storing secrets in the Secrets manager, git-ignoring `.env`, and rotating exposed
+  keys. Delete the page.
+- **Op 4** — Trim "Your data & ownership" to the supplied shorter body that links to the
+  "Save to GitHub" and "Database (MongoDB)" pages instead of repeating their steps.
 
-## Locked decisions
+## Locked decisions (confirmed with the user)
+1. **No redirects.** These pages have never been published (only published pages are served), so
+   there are no external bookmarks to protect. No slug-alias/redirect map is created.
+2. **Internal links updated.** Every link anywhere in the docs pointing at the four deleted slugs
+   (`sub-processors`, `data-subject-rights`, `special-category-data`,
+   `regulators-supervisory-authorities`, `data-isolation-leakage`) is repointed to its new target
+   (`where-your-data-is-stored`, `controller-responsibilities` ×3, `ai-model-training`). The summary
+   lists every link changed.
+3. **Review data on deleted pages.** Assignments on deleted pages are removed automatically;
+   **verdicts on the deleted slugs are deleted**; any **comments are kept** (expected to be none).
+4. **Op-4 verification runs before the trim.** The two link targets are checked to confirm they
+   contain the detail being removed (Save-to-GitHub flow incl. its plan gate; database-export steps
+   incl. where the Mongo URL lives). If a target is missing that detail, the fuller original bullet
+   is kept in place of the link, and the summary says so.
 
-1. **"Mark done" is reinstated.** The earlier change was only meant to *auto-switch* the button's
-   state, not remove it. So: the manual **Mark done** button is back on each assignment, **and** the
-   auto-switch condition stays — a page flips to Done automatically when it has a **looks_correct**
-   verdict and no open comments. `done_at` is recorded whether Done was set manually or by
-   auto-switch. Done and verdict stay independent, so "done without a verdict" remains a real state.
+## Assumptions
+- Supplied bodies inserted exactly; the six "unchanged" pages are not touched.
+- The new `controller-responsibilities` page takes the section slot vacated by the three merged
+  pages; navigation is reordered to the 8-page order above.
+- Deleted pages go to Trash (recoverable), not hard-purged.
+- All eight pages remain in review; no publish step.
+- Internal page links use the existing `/slug` format.
 
-2. **All 7 verdicts are kept** — Looks correct · Needs small edits · Wrong info · More info needed ·
-   Outdated · Tone / clarity · Other. No collapsing; the MIS reports them as **7 distinct** values.
-   Only normalization: legacy `looks_good` → **Looks correct**. History kept; **latest** verdict per
-   page is "current".
+## Out of scope
+No content edits beyond the supplied verbatim bodies and the conditional "Keep it safe" block. No
+changes to publishing, the public site, or the six unchanged pages. Nothing published.
 
-3. **NEEDS-REVIEW → comments: run the one-time mass conversion.** ~182 `[NEEDS-REVIEW: …]` markers
-   across ~77 pages each become a **Docs-bot** page comment (verbatim text, anchored at the marker);
-   the marker is removed from the page body (one edit per page, logged as an edit by "Docs bot").
-   Idempotent (dedup by page id + marker-text hash), and re-run automatically on any future save that
-   introduces a new marker. **Effect, by design:** those ~77 pages become publish-blocked until the
-   Docs-bot comments are resolved. No separate debt tracker needed (see removed section F).
-
-4. **MIS is open to all `@emergent.sh` users.** No per-role gating; every section (and CSV export) is
-   visible to any signed-in Emergent user.
-
-5. **Due dates fixed to Monday 14 September 2026** for every assignment (`due_date = 2026-09-14`).
-   Overdue = today past that date (calendar days). Owners can still edit a due date later.
-
-6. **No projection line, no orphan-removal tool.** Instead, **deleting a page cascades**: its
-   assignment(s) are deleted with it and all counts follow automatically.
-
-7. **MIS is NOT real-time.** It loads a snapshot when the tab is opened and offers a **Refresh**
-   button to re-pull on demand; the **"data as of"** timestamp shows the last fetch. No websockets,
-   no background polling (avoids the cost of live updates). Reopening the tab or hitting Refresh is
-   how numbers update.
-
----
-
-## Also included (small changes outside the MIS)
-
-- **Review Inbox — clickable comments.** In the Review Inbox tab, each comment becomes a link that
-  opens its page (`/review/<slug>`); if the comment pinned a text selection, it also scrolls to and
-  highlights that text — so a comment can be jumped to and resolved quickly. (Same jump-to-anchor
-  behavior already used on the review page.)
-
----
-
-## What the MIS tab contains
-
-Global controls: **date-range filter**, **person filter**, **Refresh** button, a **"data as of"
-timestamp**, and an **include seed/test actors** toggle (off by default). Every number is
-**clickable** to a drill-down list of the underlying pages/assignments with timestamps.
-
-- **A. Reviewer table** — one row per reviewer, sortable: assigned (current) · done · % done ·
-  verdicts split across **all 7** values · **done without verdict** · comments made · comments
-  resolved · median hours assignment→first action · median hours assignment→done · overdue count
-  (past 14 Sep 2026) · aging of open assignments (0–2d / 3–7d / >7d) · last activity. **CSV export.**
-- **B. Pipeline funnel** — counts of **pages** (assignment count beside): unassigned → assigned/in
-  review → done → verdict (the 7 values) → published. Plus a **per-TAB and per-SECTION** rollup.
-- **C. Throughput** — reviews marked done per day (bars) + cumulative line. **No projection line.**
-- **D. Comments health** — open vs resolved comment counts per page and per reviewer; pages with
-  **>N** open comments highlighted (*assumption: N = 3*). Docs-bot NEEDS-REVIEW comments appear here.
-- **E. Exceptions** (clickable, **CSV export**): pages **done without a verdict** · **wrong_info**
-  verdict still unedited since that verdict · **reassigned/delegated more than once** · **duplicate
-  page titles** assigned in more than one tab · **no activity 7+ days** after assignment · pages with
-  a **looks_correct** verdict that still carry an open Docs-bot NEEDS-REVIEW comment. *(Orphaned-
-  assignments row removed — cascade-delete prevents orphans.)*
-- **~~F. NEEDS-REVIEW debt~~ — removed.** Those markers are now ordinary comments, tracked in D.
-
----
-
-## Assumptions (built as stated unless challenged)
-
-- **Time math:** medians use calendar hours; "first action" = the reviewer's first
-  comment/verdict/edit on that page **after** its assigned_at.
-- **Actor identity:** metrics key off the actor's email in the event log; a display name is mapped to
-  the known email; `dev@local`, `QA Owner`, and any non-`@emergent.sh` actor are labeled **seed/test**
-  and excluded by default (toggle to include).
-- **Comment-highlight threshold** N = 3 open comments.
-- **Cascade delete** applies to page soft-delete/trash and permanent delete alike; restoring a page
-  from trash does not resurrect its old assignments.
-
-## Explicitly out of scope
-No changes to publishing rules, the public site, or the frozen-copy model. No comment/assignment
-mechanics change beyond reinstating Mark done, the inbox clickable-comment link, the cascade delete,
-and the NEEDS-REVIEW→comment conversion. No decorative charts beyond A–C. Nothing is published as
-part of this work.
+## Finish criteria
+Summary listing: final 8-page structure, internal links updated, verdicts deleted / comments kept
+on the removed slugs, whether the Keep-it-safe block was appended or skipped (and why), and the Op-4
+verification result for each of the two link targets.
