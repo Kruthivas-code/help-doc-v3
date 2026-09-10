@@ -49,6 +49,8 @@ export default function ReviewConsole() {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [verdict, setVerdict] = useState('');
+  const [verdicts, setVerdicts] = useState([]);
+  const [pubFilter, setPubFilter] = useState('all');
   // assignment form
   const [aScopes, setAScopes] = useState([]);
   const [scopeQuery, setScopeQuery] = useState('');
@@ -128,12 +130,32 @@ export default function ReviewConsole() {
   }, [assignments]);
 
   const docBySlug = useMemo(() => { const m = {}; documents.forEach(d => { m[d.slug] = d; }); return m; }, [documents]);
-  // A page is "reviewer done" when any assignment covering it is marked done.
-  const reviewDoneByPage = useMemo(() => {
+  const needsUpdate = (d) => !!d && d.status === 'published' && (d.content || '') !== (d.published_content || '');
+  // Open (unresolved) comments per page — from the owner inbox feed.
+  const openByPage = useMemo(() => {
     const m = {};
-    assignments.forEach(a => { if (a.status === 'done') (a.slugs || []).forEach(s => { m[s] = true; }); });
+    (inbox.comments || []).forEach(c => { if (!c.resolved && c.doc_slug) m[c.doc_slug] = (m[c.doc_slug] || 0) + 1; });
     return m;
-  }, [assignments]);
+  }, [inbox]);
+  // Page-level "Done": a "Looks correct" verdict (from the assigned reviewer or an owner) AND no open comments.
+  const doneByPage = useMemo(() => {
+    const ownerSet = new Set(owners || []);
+    const looks = {};
+    (verdicts || []).forEach(v => {
+      if (v.verdict !== 'Looks correct') return;
+      const re = (v.reviewer_email || '').toLowerCase();
+      if (ownerSet.has(re) || re === (assignedMap[v.doc_slug] || '').toLowerCase()) looks[v.doc_slug] = true;
+    });
+    const m = {};
+    Object.keys(looks).forEach(s => { if (!(openByPage[s] > 0)) m[s] = true; });
+    return m;
+  }, [verdicts, openByPage, assignedMap, owners]);
+  const pageMatchesFilter = (d) => {
+    if (pubFilter === 'in_review') return d.status !== 'published';
+    if (pubFilter === 'published') return d.status === 'published';
+    if (pubFilter === 'needs_update') return needsUpdate(d);
+    return true;
+  };
 
   const scopeOptions = useMemo(() => {
     const tabs = config?.navigation?.tabs || [];
@@ -243,6 +265,10 @@ export default function ReviewConsole() {
       setDocuments(docs.data);
       const asg = await axios.get(`${API}/projects/${projectId}/assignments`);
       setAssignments(asg.data.assignments);
+      try {
+        const vd = await axios.get(`${API}/projects/${projectId}/verdicts`);
+        setVerdicts(vd.data.verdicts || []);
+      } catch (e) { /* verdicts best-effort */ }
       try {
         if (me.data.is_owner) {
           const ke = await axios.get(`${API}/projects/${projectId}/known-emails`);
@@ -415,10 +441,12 @@ export default function ReviewConsole() {
   const togglePub = (slug) => setPubSel(prev => { const n = new Set(prev); n.has(slug) ? n.delete(slug) : n.add(slug); return n; });
   const bulkPublish = async (slugs, publish) => {
     const targets = [...new Set(slugs)].map(s => docBySlug[s]).filter(Boolean)
-      .filter(d => publish ? d.status !== 'published' : d.status === 'published');
+      .filter(d => publish ? (d.status !== 'published' || needsUpdate(d)) : d.status === 'published');
     if (!targets.length) { toast(`Nothing to ${publish ? 'publish' : 'take down'}`); return; }
     await Promise.allSettled(targets.map(d => axios.post(`${API}/projects/${pid}/documents/${d.id}/${publish ? 'publish' : 'unpublish'}`)));
-    setDocuments(prev => prev.map(d => targets.find(t => t.id === d.id) ? { ...d, status: publish ? 'published' : 'in_review' } : d));
+    setDocuments(prev => prev.map(d => targets.find(t => t.id === d.id)
+      ? { ...d, status: publish ? 'published' : 'in_review', published_content: publish ? d.content : null, published_title: publish ? d.title : null }
+      : d));
     setPubSel(new Set());
     toast.success(`${targets.length} page(s) ${publish ? 'published' : 'taken down'}`);
   };
@@ -426,7 +454,9 @@ export default function ReviewConsole() {
   const publishDoc = async (doc, publish) => {
     try {
       await axios.post(`${API}/projects/${pid}/documents/${doc.id}/${publish ? 'publish' : 'unpublish'}`);
-      setDocuments(prev => prev.map(d => d.id === doc.id ? { ...d, status: publish ? 'published' : 'in_review' } : d));
+      setDocuments(prev => prev.map(d => d.id === doc.id
+        ? { ...d, status: publish ? 'published' : 'in_review', published_content: publish ? d.content : null, published_title: publish ? d.title : null }
+        : d));
       toast.success(publish ? 'Published' : 'Taken down');
     } catch (e) { toast.error(e.response?.data?.detail || 'Failed'); }
   };
@@ -673,9 +703,12 @@ export default function ReviewConsole() {
                     )}
                   </div>
                   <div className="flex items-center gap-2">
-                    <StatusPill s={a.status} />
-                    {a.status !== 'done' && <button onClick={() => setAssignmentStatus(a, 'done')} className="text-xs px-2 py-1 rounded-md border border-emerald-300 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10" data-testid={`assignment-done-${a.id}`}>Mark done</button>}
-                    {a.status === 'done' && <button onClick={() => setAssignmentStatus(a, 'in_review')} className="text-xs px-2 py-1 rounded-md border border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800">Reopen</button>}
+                    {(() => {
+                      const total = (a.slugs || []).length;
+                      const dn = (a.slugs || []).filter(s => doneByPage[s]).length;
+                      const all = total > 0 && dn === total;
+                      return <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium flex items-center gap-1 ${all ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400' : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300'}`} title="A page is Done when it has a 'Looks correct' verdict and no open comments" data-testid={`assignment-done-count-${a.id}`}>{all ? <><CheckCircle2 className="w-3 h-3" /> Done</> : `${dn}/${total} done`}</span>;
+                    })()}
                     <button onClick={() => delegate(a)} className="text-xs px-2 py-1 rounded-md border border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800" data-testid={`assignment-delegate-${a.id}`}>Delegate</button>
                     {isOwner && <button data-testid={`assignment-delete-btn-${a.id}`} onClick={async () => { await axios.delete(`${API}/projects/${pid}/assignments/${a.id}`); setAssignments(p => p.filter(x => x.id !== a.id)); }} className="p-1 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded"><Trash2 className="w-4 h-4" /></button>}
                   </div>
@@ -711,13 +744,20 @@ export default function ReviewConsole() {
               <button onClick={() => bulkPublish([...pubSel], true)} disabled={pubSel.size === 0} className="text-xs px-3 py-1.5 rounded-md bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 disabled:opacity-40" data-testid="bulk-publish-selected">Publish selected ({pubSel.size})</button>
               <button onClick={() => bulkPublish([...pubSel], false)} disabled={pubSel.size === 0} className="text-xs px-3 py-1.5 rounded-md border border-rose-300 dark:border-rose-500/40 text-rose-600 dark:text-rose-400 disabled:opacity-40" data-testid="bulk-takedown-selected">Take down selected</button>
               {pubSel.size > 0 && <button onClick={() => setPubSel(new Set())} className="text-xs px-2 py-1.5 rounded-md text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800">Clear</button>}
-              <span className="text-[11px] text-zinc-500 dark:text-zinc-400 ml-auto flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> = reviewer marked done</span>
+              <span className="text-[11px] text-zinc-500 dark:text-zinc-400 ml-auto flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" /> = "Looks correct" verdict, no open comments</span>
+            </div>
+            <div className="flex items-center gap-1 mb-3 flex-wrap" data-testid="publish-filter">
+              {[['all', 'All'], ['in_review', 'In review'], ['published', 'Published'], ['needs_update', 'Needs update']].map(([k, lbl]) => (
+                <button key={k} onClick={() => setPubFilter(k)} className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${pubFilter === k ? 'bg-zinc-900 text-white border-zinc-900 dark:bg-white dark:text-zinc-900 dark:border-white' : 'border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'}`} data-testid={`publish-filter-${k}`}>{lbl}</button>
+              ))}
             </div>
             <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg divide-y divide-zinc-100 dark:divide-zinc-800 overflow-hidden">
               {scopeOptions.map((o) => {
                 if (o.type !== 'page') {
                   const kids = (descendants[`${o.type}:${o.id}`] || []).map(k => k.replace(/^page:/, ''));
-                  const pubKids = kids.filter(s => docBySlug[s] && docBySlug[s].status !== 'published');
+                  const visibleKids = kids.filter(s => docBySlug[s] && pageMatchesFilter(docBySlug[s]));
+                  if (visibleKids.length === 0) return null;
+                  const pubKids = visibleKids.filter(s => docBySlug[s].status !== 'published' || needsUpdate(docBySlug[s]));
                   return (
                     <div key={`${o.type}:${o.id}`} style={{ paddingLeft: 12 + o.depth * 18 }} className="flex items-center gap-2 pr-3 py-2 bg-zinc-50/70 dark:bg-zinc-900/50" data-testid={`publish-group-${o.id}`}>
                       <span className={`text-[10px] uppercase tracking-wide px-1 py-0.5 rounded ${o.type === 'tab' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-400' : 'bg-zinc-200 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300'}`}>{o.type === 'tab' ? 'Tab' : 'Sec'}</span>
@@ -729,19 +769,27 @@ export default function ReviewConsole() {
                   );
                 }
                 const d = docBySlug[o.id];
-                if (!d) return null;
-                const done = reviewDoneByPage[o.id];
+                if (!d || !pageMatchesFilter(d)) return null;
+                const done = doneByPage[o.id];
+                const blocked = (openByPage[o.id] || 0) > 0;
+                const nu = needsUpdate(d);
                 return (
                   <div key={`page:${o.id}`} style={{ paddingLeft: 12 + o.depth * 18 }} className="flex items-center gap-2 pr-3 py-2 bg-white dark:bg-zinc-900" data-testid={`publish-row-${d.id}`}>
                     <input type="checkbox" checked={pubSel.has(o.id)} onChange={() => togglePub(o.id)} className="accent-zinc-900 dark:accent-white" data-testid={`publish-check-${d.id}`} />
                     <button onClick={() => navigate(`/review/${d.slug}`)} className="text-sm text-left hover:underline truncate" data-testid={`publish-title-${d.id}`}>{d.title}</button>
                     <div className="flex items-center gap-2 ml-auto flex-shrink-0">
                       {done && <span className="text-[11px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400 font-medium flex items-center gap-1" data-testid={`reviewed-done-${d.id}`}><CheckCircle2 className="w-3 h-3" /> Reviewed</span>}
+                      {blocked && <span className="text-[11px] px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-400 font-medium" title={`${openByPage[o.id]} open comment(s) block publishing`} data-testid={`blocked-comments-${d.id}`}>{openByPage[o.id]} open</span>}
+                      {nu && <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400 font-medium" title="This page's draft differs from the live published copy" data-testid={`needs-update-${d.id}`}>Unpublished changes</span>}
                       {d.reviewer_edited_by && <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400 font-medium" title={`Edited by ${d.reviewer_edited_by}`} data-testid={`edited-by-reviewer-${d.id}`}>Edited by reviewer</span>}
                       <StatusPill s={d.status || 'in_review'} />
+                      <button onClick={() => navigate(`/admin/editor/${pid}/${d.id}`)} className="text-xs px-2 py-1 rounded-md border border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800" data-testid={`open-editor-${d.id}`}>Open in editor</button>
                       {d.status === 'published'
-                        ? <button onClick={() => publishDoc(d, false)} className="text-xs px-2 py-1 rounded-md border border-rose-300 dark:border-rose-500/40 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10" data-testid={`takedown-${d.id}`}>Take down</button>
-                        : <button onClick={() => publishDoc(d, true)} className="text-xs px-2 py-1 rounded-md bg-zinc-900 dark:bg-white text-white dark:text-zinc-900" data-testid={`publish-${d.id}`}>Publish</button>}
+                        ? <>
+                            {nu && <button onClick={() => publishDoc(d, true)} disabled={blocked} title={blocked ? 'Resolve open comments first' : 'Push the current draft live'} className="text-xs px-2 py-1 rounded-md bg-emerald-600 text-white disabled:opacity-40" data-testid={`republish-${d.id}`}>Republish</button>}
+                            <button onClick={() => publishDoc(d, false)} title="Returns the page to In review and removes it from the public site" className="text-xs px-2 py-1 rounded-md border border-rose-300 dark:border-rose-500/40 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10" data-testid={`takedown-${d.id}`}>Take down</button>
+                          </>
+                        : <button onClick={() => publishDoc(d, true)} disabled={blocked} title={blocked ? 'Resolve open comments first' : ''} className="text-xs px-2 py-1 rounded-md bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 disabled:opacity-40" data-testid={`publish-${d.id}`}>Publish</button>}
                     </div>
                   </div>
                 );

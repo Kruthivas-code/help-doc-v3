@@ -1,86 +1,89 @@
-# Plan — Correct the docs from the fact-check report
+# Plan — Publishing & editing workflow in the Review Console
 
-## Objective
-Apply the corrections in `docs-vs-kb-differences-20260909.md` to our documentation. The report is
-treated as the single source of truth: no outside knowledge of Emergent is used for any fact it
-covers. Every edit is saved as **draft / in-review only — nothing is published or pushed live**, so a
-human approves before anything goes public.
+This plan answers the questions you raised, then lists what will be built. Everything is on the
+admin/review side. Nothing changes for public readers except when you choose to publish.
 
-## Scope
-**In scope:** the 111 documents the report covers (roughly docs 000–092 and 100–117), matched to our
-project **by slug**.
+---
 
-**Explicitly NOT touched** (the report says these are reviewed on a separate track):
-- Wingman docs (096–099)
-- Privacy / data-protection / GDPR docs (118–129)
-- Support / account-security / takedown docs (093–095)
+## Part A — How it works today (answers to your questions)
 
-Note: we recently edited the Wingman pages and the Data & Trust / privacy pages in earlier work. This
-pass leaves all of those exactly as they are.
+**1. Direct link to the full editor for a published page?**
+Partly. Clicking a project card on the dashboard opens the editor for any page, but there's no
+one-click link to a *specific* page — the Publish tab and review page only link to the review
+reader. So today you open the editor and hunt for the page.
 
-The 5 "clean" docs (`previewing-iterating`, `make-it-yours`, `try-it-before-you-share-it`,
-`get-found-on-google`, `get-your-first-users`) get **only** the global systemic fixes, nothing else.
+**2. What does "Take down" do?** Sets the page back to **In review** and removes it from the public
+site immediately. ("Done" is separate — a reviewer's assignment status — unrelated to publishing.)
 
-## How each finding is handled
-- **CONFLICT** → replace the wrong fact with the corrected value from the report / Appendix A.
-- **SLIGHTLY-OFF** → adjust the wording or add the missing caveat named in the finding.
-- **UNVERIFIED** → **leave the wording exactly as-is** and insert a visible plain-text marker
-  `[NEEDS-REVIEW: unverified — PM/support to confirm]` immediately before the claim (never an HTML
-  comment). Exception: an invented domain or email inside an unverified claim is still corrected to the
-  canonical value.
+**3. Must a published page be taken down before editing?** No. The public site serves a **frozen
+published copy**; editing only changes your draft, and it goes live when an owner **publishes
+again**. Both workflows already work (edit-while-live-then-republish, or take-down-then-edit). Only
+owners can publish, and a page can't be (re)published with unresolved comments.
 
-## Global (systemic) fixes applied everywhere, even where not itemised
-- Domains → `<appname>.emergent.host` (prod), `{slug}.preview.emergentagent.com` (preview),
-  `app.emergent.sh` (platform). Remove all `.emergent.run/.app/.build/.dev`, `emergent.ai`,
-  `api.emergentagi.com`.
-- All support email → **support@emergent.sh**; partners → **partners.emergent.sh**.
-- Plan names → **Free / Standard / Pro / Enterprise** (remove Indie/Startup/Starter/Developer/Team as
-  *plan* names).
-- Deployment tiers → **Starter / Launch / Grow / Scale / Elite** (50–1,100 credits/month, fixed).
-- "Deploy" button/label → **Publish / Republish**.
-- Other cross-doc rules from Part 1 (env-var model, credit economics, rollback model, GitHub push-only,
-  managed Expo/EAS, E1/E2/E3 as agents + Maxx = Pro-only) applied wherever they appear.
+---
 
-## Docs rewritten (not patched), rebuilt from Appendix A + their findings
-005, 006, 010, 013, 016, 019, 021, 022, 028, 033, 037, 039, 042, 045, 046, 084, 091 — their core
-premise is wrong, so the body is rewritten (title/slug and doc structure kept; status stays in-review).
+## Part B — What will be built
 
-## Two disputed facts — fixed wording + permanent flag
-- **Redeploy / republish cost:** stated as **free of charge** (beyond the monthly tier fee), followed by
-  `[NEEDS-REVIEW: redeploy billing — KB sources disagree]`.
-- **Project ownership:** stated as **cannot be transferred** (stays with the creating account), followed
-  by `[NEEDS-REVIEW: ownership transfer — KB sources disagree]`.
+### 1. "Open in editor" link  *(both places)*
+A direct link opening the full editor on that exact page, on **both** each Publish-tab row **and**
+the review page.
 
-## Compliance / privacy wording inside in-scope docs
-Any certification, compliance, GDPR, data-protection, or AI-training sentence found inside an in-scope
-doc is **left unchanged** and flagged with
-`[NEEDS-REVIEW: compliance/privacy wording — separate review track]`.
+### 2. Publish-tab filter  *(default = All)*
+A filter above the Publish list: **All** (default, nav order) · **In review** (not yet live — your
+still-to-publish worklist) · **Published** · **Needs update** (live pages with unpublished edits,
+see #3).
 
-## Other hard rules carried from the report
-- No invented specifics — no date, SLA, retention period, price, or limit that the report/Appendix A
-  does not state.
-- Object storage: any promise of file deletion is corrected to "deletion of uploaded assets is not
-  currently supported (uploads are permanent)".
-- Clean docs (Part 3) untouched except for a systemic domain/email fix if one appears.
+### 3. "Unpublished changes" marker + one-click Republish
+A live page is flagged **"Unpublished changes"** whenever its **current draft differs from the live
+published copy**, with a **Republish** button to push it live without a takedown. **Take down** stays
+for when you want the page off the site while editing.
 
-## Working order and progress updates
-Worked section by section in the report's order (getting-started & core → secrets/deploy/infra →
-mobile → billing/rewards → agents/MCP/GitHub → integrations → troubleshooting/FAQ → beginner journey)
-as **one continuous pass** — no interim batch summaries (every page is reviewed by a PM anyway). At the
-very end, a single consolidated checklist of all `[NEEDS-REVIEW]` flags (doc + claim) is produced, since
-it is cheap to generate and gives the PM one clear worklist.
+### 4. Page-level "Done", driven by the "Looks correct" verdict  *(reworked to page-level)*
+"Done" becomes a **per-page** state, not a per-assignment one. A page is **Done** when it has a
+**"Looks correct"** verdict from its assigned reviewer **and** has **no unresolved comments** — that
+one page, on its own. Specifically:
+- Setting **"Looks correct"** on a page with no open comments marks that page **Done** immediately.
+- If the page has open comments, the verdict is still saved but the page is **not** Done; it flips to
+  Done automatically once the last comment on it is resolved.
+- The other six verdicts (Needs small edits, Wrong info, More info needed, Outdated, Tone / clarity,
+  Other) never mark a page Done.
+- No dependency on any other page — each page stands alone.
 
-## Verification
-Because this is documentation content (not code) and nothing is published, verification is: confirm each
-edited doc is still `in_review`/draft, the review markers render as visible body text, and a spot check
-in the editor/review console that pages render. No deploy, no publish.
+Where "Done"/"Reviewed" is shown today (the Publish-tab **Reviewed** mark, and reviewer progress
+counts like "8 of 18 reviewed"), it will use this page-level definition. A reviewer's queue shows how
+many of their pages are Done by this rule.
 
-## Assumptions (will proceed on these unless told otherwise)
-1. Documents are matched by **slug**; any report slug with no matching doc in our project is skipped and
-   listed in the final flag checklist rather than created.
-2. Runs as **one continuous pass** across all in-scope sections with no interim summaries; a final
-   consolidated `[NEEDS-REVIEW]` checklist is produced at the end.
-3. Rewritten docs keep their existing title, slug, and MDX structure conventions; only the body facts
-   are rebuilt from Appendix A.
-4. All in-scope docs are already unpublished/in-review, so no status change is needed beyond leaving
-   them in-review.
+### 5. Remove 2 orphaned assignments  *(data cleanup)*
+There are 132 assignments but 130 live pages. The two extras are Mihir's **"Data leakage"** and
+**"Data privacy"**, whose pages were removed earlier (overlapping content). These assignments now
+point at pages that no longer exist. They will be deleted. At build time this is verified first — an
+assignment is only removed if its page(s) no longer resolve to a live document; if either turns out
+to still map to a live page, it's left alone and reported back instead.
+
+### 6. Small clarity touches  *(both confirmed)*
+- **Take down** gets a tooltip noting it returns the page to *In review* and removes it from the
+  public site.
+- Rows blocked from publishing by open comments show that blocked state (the block already exists).
+
+---
+
+## Decisions (locked from your replies)
+1. Publish-tab default view → **All**.
+2. "Needs update" → flagged whenever the **draft differs from the live copy**.
+3. "Open in editor" → on **both** Publish rows and the review page.
+4. "Looks correct" → marks the page **Done** unless it has unresolved comments — and **Done is
+   page-level**, with no condition on other pages in the assignment.
+5. Take-down tooltip and open-comment blocked-state indicator → **yes to both**.
+6. Remove the 2 orphaned assignments (Mihir's "Data leakage" and "Data privacy").
+
+## Assumptions (will proceed on these unless you say otherwise)
+- **Page-level Done is derived** from "verdict = Looks correct" + "no open comments", so it self-heals:
+  opening a new comment on a Done page makes it not-Done until resolved; resolving the last comment on
+  a "Looks correct" page makes it Done. No separate manual "mark done" toggle is needed, so the old
+  assignment-level "Mark done" button is retired in favour of this. (Say if you want to keep a manual
+  override too.)
+- An assignment covering several pages simply shows "x / y pages Done" using the page metric; there is
+  no separate assignment-level done state.
+- "Looks correct" counts when set by the page's assigned reviewer (owners can also set verdicts).
+- Publishing stays **owner-only** and manual; resolve-comments-before-publishing is unchanged; the
+  public frozen-copy model is unchanged.

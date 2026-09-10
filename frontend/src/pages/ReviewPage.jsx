@@ -135,7 +135,7 @@ export default function ReviewPage() {
           const vd = await axios.get(`${API}/projects/${projectId}/verdicts`);
           const reviewed = new Set(
             (vd.data.verdicts || [])
-              .filter((v) => (v.reviewer_email || '').toLowerCase() === who && v.verdict)
+              .filter((v) => (v.reviewer_email || '').toLowerCase() === who && v.verdict === 'Looks correct')
               .map((v) => v.doc_slug)
           );
           setReviewedSet(reviewed);
@@ -297,6 +297,7 @@ export default function ReviewPage() {
               <button onClick={() => navigate(`/admin/editor/${pid}/${doc.id}`)} className="hidden md:flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800" data-testid="reviewpage-open-editor-btn"><ExternalLink className="w-3.5 h-3.5" /> Full editor</button>
             </>
           )}
+          {doc?.id && <button onClick={() => navigate(`/admin/editor/${pid}/${doc.id}`)} className="hidden sm:flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800" data-testid="reviewpage-open-editor"><ExternalLink className="w-3.5 h-3.5" /> Open in editor</button>}
           <button onClick={() => { setShowHistory(true); if (doc?.slug) axios.get(`${API}/projects/${pid}/activity/page/${doc.slug}`).then(r => setHistory(r.data.activity || [])).catch(() => {}); }} className="hidden sm:flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800" data-testid="reviewpage-history-btn"><History className="w-3.5 h-3.5" /> History</button>
           <label className="flex items-center gap-2 text-sm cursor-pointer select-none" data-testid="review-toggle">
             <span className="text-zinc-500 dark:text-zinc-400 hidden sm:inline">Review</span>
