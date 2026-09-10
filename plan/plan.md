@@ -1,89 +1,98 @@
-# Plan — Publishing & editing workflow in the Review Console
+# Plan — Read-only MIS (management dashboard) tab in the Review Console
 
-This plan answers the questions you raised, then lists what will be built. Everything is on the
-admin/review side. Nothing changes for public readers except when you choose to publish.
+A new **MIS** tab at `/admin/review`, read-only, one page, fast. **Visible to anyone signed in with an
+`@emergent.sh` account** — everyone can see every reviewer's progress (not limited to their own
+row). Built entirely from data already stored (the activity/event log + current assignment and page
+state). No existing review, assignment, publish, or comment behavior changes except the two
+deliberate ones below (Mark-done reinstated, and the NEEDS-REVIEW→comment conversion).
 
----
-
-## Part A — How it works today (answers to your questions)
-
-**1. Direct link to the full editor for a published page?**
-Partly. Clicking a project card on the dashboard opens the editor for any page, but there's no
-one-click link to a *specific* page — the Publish tab and review page only link to the review
-reader. So today you open the editor and hunt for the page.
-
-**2. What does "Take down" do?** Sets the page back to **In review** and removes it from the public
-site immediately. ("Done" is separate — a reviewer's assignment status — unrelated to publishing.)
-
-**3. Must a published page be taken down before editing?** No. The public site serves a **frozen
-published copy**; editing only changes your draft, and it goes live when an owner **publishes
-again**. Both workflows already work (edit-while-live-then-republish, or take-down-then-edit). Only
-owners can publish, and a page can't be (re)published with unresolved comments.
+Decisions from the refinement rounds are locked and folded in; listed here so the user can confirm
+the final shape before building.
 
 ---
 
-## Part B — What will be built
+## Locked decisions
 
-### 1. "Open in editor" link  *(both places)*
-A direct link opening the full editor on that exact page, on **both** each Publish-tab row **and**
-the review page.
+1. **"Mark done" is reinstated.** The earlier change was only meant to *auto-switch* the button's
+   state, not remove it. So: the manual **Mark done** button is back on each assignment, **and** the
+   auto-switch condition stays — a page flips to Done automatically when it has a **looks_correct**
+   verdict and no open comments. `done_at` is recorded whether Done was set manually or by
+   auto-switch. Done and verdict stay independent, so "done without a verdict" remains a real state.
 
-### 2. Publish-tab filter  *(default = All)*
-A filter above the Publish list: **All** (default, nav order) · **In review** (not yet live — your
-still-to-publish worklist) · **Published** · **Needs update** (live pages with unpublished edits,
-see #3).
+2. **All 7 verdicts are kept** — Looks correct · Needs small edits · Wrong info · More info needed ·
+   Outdated · Tone / clarity · Other. No collapsing; the MIS reports them as **7 distinct** values.
+   Only normalization: legacy `looks_good` → **Looks correct**. History kept; **latest** verdict per
+   page is "current".
 
-### 3. "Unpublished changes" marker + one-click Republish
-A live page is flagged **"Unpublished changes"** whenever its **current draft differs from the live
-published copy**, with a **Republish** button to push it live without a takedown. **Take down** stays
-for when you want the page off the site while editing.
+3. **NEEDS-REVIEW → comments: run the one-time mass conversion.** ~182 `[NEEDS-REVIEW: …]` markers
+   across ~77 pages each become a **Docs-bot** page comment (verbatim text, anchored at the marker);
+   the marker is removed from the page body (one edit per page, logged as an edit by "Docs bot").
+   Idempotent (dedup by page id + marker-text hash), and re-run automatically on any future save that
+   introduces a new marker. **Effect, by design:** those ~77 pages become publish-blocked until the
+   Docs-bot comments are resolved. No separate debt tracker needed (see removed section F).
 
-### 4. Page-level "Done", driven by the "Looks correct" verdict  *(reworked to page-level)*
-"Done" becomes a **per-page** state, not a per-assignment one. A page is **Done** when it has a
-**"Looks correct"** verdict from its assigned reviewer **and** has **no unresolved comments** — that
-one page, on its own. Specifically:
-- Setting **"Looks correct"** on a page with no open comments marks that page **Done** immediately.
-- If the page has open comments, the verdict is still saved but the page is **not** Done; it flips to
-  Done automatically once the last comment on it is resolved.
-- The other six verdicts (Needs small edits, Wrong info, More info needed, Outdated, Tone / clarity,
-  Other) never mark a page Done.
-- No dependency on any other page — each page stands alone.
+4. **MIS is open to all `@emergent.sh` users.** No per-role gating; every section (and CSV export) is
+   visible to any signed-in Emergent user.
 
-Where "Done"/"Reviewed" is shown today (the Publish-tab **Reviewed** mark, and reviewer progress
-counts like "8 of 18 reviewed"), it will use this page-level definition. A reviewer's queue shows how
-many of their pages are Done by this rule.
+5. **Due dates fixed to Monday 14 September 2026** for every assignment (`due_date = 2026-09-14`).
+   Overdue = today past that date (calendar days). Owners can still edit a due date later.
 
-### 5. Remove 2 orphaned assignments  *(data cleanup)*
-There are 132 assignments but 130 live pages. The two extras are Mihir's **"Data leakage"** and
-**"Data privacy"**, whose pages were removed earlier (overlapping content). These assignments now
-point at pages that no longer exist. They will be deleted. At build time this is verified first — an
-assignment is only removed if its page(s) no longer resolve to a live document; if either turns out
-to still map to a live page, it's left alone and reported back instead.
+6. **No projection line, no orphan-removal tool.** Instead, **deleting a page cascades**: its
+   assignment(s) are deleted with it and all counts follow automatically.
 
-### 6. Small clarity touches  *(both confirmed)*
-- **Take down** gets a tooltip noting it returns the page to *In review* and removes it from the
-  public site.
-- Rows blocked from publishing by open comments show that blocked state (the block already exists).
+7. **MIS is NOT real-time.** It loads a snapshot when the tab is opened and offers a **Refresh**
+   button to re-pull on demand; the **"data as of"** timestamp shows the last fetch. No websockets,
+   no background polling (avoids the cost of live updates). Reopening the tab or hitting Refresh is
+   how numbers update.
 
 ---
 
-## Decisions (locked from your replies)
-1. Publish-tab default view → **All**.
-2. "Needs update" → flagged whenever the **draft differs from the live copy**.
-3. "Open in editor" → on **both** Publish rows and the review page.
-4. "Looks correct" → marks the page **Done** unless it has unresolved comments — and **Done is
-   page-level**, with no condition on other pages in the assignment.
-5. Take-down tooltip and open-comment blocked-state indicator → **yes to both**.
-6. Remove the 2 orphaned assignments (Mihir's "Data leakage" and "Data privacy").
+## Also included (small changes outside the MIS)
 
-## Assumptions (will proceed on these unless you say otherwise)
-- **Page-level Done is derived** from "verdict = Looks correct" + "no open comments", so it self-heals:
-  opening a new comment on a Done page makes it not-Done until resolved; resolving the last comment on
-  a "Looks correct" page makes it Done. No separate manual "mark done" toggle is needed, so the old
-  assignment-level "Mark done" button is retired in favour of this. (Say if you want to keep a manual
-  override too.)
-- An assignment covering several pages simply shows "x / y pages Done" using the page metric; there is
-  no separate assignment-level done state.
-- "Looks correct" counts when set by the page's assigned reviewer (owners can also set verdicts).
-- Publishing stays **owner-only** and manual; resolve-comments-before-publishing is unchanged; the
-  public frozen-copy model is unchanged.
+- **Review Inbox — clickable comments.** In the Review Inbox tab, each comment becomes a link that
+  opens its page (`/review/<slug>`); if the comment pinned a text selection, it also scrolls to and
+  highlights that text — so a comment can be jumped to and resolved quickly. (Same jump-to-anchor
+  behavior already used on the review page.)
+
+---
+
+## What the MIS tab contains
+
+Global controls: **date-range filter**, **person filter**, **Refresh** button, a **"data as of"
+timestamp**, and an **include seed/test actors** toggle (off by default). Every number is
+**clickable** to a drill-down list of the underlying pages/assignments with timestamps.
+
+- **A. Reviewer table** — one row per reviewer, sortable: assigned (current) · done · % done ·
+  verdicts split across **all 7** values · **done without verdict** · comments made · comments
+  resolved · median hours assignment→first action · median hours assignment→done · overdue count
+  (past 14 Sep 2026) · aging of open assignments (0–2d / 3–7d / >7d) · last activity. **CSV export.**
+- **B. Pipeline funnel** — counts of **pages** (assignment count beside): unassigned → assigned/in
+  review → done → verdict (the 7 values) → published. Plus a **per-TAB and per-SECTION** rollup.
+- **C. Throughput** — reviews marked done per day (bars) + cumulative line. **No projection line.**
+- **D. Comments health** — open vs resolved comment counts per page and per reviewer; pages with
+  **>N** open comments highlighted (*assumption: N = 3*). Docs-bot NEEDS-REVIEW comments appear here.
+- **E. Exceptions** (clickable, **CSV export**): pages **done without a verdict** · **wrong_info**
+  verdict still unedited since that verdict · **reassigned/delegated more than once** · **duplicate
+  page titles** assigned in more than one tab · **no activity 7+ days** after assignment · pages with
+  a **looks_correct** verdict that still carry an open Docs-bot NEEDS-REVIEW comment. *(Orphaned-
+  assignments row removed — cascade-delete prevents orphans.)*
+- **~~F. NEEDS-REVIEW debt~~ — removed.** Those markers are now ordinary comments, tracked in D.
+
+---
+
+## Assumptions (built as stated unless challenged)
+
+- **Time math:** medians use calendar hours; "first action" = the reviewer's first
+  comment/verdict/edit on that page **after** its assigned_at.
+- **Actor identity:** metrics key off the actor's email in the event log; a display name is mapped to
+  the known email; `dev@local`, `QA Owner`, and any non-`@emergent.sh` actor are labeled **seed/test**
+  and excluded by default (toggle to include).
+- **Comment-highlight threshold** N = 3 open comments.
+- **Cascade delete** applies to page soft-delete/trash and permanent delete alike; restoring a page
+  from trash does not resurrect its old assignments.
+
+## Explicitly out of scope
+No changes to publishing rules, the public site, or the frozen-copy model. No comment/assignment
+mechanics change beyond reinstating Mark done, the inbox clickable-comment link, the cascade delete,
+and the NEEDS-REVIEW→comment conversion. No decorative charts beyond A–C. Nothing is published as
+part of this work.

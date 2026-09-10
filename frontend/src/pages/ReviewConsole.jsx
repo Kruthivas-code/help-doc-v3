@@ -51,6 +51,22 @@ export default function ReviewConsole() {
   const [verdict, setVerdict] = useState('');
   const [verdicts, setVerdicts] = useState([]);
   const [pubFilter, setPubFilter] = useState('all');
+  const [mis, setMis] = useState(null);
+  const [misSeed, setMisSeed] = useState(false);
+  const [misPerson, setMisPerson] = useState('');
+  const loadMis = useCallback(async () => {
+    try { const r = await axios.get(`${API}/projects/${pid}/mis?include_seed=${misSeed}`); setMis(r.data); }
+    catch (e) { toast.error('Failed to load MIS'); }
+  }, [pid, misSeed]);
+  useEffect(() => { if (tab === 'mis') loadMis(); }, [tab, loadMis]);
+  const exportMisCsv = () => {
+    if (!mis) return;
+    const head = ['Reviewer', 'Assigned', 'Done', '% done', ...mis.verdict_labels, 'Done without verdict', 'Comments made', 'Comments resolved', 'Overdue'];
+    const rows = mis.reviewers.map(r => [r.email, r.assigned, r.done, r.pct_done, ...mis.verdict_labels.map(k => r.verdicts[k]), r.done_no_verdict, r.comments_made, r.comments_resolved, r.overdue]);
+    const csv = [head, ...rows].map(row => row.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    const a = document.createElement('a'); a.href = url; a.download = 'mis-reviewers.csv'; a.click(); URL.revokeObjectURL(url);
+  };
   // assignment form
   const [aScopes, setAScopes] = useState([]);
   const [scopeQuery, setScopeQuery] = useState('');
@@ -493,6 +509,7 @@ export default function ReviewConsole() {
       </header>
 
       <div className="px-6 py-3 flex items-center gap-2 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+        <TabBtn id="mis" icon={BarChart3} label="MIS" />
         {isOwner && <TabBtn id="overview" icon={BarChart3} label="Overview" />}
         <TabBtn id="assignments" icon={ClipboardList} label={isOwner ? 'Assignments' : 'My Reviews'} />
         {isOwner && <TabBtn id="inbox" icon={Inbox} label="Review Inbox" badge={inbox.unread} />}
@@ -709,6 +726,9 @@ export default function ReviewConsole() {
                       const all = total > 0 && dn === total;
                       return <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium flex items-center gap-1 ${all ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400' : 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300'}`} title="A page is Done when it has a 'Looks correct' verdict and no open comments" data-testid={`assignment-done-count-${a.id}`}>{all ? <><CheckCircle2 className="w-3 h-3" /> Done</> : `${dn}/${total} done`}</span>;
                     })()}
+                    {a.status === 'done'
+                      ? <button onClick={() => setAssignmentStatus(a, 'in_review')} className="text-xs px-2 py-1 rounded-md border border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800" data-testid={`assignment-reopen-${a.id}`}>Reopen</button>
+                      : <button onClick={() => setAssignmentStatus(a, 'done')} className="text-xs px-2 py-1 rounded-md border border-emerald-300 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10" data-testid={`assignment-done-${a.id}`}>Mark done</button>}
                     <button onClick={() => delegate(a)} className="text-xs px-2 py-1 rounded-md border border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800" data-testid={`assignment-delegate-${a.id}`}>Delegate</button>
                     {isOwner && <button data-testid={`assignment-delete-btn-${a.id}`} onClick={async () => { await axios.delete(`${API}/projects/${pid}/assignments/${a.id}`); setAssignments(p => p.filter(x => x.id !== a.id)); }} className="p-1 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded"><Trash2 className="w-4 h-4" /></button>}
                   </div>
@@ -724,7 +744,7 @@ export default function ReviewConsole() {
             {inbox.comments.map(c => (
               <div key={c.id} className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 p-4" data-testid={`inbox-comment-${c.id}`}>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium">{c.author_name || c.author_email} <span className="text-xs text-zinc-400">on {c.doc_slug}</span></span>
+                  <span className="text-sm font-medium"><button onClick={() => navigate(`/review/${c.doc_slug}?focus=${encodeURIComponent(c.anchor_text || '')}`)} className="hover:underline" data-testid={`inbox-open-${c.id}`}>{c.author_name || c.author_email} <span className="text-xs text-zinc-400">on {c.doc_slug}</span></button></span>
                   {c.resolved
                     ? <button onClick={() => resolveComment(c, false)} className="text-xs flex items-center gap-1 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"><RotateCcw className="w-3 h-3" /> Reopen</button>
                     : <button onClick={() => resolveComment(c, true)} className="text-xs flex items-center gap-1 text-emerald-600 dark:text-emerald-400 hover:text-emerald-800" data-testid={`resolve-${c.id}`}><CheckCircle2 className="w-3 h-3" /> Resolve</button>}
@@ -734,6 +754,73 @@ export default function ReviewConsole() {
                 {c.resolved && <span className="text-[10px] text-emerald-600 font-medium">Resolved</span>}
               </div>
             ))}
+          </div>
+        )}
+
+        {/* MIS — read-only management dashboard, open to all signed-in users */}
+        {tab === 'mis' && (
+          <div data-testid="review-mis" className="space-y-6">
+            {!mis ? <p className="text-sm text-zinc-500">Loading…</p> : (<>
+              <div className="flex items-center gap-3 flex-wrap text-xs">
+                <button onClick={loadMis} className="px-3 py-1.5 rounded-md bg-zinc-900 dark:bg-white text-white dark:text-zinc-900" data-testid="mis-refresh">Refresh</button>
+                <span className="text-zinc-500 dark:text-zinc-400">Data as of {new Date(mis.generated_at).toLocaleString()}</span>
+                <label className="flex items-center gap-1 cursor-pointer"><input type="checkbox" checked={misSeed} onChange={e => setMisSeed(e.target.checked)} data-testid="mis-seed-toggle" /> include seed/test</label>
+                <select value={misPerson} onChange={e => setMisPerson(e.target.value)} className="border border-zinc-300 dark:border-zinc-700 rounded px-2 py-1 bg-transparent" data-testid="mis-person">
+                  <option value="">All reviewers</option>
+                  {mis.reviewers.map(r => <option key={r.email} value={r.email}>{r.email}</option>)}
+                </select>
+                <button onClick={exportMisCsv} className="ml-auto px-3 py-1.5 rounded-md border border-zinc-300 dark:border-zinc-700" data-testid="mis-csv">Export CSV</button>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2" data-testid="mis-funnel">
+                {[['Total pages', mis.funnel.total_pages], ['Assigned', mis.funnel.assigned], ['Done', mis.funnel.done], ['Published', mis.funnel.published], ['No verdict', mis.funnel.no_verdict]].map(([l, n]) => (
+                  <div key={l} className="rounded-lg border border-zinc-200 dark:border-zinc-800 p-3"><div className="text-2xl font-semibold">{n}</div><div className="text-xs text-zinc-500">{l}</div></div>
+                ))}
+              </div>
+              <div className="overflow-x-auto border border-zinc-200 dark:border-zinc-800 rounded-lg" data-testid="mis-reviewer-table">
+                <table className="w-full text-xs"><thead className="bg-zinc-50 dark:bg-zinc-900/50 text-zinc-500"><tr>
+                  {['Reviewer', 'Assigned', 'Done', '% done', 'Looks correct', 'Other verdicts', 'Done w/o verdict', 'Comments', 'Resolved', 'Overdue'].map(h => <th key={h} className="text-left px-3 py-2 font-medium whitespace-nowrap">{h}</th>)}
+                </tr></thead><tbody>
+                  {mis.reviewers.filter(r => !misPerson || r.email === misPerson).map(r => (
+                    <tr key={r.email} className="border-t border-zinc-100 dark:border-zinc-800" data-testid={`mis-row-${r.email}`}>
+                      <td className="px-3 py-2 whitespace-nowrap">{r.email}</td><td className="px-3 py-2">{r.assigned}</td><td className="px-3 py-2">{r.done}</td><td className="px-3 py-2">{r.pct_done}%</td>
+                      <td className="px-3 py-2">{r.verdicts['Looks correct']}</td>
+                      <td className="px-3 py-2">{Object.entries(r.verdicts).filter(([k]) => k !== 'Looks correct').reduce((a, [, n]) => a + n, 0)}</td>
+                      <td className="px-3 py-2">{r.done_no_verdict}</td><td className="px-3 py-2">{r.comments_made}</td><td className="px-3 py-2">{r.comments_resolved}</td><td className="px-3 py-2">{r.overdue}</td>
+                    </tr>
+                  ))}
+                </tbody></table>
+              </div>
+              {mis.throughput.length > 0 && (
+                <div data-testid="mis-throughput">
+                  <h3 className="font-semibold text-sm mb-2">Throughput <span className="text-xs text-zinc-500 font-normal">(pages reaching "Looks correct" per day)</span></h3>
+                  <div className="flex items-end gap-1 h-24">
+                    {mis.throughput.map(t => {
+                      const max = Math.max(...mis.throughput.map(x => x.count), 1);
+                      return <div key={t.day} className="flex flex-col items-center justify-end flex-1" title={`${t.day}: ${t.count}`}>
+                        <div className="w-full bg-indigo-500/70 dark:bg-indigo-400/70 rounded-t" style={{ height: `${(t.count / max) * 100}%` }} />
+                        <span className="text-[9px] text-zinc-400 mt-1 rotate-0">{t.day.slice(5)}</span>
+                      </div>;
+                    })}
+                  </div>
+                </div>
+              )}
+              <div data-testid="mis-comments-health">
+                <h3 className="font-semibold text-sm mb-2">Comments health <span className="text-xs text-zinc-500 font-normal">({mis.comments_health.filter(p => p.hot).length} pages with ≥3 open)</span></h3>
+                <div className="flex flex-wrap gap-1">
+                  {mis.comments_health.slice(0, 60).map(p => (
+                    <button key={p.slug} onClick={() => navigate(`/review/${p.slug}`)} className={`text-[11px] px-2 py-1 rounded border ${p.hot ? 'border-rose-300 text-rose-600 dark:border-rose-500/40 dark:text-rose-400' : 'border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-300'}`} title={p.title} data-testid={`mis-ch-${p.slug}`}>{(p.title || p.slug).slice(0, 24)} · {p.open}/{p.open + p.resolved}</button>
+                  ))}
+                </div>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-3" data-testid="mis-exceptions">
+                {[['Done without verdict', mis.exceptions.done_no_verdict], ['Wrong info verdict', mis.exceptions.wrong_info_unedited], ['Looks-correct with open bot comment', mis.exceptions.looks_correct_open_nr], ['Duplicate titles', mis.exceptions.duplicate_titles]].map(([l, arr]) => (
+                  <div key={l} className="rounded-lg border border-zinc-200 dark:border-zinc-800 p-3">
+                    <div className="text-sm font-medium mb-1">{l} <span className="text-xs text-zinc-500">({arr.length})</span></div>
+                    <div className="space-y-0.5 max-h-40 overflow-y-auto">{arr.slice(0, 25).map((x, i) => <div key={i} className="text-xs text-zinc-600 dark:text-zinc-300 truncate">{x.title || x.slug || (x.slugs && x.slugs.join(', '))}</div>)}</div>
+                  </div>
+                ))}
+              </div>
+            </>)}
           </div>
         )}
 

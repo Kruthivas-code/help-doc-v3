@@ -224,6 +224,15 @@ export default function ReviewPage() {
     root.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
+  // If arriving from the Review Inbox with ?focus=<text>, jump to that comment's anchor once loaded.
+  useEffect(() => {
+    const f = searchParams.get('focus');
+    if (f && doc && !loading) {
+      const t = setTimeout(() => scrollToAnchor(f), 700);
+      return () => clearTimeout(t);
+    }
+  }, [doc, loading, searchParams]);
+
   const mentionsIn = (text) => knownEmails.filter((e) => new RegExp('@' + e.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?!\\w)', 'i').test(text));
   const renderBody = (text) => (text || '').split(/(@[\w.\-+@]+)/g).map((part, i) => (part.startsWith('@') && knownEmails.includes(part.slice(1).toLowerCase())
     ? <span key={i} className="text-indigo-600 dark:text-indigo-400 font-medium">{part}</span> : part));

@@ -226,6 +226,7 @@ def register_review_routes(api_router, ctx):
              "assignee_email": _norm(req.assignee_email), "assigned_by": user.email,
              "assigned_by_name": getattr(user, "name", None),
              "status": "in_review", "slugs": slugs, "delegated_from": None,
+             "due_date": "2026-09-14",
              "created_at": _now(), "updated_at": _now()}
         await db.assignments.insert_one({**a})
         if slugs:
@@ -256,20 +257,11 @@ def register_review_routes(api_router, ctx):
             raise HTTPException(404, "Assignment not found")
         if not is_owner(user) and _norm(user.email) != a.get("assignee_email"):
             raise HTTPException(403, "Only the Owner or the assignee can update this")
+        # Done and verdict are independent — Mark done works with or without verdicts.
+        upd = {"status": req.status, "updated_at": _now()}
         if req.status == "done":
-            slugs = a.get("slugs", [])
-            if slugs:
-                reviewer = a.get("assignee_email")
-                vds = await db.review_verdicts.find(
-                    {"project_id": project_id, "doc_slug": {"$in": slugs}, "reviewer_email": reviewer}
-                ).to_list(2000)
-                have = {v["doc_slug"] for v in vds if v.get("verdict")}
-                missing = [s for s in slugs if s not in have]
-                if missing:
-                    raise HTTPException(
-                        400,
-                        f"Add a verdict for every page before marking done ({len(missing)} of {len(slugs)} still need one)")
-        await db.assignments.update_one({"id": aid}, {"$set": {"status": req.status, "updated_at": _now()}})
+            upd["done_at"] = a.get("done_at") or _now()
+        await db.assignments.update_one({"id": aid}, {"$set": upd})
         return {"status": req.status}
 
     @api_router.post("/projects/{project_id}/assignments/{aid}/delegate")
@@ -513,3 +505,125 @@ def register_review_routes(api_router, ctx):
         items = await db.activity_log.find(
             {"project_id": project_id, "doc_slug": slug}, {"_id": 0}).sort("created_at", -1).to_list(500)
         return {"activity": items}
+
+
+    @api_router.get("/projects/{project_id}/mis")
+    async def mis_dashboard(project_id: str, include_seed: bool = False, user=Depends(get_current_user)):
+        """Read-only management snapshot, open to any signed-in @emergent.sh user."""
+        from datetime import datetime as _dt, timezone as _tz
+        DUE = "2026-09-14"
+        VERDICTS = ["Looks correct", "Needs small edits", "Wrong info", "More info needed", "Outdated", "Tone / clarity", "Other"]
+        docs = await db.documents.find({"project_id": project_id, "deleted_at": None}, {"_id": 0, "slug": 1, "title": 1, "status": 1}).to_list(2000)
+        title_by = {d["slug"]: d.get("title") for d in docs}
+        status_by = {d["slug"]: d.get("status") for d in docs}
+        asg = await db.assignments.find({"project_id": project_id}, {"_id": 0}).to_list(1000)
+        vds = await db.review_verdicts.find({"project_id": project_id}, {"_id": 0}).sort("created_at", 1).to_list(5000)
+        cms = await db.review_comments.find({"project_id": project_id}, {"_id": 0}).to_list(8000)
+
+        def is_seed(e):
+            e = (e or "").lower()
+            return (not e.endswith("@emergent.sh")) or e == "dev@local"
+
+        latest = {}
+        for v in vds:
+            if v.get("verdict") == "looks_good":
+                v["verdict"] = "Looks correct"
+            latest[v["doc_slug"]] = v
+        assignee_by = {}
+        for a in asg:
+            for s in a.get("slugs", []):
+                assignee_by[s] = a.get("assignee_email")
+        open_by, resolved_by, cmade, cresolved = {}, {}, {}, {}
+        for c in cms:
+            slug = c.get("doc_slug")
+            if c.get("resolved"):
+                resolved_by[slug] = resolved_by.get(slug, 0) + 1
+                rb = (c.get("resolved_by") or "").lower()
+                if rb:
+                    cresolved[rb] = cresolved.get(rb, 0) + 1
+            else:
+                open_by[slug] = open_by.get(slug, 0) + 1
+            am = (c.get("author_email") or "").lower()
+            cmade[am] = cmade.get(am, 0) + 1
+
+        def is_done(s):
+            v = latest.get(s)
+            return bool(v and v.get("verdict") == "Looks correct" and not open_by.get(s))
+
+        today = _dt.now(_tz.utc).date()
+        overdue_flag = today > _dt.fromisoformat(DUE).date()
+
+        reviewers = {}
+        for a in asg:
+            em = a.get("assignee_email") or "unassigned"
+            if is_seed(em) and not include_seed:
+                continue
+            r = reviewers.setdefault(em, {"email": em, "assigned": 0, "done": 0, "verdicts": {k: 0 for k in VERDICTS}, "done_no_verdict": 0, "comments_made": 0, "comments_resolved": 0, "overdue": 0})
+            for s in a.get("slugs", []):
+                r["assigned"] += 1
+                d = is_done(s)
+                if d:
+                    r["done"] += 1
+                v = latest.get(s)
+                if v and v.get("verdict") in r["verdicts"]:
+                    r["verdicts"][v["verdict"]] += 1
+                if d and not (v and v.get("verdict")):
+                    r["done_no_verdict"] += 1
+                if overdue_flag and a.get("status") != "done" and not d:
+                    r["overdue"] += 1
+        for em, r in reviewers.items():
+            r["comments_made"] = cmade.get(em, 0)
+            r["comments_resolved"] = cresolved.get(em, 0)
+            r["pct_done"] = round(100 * r["done"] / r["assigned"]) if r["assigned"] else 0
+        reviewer_rows = sorted(reviewers.values(), key=lambda x: -x["assigned"])
+
+        assigned_slugs = set(assignee_by.keys())
+        all_slugs = set(title_by.keys())
+        funnel = {
+            "total_pages": len(all_slugs),
+            "unassigned": len([s for s in all_slugs if s not in assigned_slugs]),
+            "assigned": len(assigned_slugs),
+            "done": len([s for s in all_slugs if is_done(s)]),
+            "published": len([s for s in all_slugs if status_by.get(s) == "published"]),
+            "verdicts": {k: len([s for s in all_slugs if (latest.get(s) or {}).get("verdict") == k]) for k in VERDICTS},
+            "no_verdict": len([s for s in all_slugs if not (latest.get(s) or {}).get("verdict")]),
+        }
+
+        by_day = {}
+        for s, v in latest.items():
+            if v.get("verdict") == "Looks correct" and v.get("created_at"):
+                day = str(v["created_at"])[:10]
+                by_day[day] = by_day.get(day, 0) + 1
+        throughput = [{"day": k, "count": by_day[k]} for k in sorted(by_day)]
+
+        ch_pages = []
+        for s in sorted(all_slugs):
+            o, rv = open_by.get(s, 0), resolved_by.get(s, 0)
+            if o or rv:
+                ch_pages.append({"slug": s, "title": title_by.get(s), "open": o, "resolved": rv, "hot": o >= 3})
+        ch_pages.sort(key=lambda x: -x["open"])
+
+        exc = {"done_no_verdict": [], "wrong_info_unedited": [], "no_activity_7d": [], "looks_correct_open_nr": [], "duplicate_titles": []}
+        for s in all_slugs:
+            v = latest.get(s)
+            if is_done(s) and not (v and v.get("verdict")):
+                exc["done_no_verdict"].append({"slug": s, "title": title_by.get(s)})
+            if v and v.get("verdict") == "Wrong info":
+                exc["wrong_info_unedited"].append({"slug": s, "title": title_by.get(s)})
+            if v and v.get("verdict") == "Looks correct" and open_by.get(s):
+                exc["looks_correct_open_nr"].append({"slug": s, "title": title_by.get(s), "open": open_by.get(s)})
+        seen = {}
+        for s, t in title_by.items():
+            seen.setdefault((t or "").strip().lower(), []).append(s)
+        exc["duplicate_titles"] = [{"title": t, "slugs": v} for t, v in seen.items() if len(v) > 1]
+
+        return {
+            "generated_at": _dt.now(_tz.utc).isoformat(),
+            "due_date": DUE, "overdue_active": overdue_flag,
+            "verdict_labels": VERDICTS,
+            "reviewers": reviewer_rows,
+            "funnel": funnel,
+            "throughput": throughput,
+            "comments_health": ch_pages,
+            "exceptions": exc,
+        }

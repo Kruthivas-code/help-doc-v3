@@ -774,6 +774,23 @@ async def update_document(
         {"id": doc_id},
         {"$set": update_data}
     )
+    # Auto-convert any NEEDS-REVIEW markers introduced by this save into Docs-bot comments (idempotent).
+    if "content" in update_data and "[NEEDS-REVIEW:" in (update_data.get("content") or ""):
+        import re as _re, hashlib as _hl
+        _c = update_data["content"]; _slug = doc.get("slug")
+        for _m in _re.findall(r"\[NEEDS-REVIEW:[^\]]*\]", _c):
+            _h = _hl.sha1((doc_id + "|" + _m).encode()).hexdigest()
+            if await db.review_comments.find_one({"project_id": project_id, "nr_hash": _h}):
+                continue
+            _i = _c.find(_m); _after = _c[_i + len(_m):].lstrip()[:80].split("\n")[0].strip()
+            await db.review_comments.insert_one({"id": str(uuid.uuid4()), "project_id": project_id, "doc_slug": _slug,
+                "author_email": "docs-bot@emergent.sh", "author_name": "Docs bot", "body": _m,
+                "anchor_text": (_after or None), "audio_url": None, "transcript": None, "parent_id": None,
+                "mentions": [], "resolved": False, "resolved_by": None, "read_by": [], "nr_hash": _h,
+                "created_at": datetime.now(timezone.utc).isoformat()})
+        _nc = _re.sub(r"\[NEEDS-REVIEW:[^\]]*\]", "", _c)
+        if _nc != _c:
+            await db.documents.update_one({"id": doc_id}, {"$set": {"content": _nc}})
     await log_activity(project_id, "edited", user.email, getattr(user, "name", None),
                        doc_slug=doc.get("slug"), doc_title=doc.get("title"))
     
@@ -835,6 +852,13 @@ async def delete_document(
         "deleted_at": now_iso, "deleted_by": user.email,
         "deleted_by_name": getattr(user, "name", None), "trash_nav": trash_nav,
         "updated_at": now_iso}})
+    # Cascade: remove this page from any assignments (delete assignment if it becomes empty).
+    async for a in db.assignments.find({"project_id": project_id, "slugs": slug}):
+        remaining = [s for s in (a.get("slugs") or []) if s != slug]
+        if remaining:
+            await db.assignments.update_one({"id": a["id"]}, {"$set": {"slugs": remaining, "updated_at": now_iso}})
+        else:
+            await db.assignments.delete_one({"id": a["id"]})
     await log_activity(project_id, "deleted", user.email, getattr(user, "name", None),
                        doc_slug=slug, doc_title=doc.get("title"))
     return {"message": "Document moved to Trash"}
@@ -895,6 +919,13 @@ async def purge_trashed_document(project_id: str, doc_id: str, user: User = Depe
     if not doc or not doc.get("deleted_at"):
         raise HTTPException(status_code=404, detail="Trashed document not found")
     await db.documents.delete_one({"id": doc_id, "project_id": project_id})
+    # Cascade: drop this page from assignments on permanent delete too.
+    async for a in db.assignments.find({"project_id": project_id, "slugs": doc.get("slug")}):
+        remaining = [s for s in (a.get("slugs") or []) if s != doc.get("slug")]
+        if remaining:
+            await db.assignments.update_one({"id": a["id"]}, {"$set": {"slugs": remaining}})
+        else:
+            await db.assignments.delete_one({"id": a["id"]})
     await log_activity(project_id, "purged", user.email, getattr(user, "name", None),
                        doc_slug=doc.get("slug"), doc_title=doc.get("title"))
     return {"message": "Permanently deleted"}
