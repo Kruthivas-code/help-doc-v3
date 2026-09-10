@@ -199,6 +199,31 @@ export default function ReviewPage() {
 
   const startComment = () => { setComposer({ anchor_text: sel.text }); setSel(null); setBody(''); };
 
+  // Click a comment (that pinned a text selection) to jump to & highlight that text in the article.
+  const scrollToAnchor = (text) => {
+    if (!text) return;
+    const root = document.querySelector('[data-testid="review-content"]');
+    if (!root) return;
+    const needle = text.trim().slice(0, 60);
+    const probe = needle.slice(0, 30);
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    let node;
+    while ((node = walker.nextNode())) {
+      const idx = node.nodeValue.indexOf(probe);
+      if (idx !== -1) {
+        try {
+          const range = document.createRange();
+          range.setStart(node, idx);
+          range.setEnd(node, Math.min(node.nodeValue.length, idx + needle.length));
+          const s = window.getSelection(); s.removeAllRanges(); s.addRange(range);
+        } catch (e) { /* ignore */ }
+        node.parentElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+    }
+    root.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   const mentionsIn = (text) => knownEmails.filter((e) => new RegExp('@' + e.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?!\\w)', 'i').test(text));
   const renderBody = (text) => (text || '').split(/(@[\w.\-+@]+)/g).map((part, i) => (part.startsWith('@') && knownEmails.includes(part.slice(1).toLowerCase())
     ? <span key={i} className="text-indigo-600 dark:text-indigo-400 font-medium">{part}</span> : part));
@@ -344,7 +369,7 @@ export default function ReviewPage() {
                 </div>
               </div>
               <input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="w-full text-2xl font-bold mb-3 bg-transparent border-b border-zinc-200 dark:border-zinc-800 pb-2 focus:outline-none text-zinc-950 dark:text-white" data-testid="reviewpage-edit-title" />
-              <textarea value={editContent} onChange={(e) => setEditContent(e.target.value)} rows={24} spellCheck className="w-full font-mono text-sm border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 rounded-md p-3 leading-relaxed" data-testid="reviewpage-edit-content" />
+              <textarea value={editContent} onChange={(e) => setEditContent(e.target.value)} rows={24} spellCheck className="w-full min-h-[70vh] resize-y font-mono text-sm border border-zinc-300 dark:border-zinc-700 dark:bg-zinc-900 rounded-md p-3 leading-relaxed" data-testid="reviewpage-edit-content" />
               <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-2">Markdown / MDX supported. Your changes save to the draft — an owner publishes when ready.</p>
             </div>
           ) : (
@@ -374,17 +399,17 @@ export default function ReviewPage() {
           </div>
           <h3 className="text-sm font-semibold text-zinc-500 dark:text-zinc-400 mb-3">Comments ({comments.length})</h3>
           {reviewOn && <p className="text-xs text-zinc-400 dark:text-zinc-500 mb-3">Select any text in the page to pin a comment to it.</p>}
-          <div className="space-y-2" data-testid="review-comments-rail">
+          <div className="space-y-2 max-h-[calc(100vh-16rem)] overflow-y-auto pr-1" data-testid="review-comments-rail">
             {comments.filter((c) => !c.parent_id).length === 0 && <p className="text-xs text-zinc-400 dark:text-zinc-500">No comments yet.</p>}
             {comments.filter((c) => !c.parent_id).map((c) => {
               const replies = comments.filter((r) => r.parent_id === c.id);
               return (
-              <div key={c.id} className={`rounded-lg border p-3 text-sm ${c.resolved ? 'border-emerald-200 bg-emerald-50/40 dark:border-emerald-500/30 dark:bg-emerald-500/10' : 'border-zinc-200 dark:border-zinc-800'}`} data-testid={`review-comment-${c.id}`}>
+              <div key={c.id} onClick={() => c.anchor_text && scrollToAnchor(c.anchor_text)} className={`rounded-lg border p-3 text-sm ${c.anchor_text ? 'cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-500/50' : ''} ${c.resolved ? 'border-emerald-200 bg-emerald-50/40 dark:border-emerald-500/30 dark:bg-emerald-500/10' : 'border-zinc-200 dark:border-zinc-800'}`} data-testid={`review-comment-${c.id}`}>
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300">{c.author_name || c.author_email}</span>
                   {c.resolved
-                    ? <button onClick={() => resolve(c, false)} className="text-[11px] flex items-center gap-1 text-zinc-500 dark:text-zinc-400" data-testid={`reviewpage-reopen-${c.id}`}><RotateCcw className="w-3 h-3" /> Reopen</button>
-                    : <button onClick={() => resolve(c, true)} className="text-[11px] flex items-center gap-1 text-emerald-600 dark:text-emerald-400" data-testid={`reviewpage-resolve-${c.id}`}><CheckCircle2 className="w-3 h-3" /> Resolve</button>}
+                    ? <button onClick={(e) => { e.stopPropagation(); resolve(c, false); }} className="text-[11px] flex items-center gap-1 text-zinc-500 dark:text-zinc-400" data-testid={`reviewpage-reopen-${c.id}`}><RotateCcw className="w-3 h-3" /> Reopen</button>
+                    : <button onClick={(e) => { e.stopPropagation(); resolve(c, true); }} className="text-[11px] flex items-center gap-1 text-emerald-600 dark:text-emerald-400" data-testid={`reviewpage-resolve-${c.id}`}><CheckCircle2 className="w-3 h-3" /> Resolve</button>}
                 </div>
                 {c.anchor_text && <div className="text-xs italic text-zinc-500 dark:text-zinc-400 border-l-2 border-indigo-300 dark:border-indigo-500 pl-2 mb-1">“{c.anchor_text}”</div>}
                 <p className="text-zinc-700 dark:text-zinc-200 whitespace-pre-wrap">{renderBody(c.body)}</p>
@@ -401,7 +426,7 @@ export default function ReviewPage() {
                 )}
 
                 {replyTo === c.id ? (
-                  <div className="mt-2">
+                  <div className="mt-2" onClick={(e) => e.stopPropagation()}>
                     <MentionInput value={replyBody} onChange={setReplyBody} options={knownEmails} rows={2} autoFocus placeholder="Reply…  use @ to mention" testid={`reply-input-${c.id}`} />
                     <div className="flex justify-end gap-2 mt-1">
                       <button onClick={() => { setReplyTo(null); setReplyBody(''); }} className="text-[11px] px-2 py-1 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded">Cancel</button>
@@ -409,7 +434,7 @@ export default function ReviewPage() {
                     </div>
                   </div>
                 ) : (
-                  <button onClick={() => { setReplyTo(c.id); setReplyBody(''); }} className="mt-1.5 text-[11px] text-zinc-500 dark:text-zinc-400 hover:text-indigo-600 dark:hover:text-indigo-400" data-testid={`reply-btn-${c.id}`}>Reply</button>
+                  <button onClick={(e) => { e.stopPropagation(); setReplyTo(c.id); setReplyBody(''); }} className="mt-1.5 text-[11px] text-zinc-500 dark:text-zinc-400 hover:text-indigo-600 dark:hover:text-indigo-400" data-testid={`reply-btn-${c.id}`}>Reply</button>
                 )}
               </div>
               );
