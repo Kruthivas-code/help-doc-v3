@@ -153,6 +153,19 @@ export default function ReviewConsole() {
     (inbox.comments || []).forEach(c => { if (!c.resolved && c.doc_slug) m[c.doc_slug] = (m[c.doc_slug] || 0) + 1; });
     return m;
   }, [inbox]);
+  // Images missing alt text per page — mirrors the backend publish gate.
+  const countMissingAlt = (content) => {
+    const c = content || '';
+    let n = (c.match(/!\[\s*\]\([^)]+\)/g) || []).length;
+    const tags = c.match(/<(?:Figure|img)\b[^>]*?\/?>/gi) || [];
+    tags.forEach(t => { if (!/\balt\s*=/i.test(t)) n += 1; });
+    return n;
+  };
+  const altByPage = useMemo(() => {
+    const m = {};
+    documents.forEach(d => { const n = countMissingAlt(d.content); if (n > 0) m[d.slug] = n; });
+    return m;
+  }, [documents]);
   // Page-level "Done": a "Looks correct" verdict (from the assigned reviewer or an owner) AND no open comments.
   const doneByPage = useMemo(() => {
     const ownerSet = new Set(owners || []);
@@ -858,7 +871,10 @@ export default function ReviewConsole() {
                 const d = docBySlug[o.id];
                 if (!d || !pageMatchesFilter(d)) return null;
                 const done = doneByPage[o.id];
-                const blocked = (openByPage[o.id] || 0) > 0;
+                const openCt = openByPage[o.id] || 0;
+                const altCt = altByPage[o.id] || 0;
+                const blocked = openCt > 0 || altCt > 0;
+                const blockTitle = openCt > 0 ? 'Resolve open comments first' : (altCt > 0 ? 'Add alt text to all images first' : '');
                 const nu = needsUpdate(d);
                 return (
                   <div key={`page:${o.id}`} style={{ paddingLeft: 12 + o.depth * 18 }} className="flex items-center gap-2 pr-3 py-2 bg-white dark:bg-zinc-900" data-testid={`publish-row-${d.id}`}>
@@ -866,17 +882,18 @@ export default function ReviewConsole() {
                     <button onClick={() => navigate(`/review/${d.slug}`)} className="text-sm text-left hover:underline truncate" data-testid={`publish-title-${d.id}`}>{d.title}</button>
                     <div className="flex items-center gap-2 ml-auto flex-shrink-0">
                       {done && <span className="text-[11px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400 font-medium flex items-center gap-1" data-testid={`reviewed-done-${d.id}`}><CheckCircle2 className="w-3 h-3" /> Reviewed</span>}
-                      {blocked && <span className="text-[11px] px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-400 font-medium" title={`${openByPage[o.id]} open comment(s) block publishing`} data-testid={`blocked-comments-${d.id}`}>{openByPage[o.id]} open</span>}
+                      {blocked && openCt > 0 && <span className="text-[11px] px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-400 font-medium" title={`${openCt} open comment(s) block publishing`} data-testid={`blocked-comments-${d.id}`}>{openCt} open</span>}
+                      {altCt > 0 && <span className="text-[11px] px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-400 font-medium" title={`${altCt} image(s) missing alt text block publishing`} data-testid={`blocked-alt-${d.id}`}>{altCt} missing alt</span>}
                       {nu && <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400 font-medium" title="This page's draft differs from the live published copy" data-testid={`needs-update-${d.id}`}>Unpublished changes</span>}
                       {d.reviewer_edited_by && <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400 font-medium" title={`Edited by ${d.reviewer_edited_by}`} data-testid={`edited-by-reviewer-${d.id}`}>Edited by reviewer</span>}
                       <StatusPill s={d.status || 'in_review'} />
                       <button onClick={() => navigate(`/admin/editor/${pid}/${d.id}`)} className="text-xs px-2 py-1 rounded-md border border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800" data-testid={`open-editor-${d.id}`}>Open in editor</button>
                       {d.status === 'published'
                         ? <>
-                            {nu && <button onClick={() => publishDoc(d, true)} disabled={blocked} title={blocked ? 'Resolve open comments first' : 'Push the current draft live'} className="text-xs px-2 py-1 rounded-md bg-emerald-600 text-white disabled:opacity-40" data-testid={`republish-${d.id}`}>Republish</button>}
+                            {nu && <button onClick={() => publishDoc(d, true)} disabled={blocked} title={blocked ? blockTitle : 'Push the current draft live'} className="text-xs px-2 py-1 rounded-md bg-emerald-600 text-white disabled:opacity-40" data-testid={`republish-${d.id}`}>Republish</button>}
                             <button onClick={() => publishDoc(d, false)} title="Returns the page to In review and removes it from the public site" className="text-xs px-2 py-1 rounded-md border border-rose-300 dark:border-rose-500/40 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10" data-testid={`takedown-${d.id}`}>Take down</button>
                           </>
-                        : <button onClick={() => publishDoc(d, true)} disabled={blocked} title={blocked ? 'Resolve open comments first' : ''} className="text-xs px-2 py-1 rounded-md bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 disabled:opacity-40" data-testid={`publish-${d.id}`}>Publish</button>}
+                        : <button onClick={() => publishDoc(d, true)} disabled={blocked} title={blocked ? blockTitle : ''} className="text-xs px-2 py-1 rounded-md bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 disabled:opacity-40" data-testid={`publish-${d.id}`}>Publish</button>}
                     </div>
                   </div>
                 );

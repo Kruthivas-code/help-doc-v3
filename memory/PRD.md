@@ -540,3 +540,9 @@ Implemented & verified (testing agent iter26: 11/11 backend, all UI flows PASS):
 Out of scope this round (as agreed): MCP docs server (2.1), self-hosted video pipeline, light/dark screenshot variants (A7.8), entire Prompt 2 go-live (prod prerender + verification, 301 redirect map, apply HTML cache header, apply robots allow, Search Console).
 
 Note: setupProxy.js and DISABLE_AUTH bypass are preview-only. Prod serves SEO routes via build prerender + hosting layer (Prompt 2).
+
+## 2026-06-11 — Bulk Alt Audit (publish gate) + credits link fix
+- Bulk Alt Audit: publish is now blocked for any page with images missing alt text.
+  - Backend gate: publish_doc (review_routes.py) → 400 with "N image(s) ... missing alt text" (after the open-comments check). Helper count_images_missing_alt: flags ![](url) empty-alt markdown and <Figure>/<img> tags with NO alt= attribute; an explicit alt="" is treated as decorative and allowed.
+  - Publish tab (ReviewConsole.jsx): rose "N missing alt" badge + Publish/Republish disabled with tooltip; mirrors backend via countMissingAlt. Verified E2E (badge + disabled + 400).
+- Fixed stale link text on how-credits-work-basics: "[How credits work](/managing-credit-usage)" → "[Managing credit usage](/managing-credit-usage)". (Note: same stale text still exists on other pages linking to /managing-credit-usage — see finish note.)

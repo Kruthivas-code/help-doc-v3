@@ -1,6 +1,7 @@
 """Review Mode: roles, draft/published publish gate, assignments, comments, verdicts, inbox.
 Registered onto the existing /api router; reuses the app's db, auth and storage via ctx."""
 import uuid
+import re
 from datetime import datetime, timezone
 from fastapi import Depends, HTTPException, UploadFile, File
 from pydantic import BaseModel
@@ -11,6 +12,18 @@ OWNER_SEED_EMAIL = "sarang@emergent.sh"
 
 def _now():
     return datetime.now(timezone.utc).isoformat()
+
+
+def count_images_missing_alt(content: str) -> int:
+    """Images that would ship without alt text. Markdown ![](url) with empty alt,
+    and <Figure>/<img> tags with no alt= attribute at all. An explicit alt="" on a
+    component is treated as intentionally decorative and is NOT flagged."""
+    content = content or ""
+    missing = len(re.findall(r'!\[\s*\]\([^)]+\)', content))
+    for m in re.finditer(r'<(?:Figure|img)\b[^>]*?/?>', content, re.IGNORECASE):
+        if not re.search(r'\balt\s*=', m.group(0), re.IGNORECASE):
+            missing += 1
+    return missing
 
 
 def _norm(email):
@@ -186,6 +199,9 @@ def register_review_routes(api_router, ctx):
             {"project_id": project_id, "doc_slug": doc.get("slug"), "resolved": False})
         if open_ct > 0:
             raise HTTPException(400, f"Resolve all {open_ct} open comment(s) on this page before publishing")
+        missing_alt = count_images_missing_alt(doc.get("content", ""))
+        if missing_alt > 0:
+            raise HTTPException(400, f"{missing_alt} image(s) on this page are missing alt text. Add alt text (or mark them decorative) in the editor before publishing.")
         now = _now()
         await db.documents.update_one({"id": doc_id}, {"$set": {
             "status": "published",
