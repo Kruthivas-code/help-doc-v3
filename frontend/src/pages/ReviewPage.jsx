@@ -68,6 +68,7 @@ export default function ReviewPage() {
   const [queue, setQueue] = useState([]);            // ordered unique slugs assigned to the reviewer
   const [docsMap, setDocsMap] = useState({});        // slug -> title
   const [reviewedSet, setReviewedSet] = useState(new Set()); // slugs with a verdict by the reviewer
+  const [otherVerdicts, setOtherVerdicts] = useState([]); // verdicts left by others (e.g. the reviewer), shown to the owner
   const [pendingNav, setPendingNav] = useState(null); // { url } while the verdict nudge is open
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState('');
@@ -141,6 +142,11 @@ export default function ReviewPage() {
           setReviewedSet(reviewed);
           const mineV = (vd.data.verdicts || []).find((v) => v.doc_slug === slug && (v.reviewer_email || '').toLowerCase() === who);
           setVerdict(mineV?.verdict || '');
+          // Verdicts left by OTHER people (e.g. the assigned reviewer) — always shown so an
+          // owner viewing the page can see the reviewer's verdict even before setting their own.
+          setOtherVerdicts(
+            (vd.data.verdicts || []).filter((v) => v.doc_slug === slug && (v.reviewer_email || '').toLowerCase() !== who && v.verdict)
+          );
         } catch (e) { /* no verdict yet */ }
       } catch (e) {
         toast.error('Failed to load page');
@@ -406,6 +412,19 @@ export default function ReviewPage() {
                 <button key={v} onClick={() => saveVerdict(v)} className={`text-xs px-2 py-1 rounded-full border transition-colors ${verdict === v ? 'bg-zinc-900 text-white border-zinc-900 dark:bg-white dark:text-zinc-900 dark:border-white' : 'border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'}`} data-testid={`reviewpage-verdict-${v.replace(/\W+/g, '-')}`}>{v}</button>
               ))}
             </div>
+            {otherVerdicts.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-zinc-200 dark:border-zinc-800" data-testid="reviewer-verdicts">
+                <p className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 mb-1.5">Reviewer's verdict</p>
+                <div className="space-y-1">
+                  {otherVerdicts.map((v) => (
+                    <div key={v.reviewer_email} className="flex items-center gap-2 text-xs" data-testid={`reviewer-verdict-${(v.reviewer_email || '').replace(/\W+/g, '-')}`}>
+                      <span className="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300 font-medium">{v.verdict}</span>
+                      <span className="text-zinc-500 dark:text-zinc-400 truncate">— {v.reviewer_name || v.reviewer_email}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
           <h3 className="text-sm font-semibold text-zinc-500 dark:text-zinc-400 mb-3">Comments ({comments.length})</h3>
           {reviewOn && <p className="text-xs text-zinc-400 dark:text-zinc-500 mb-3">Select any text in the page to pin a comment to it.</p>}

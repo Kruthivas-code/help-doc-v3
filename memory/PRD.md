@@ -558,3 +558,7 @@ Note: setupProxy.js and DISABLE_AUTH bypass are preview-only. Prod serves SEO ro
 
 ## 2026-06-11 — Alt detector false-positive fix
 - count_images_missing_alt (review_routes.py) + countMissingAlt (ReviewConsole.jsx) now strip fenced/inline code before scanning and only count <Figure>/<img> tags that have a src=. Prose/inline-code mentions like `<img>` no longer count. figma-design-to-code (flagged earlier due to a `<img>` mention in a table) now correctly reports 0 missing alt. Real missing-alt images and markdown ![](url) still flagged.
+
+## 2026-06-11 — Reviewer verdict always visible on ReviewPage
+- Report: page "What kind of apps you can build?" showed "Your verdict · not set" for the owner; reviewer's verdict appeared missing. RCA: verdict was NOT lost — review_verdicts stores one record per reviewer_email (yash.agrawal@emergent.sh = "Needs small edits", confirmed via activity 2026-09-11T10:06). The ReviewPage only surfaced the CURRENT viewer's own verdict, so an owner saw "not set". Opening as owner never changes/deletes the reviewer's verdict; owner verdicts are stored separately and never overwrite the reviewer's.
+- Fix: ReviewPage.jsx now also loads verdicts left by others for the page and renders a "Reviewer's verdict" block (verdict + reviewer name), always visible regardless of viewer. "Your verdict" buttons remain editable (owner can set/change their own). Verified owner view shows "Needs small edits — Yash Agrawal".
