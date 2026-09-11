@@ -440,26 +440,37 @@ const UploadTab = ({ onSelect, projectId }) => {
 export const ImagePickerModal = ({ isOpen, onClose, onInsert, projectId, mode = 'image' }) => {
   const [activeTab, setActiveTab] = useState(mode === 'gif' ? 'gif' : 'stock');
   const [selectedImage, setSelectedImage] = useState(null);
+  const [altText, setAltText] = useState('');
+  const [decorative, setDecorative] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       setActiveTab(mode === 'gif' ? 'gif' : 'stock');
       setSelectedImage(null);
+      setAltText('');
+      setDecorative(false);
     }
   }, [isOpen, mode]);
 
+  useEffect(() => {
+    setAltText(selectedImage?.alt || '');
+    setDecorative(false);
+  }, [selectedImage]);
+
+  const altReady = decorative || altText.trim().length > 0;
+
   const handleInsert = () => {
-    if (!selectedImage) return;
-    
+    if (!selectedImage || !altReady) return;
+    const alt = decorative ? '' : altText.trim();
     // Generate markdown or component based on image type
     let markdown;
     if (activeTab === 'gif') {
-      markdown = `![${selectedImage.alt || 'GIF'}](${selectedImage.url})`;
+      markdown = `![${alt}](${selectedImage.url})`;
     } else {
       // Use Figure component for better presentation
-      markdown = `<Figure src="${selectedImage.url}" alt="${selectedImage.alt || 'Image'}" caption="${selectedImage.alt || ''}" />`;
+      markdown = `<Figure src="${selectedImage.url}" alt="${alt}" caption="${alt}" />`;
     }
-    
+
     onInsert(markdown, selectedImage);
     onClose();
   };
@@ -539,14 +550,45 @@ export const ImagePickerModal = ({ isOpen, onClose, onInsert, projectId, mode = 
           )}
         </div>
 
+        {/* Alt text (accessibility) — required unless marked decorative */}
+        {selectedImage && (
+          <div className="px-6 py-3 border-t border-zinc-200 dark:border-zinc-800" data-testid="alt-text-row">
+            <label className="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">
+              Alt text {decorative ? '(disabled — decorative)' : <span className="text-rose-500">*</span>}
+            </label>
+            <input
+              type="text"
+              value={altText}
+              onChange={(e) => setAltText(e.target.value)}
+              disabled={decorative}
+              placeholder="Describe the image for screen readers and SEO"
+              className="w-full text-sm rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-2 outline-none focus:border-brand disabled:opacity-50 text-zinc-800 dark:text-zinc-200"
+              data-testid="alt-text-input"
+            />
+            <label className="mt-2 flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-400 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={decorative}
+                onChange={(e) => setDecorative(e.target.checked)}
+                data-testid="alt-decorative-checkbox"
+              />
+              This image is decorative (empty alt)
+            </label>
+          </div>
+        )}
+
         {/* Footer */}
         <div className="flex items-center justify-between px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800/50">
           <div className="text-sm text-zinc-600 dark:text-zinc-400">
             {selectedImage ? (
-              <span className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-brand" />
-                Image selected
-              </span>
+              !altReady ? (
+                <span className="text-rose-500">Add alt text or mark the image decorative</span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-brand" />
+                  Image selected
+                </span>
+              )
             ) : (
               'Select an image to insert'
             )}
@@ -560,8 +602,9 @@ export const ImagePickerModal = ({ isOpen, onClose, onInsert, projectId, mode = 
             </button>
             <button
               onClick={handleInsert}
-              disabled={!selectedImage}
+              disabled={!selectedImage || !altReady}
               className="px-4 py-2 bg-brand hover:bg-brand-600-600 disabled:opacity-50 disabled:cursor-not-allowed text-zinc-950 dark:text-white font-medium rounded-md transition-colors"
+              data-testid="image-insert-confirm"
             >
               Insert Image
             </button>

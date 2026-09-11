@@ -517,3 +517,26 @@ Source: user-provided "User Education Gaps Tracker.csv" (219 rows) → complete 
 ## 2026-06-11 — MIS metric fix + Data & Trust render check
 - MIS reviewer "Resolved" now = comments the reviewer RAISED that are now closed (was: comments they clicked resolve on). Backend `review_routes.py` cresolved keyed by author_email of resolved comments. Column relabeled Raised/Resolved with tooltips; CSV header updated. Verified akash@emergent.sh: 15 raised / 15 resolved.
 - Render-checked new/merged Data & Trust pages (controller-responsibilities, where-your-data-is-stored, keep-it-safe, your-data-ownership) in review reader via temporary DISABLE_AUTH bypass (reverted to false after). MDX (Callout/Note/Warning/Step/Tip), inline code, bold, links all render cleanly. All remain in_review.
+
+## 2026-06-11 — SEO / AI-discoverability / Media optimization (Prompt 1, preview-only)
+Approved plan (Prompt 1). Nothing published/deployed; docs stay in review. Prompt 2 (go-live) deferred. Audit: /app/memory/seo_media_audit.md.
+
+Implemented & verified (testing agent iter26: 11/11 backend, all UI flows PASS):
+- A1 Absolute og:image/twitter:image + JSON-LD image (SITE_ORIGIN prefix); site_description populated. PublicDocs.jsx.
+- A2 Per-page raw markdown: /<slug>.md + /api/seo/pages/{slug}.md (text/markdown, published only, 404 unknown). server.py.
+- A3 /llms.txt + /llms-full.txt served text/plain at root via frontend/src/setupProxy.js (bridges to /api/seo/*).
+- A4 Real 404s: setupProxy returns 404 + helpful not-found HTML (search + popular links) for unknown doc routes; app routes (/admin,/review) and valid slugs pass through.
+- A5 Sidebar entries now real <a href="/slug"> (SidebarLink), Cmd/Ctrl/middle-click opens new tab, plain click stays SPA. data-testid preserved.
+- A6 HTML caching: NOT ours in preview — edge/Cloudflare forces no-store (backend sends public,max-age). Prepare/apply at deploy. Documented only.
+- A7.1 Logo/favicon replaced: 604KB favicon->5.6KB, 25KB logo->3.5KB WebP (192-240px). Uploaded to store, config updated. Fixes A7.12 broken preview assets (only logo/favicon referenced; 0 markdown content images).
+- A7.2/3/6 Image transform layer in serve_public_file: ?w/?width, ?format/?fm (webp/jpeg/png), ?q; Accept content-negotiation; Vary: Accept; ETag + 304; unknown params degrade to original; in-memory derivative cache (Pillow).
+- A7.4/5/7 DocImage (components/docs/Media.jsx): srcset via transform, decoding=async, lazy, aspect-ratio on load (no CLS), click-to-zoom lightbox (Esc/backdrop close, reduced-motion aware, caption).
+- A7.9 Upload compression + 5MB cap (reject >5MB with message; re-encode/strip metadata, cap width 2400).
+- A7.10 Editor image insert requires alt text + "decorative" checkbox (ImagePickerModal); Insert disabled until satisfied.
+- A7.11 Video: external YouTube+Loom only (per decision). Editor "Add video" dialog (paste URL) inserts <YouTube/Loom id=.../>; reader renders CLICK-TO-LOAD (0 iframes until clicked). Media.jsx + Editor.jsx. Self-hosted video pipeline NOT built.
+- 2.2 "Was this helpful?" widget per article (Yes/No + optional comment) -> POST /api/projects/{pid}/feedback; owner report GET /api/projects/{pid}/feedback/summary.
+- R1 robots.txt AI policy recorded (edge Content-Signal blocks GPTBot/ClaudeBot); NOT changed this round (allow at go-live).
+
+Out of scope this round (as agreed): MCP docs server (2.1), self-hosted video pipeline, light/dark screenshot variants (A7.8), entire Prompt 2 go-live (prod prerender + verification, 301 redirect map, apply HTML cache header, apply robots allow, Search Console).
+
+Note: setupProxy.js and DISABLE_AUTH bypass are preview-only. Prod serves SEO routes via build prerender + hosting layer (Prompt 2).

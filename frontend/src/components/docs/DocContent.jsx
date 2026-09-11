@@ -17,6 +17,7 @@ import { Card, CardGroup, Columns } from './Cards';
 import { Tabs, Tab } from './Tabs';
 import { Accordion, AccordionItem } from './Accordion';
 import { DeleteAccountButton } from './DeleteAccountButton';
+import { DocImage, YouTubeEmbed, LoomEmbed } from './Media';
 
 // Import parser
 import { extractComponents, parseContent, generateTOC } from '@/lib/mdx/parser';
@@ -164,76 +165,7 @@ const Callout = ({ type, title, children }) => {
   );
 };
 
-// YouTube Video Embed Component
-const YouTubeEmbed = ({ id, title }) => {
-  if (!id) return null;
-  
-  // Extract video ID from various YouTube URL formats
-  let videoId = id;
-  if (id.includes('youtube.com') || id.includes('youtu.be')) {
-    // Handle youtu.be/VIDEO_ID, youtube.com/watch?v=VIDEO_ID, youtube.com/embed/VIDEO_ID
-    // Also handles query params like ?si=xxx
-    const match = id.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-    if (match) {
-      videoId = match[1];
-    } else {
-      // Try to extract from youtu.be with query params
-      const shortMatch = id.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
-      if (shortMatch) {
-        videoId = shortMatch[1].split('?')[0]; // Remove query params
-      }
-    }
-  }
-  
-  return (
-    <div className="my-6 relative z-10" data-testid="youtube-embed">
-      <div className="relative w-full overflow-hidden" style={{ paddingBottom: '56.25%' }}>
-        <iframe
-          className="absolute inset-0 w-full h-full"
-          src={`https://www.youtube.com/embed/${videoId}`}
-          title={title || 'Video'}
-          frameBorder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          allowFullScreen
-        />
-      </div>
-      {title && title.trim() && (
-        <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400 text-center">{title}</p>
-      )}
-    </div>
-  );
-};
-
-// Loom Video Embed Component
-const LoomEmbed = ({ id, title }) => {
-  if (!id) return null;
-  
-  // Extract Loom ID from URL if needed
-  let loomId = id;
-  if (id.includes('loom.com')) {
-    const match = id.match(/loom\.com\/(?:share|embed)\/([a-zA-Z0-9]+)/);
-    if (match) loomId = match[1];
-  }
-  
-  return (
-    <div className="my-6 relative z-10" data-testid="loom-embed">
-      <div className="relative w-full overflow-hidden" style={{ paddingBottom: '56.25%' }}>
-        <iframe
-          className="absolute inset-0 w-full h-full"
-          src={`https://www.loom.com/embed/${loomId}`}
-          title={title || 'Video'}
-          frameBorder="0"
-          webkitallowfullscreen="true"
-          mozallowfullscreen="true"
-          allowFullScreen
-        />
-      </div>
-      {title && title.trim() && (
-        <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400 text-center">{title}</p>
-      )}
-    </div>
-  );
-};
+// YouTubeEmbed and LoomEmbed are imported from ./Media (click-to-load).
 
 // Video (MP4/WebM) Embed Component
 const VideoEmbed = ({ src, title, poster }) => {
@@ -257,25 +189,10 @@ const VideoEmbed = ({ src, title, poster }) => {
   );
 };
 
-// Figure Component (Image with Caption)
+// Figure Component (Image with Caption) — uses the zoomable, responsive DocImage.
 const Figure = ({ src, alt, caption }) => {
   if (!src) return null;
-  
-  return (
-    <figure className="my-6 relative z-10" data-testid="figure">
-      <img 
-        src={src} 
-        alt={alt || caption || 'Image'} 
-        className="w-full h-auto"
-        loading="lazy"
-      />
-      {caption && caption.trim() && (
-        <figcaption className="mt-2 text-sm text-zinc-500 dark:text-zinc-400 text-center">
-          {caption}
-        </figcaption>
-      )}
-    </figure>
-  );
+  return <DocImage src={src} alt={alt} caption={caption} />;
 };
 
 /**
@@ -633,9 +550,7 @@ export const DocContent = ({ content, className = '', onHeadings }) => {
       );
     },
 
-    img: ({ src, alt }) => (
-      <img src={src} alt={alt} className="my-6 max-w-full h-auto" loading="lazy" />
-    ),
+    img: ({ src, alt }) => <DocImage src={src} alt={alt} />,
     hr: () => <hr className="border-zinc-200 dark:border-zinc-800 my-8" />,
     ul: ({ children }) => <ul className="my-4 ml-6 list-disc space-y-2 text-zinc-700 dark:text-zinc-300">{children}</ul>,
     ol: ({ children }) => <ol className="my-4 ml-6 list-decimal space-y-2 text-zinc-700 dark:text-zinc-300">{children}</ol>,

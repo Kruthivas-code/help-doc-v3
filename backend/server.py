@@ -9,8 +9,11 @@ from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional
 import uuid
 import json
+import io
+import hashlib
 from datetime import datetime, timezone, timedelta
 import httpx
+from PIL import Image, ImageOps
 from storage_service import (
     init_storage as init_object_storage,
     put_object as storage_put_object,
@@ -1134,6 +1137,37 @@ async def upload_asset(
     content = await file.read()
     file_size = len(content)
 
+    # A7.9 — enforce a max upload size; silently compress large images.
+    MAX_UPLOAD = 5 * 1024 * 1024  # 5 MB
+    if file_size > MAX_UPLOAD:
+        raise HTTPException(
+            status_code=413,
+            detail=f"File is {round(file_size/1024/1024, 1)} MB. Max upload size is 5 MB — "
+                   f"please compress or resize the image before uploading.",
+        )
+    if file_type == "image" and mime_type in _TRANSFORMABLE:
+        try:
+            im = Image.open(io.BytesIO(content))
+            im = ImageOps.exif_transpose(im)  # honour orientation + strip most metadata
+            if im.width > 2400:  # cap absurd retina screenshots
+                r = 2400 / float(im.width)
+                im = im.resize((2400, max(1, int(im.height * r))), Image.LANCZOS)
+            buf = io.BytesIO()
+            if mime_type in ("image/jpeg", "image/jpg"):
+                if im.mode in ("RGBA", "P"):
+                    im = im.convert("RGB")
+                im.save(buf, format="JPEG", quality=85, optimize=True)
+            elif mime_type == "image/webp":
+                im.save(buf, format="WEBP", quality=85)
+            else:  # png
+                im.save(buf, format="PNG", optimize=True)
+            recoded = buf.getvalue()
+            if recoded and len(recoded) < file_size:  # only if it actually helps
+                content = recoded
+                file_size = len(content)
+        except Exception as exc:
+            logger.warning(f"upload image compress skipped: {exc}")
+
     # Generate unique filename
     ext = Path(file.filename).suffix if file.filename else ""
     unique_name = f"{uuid.uuid4().hex}{ext}"
@@ -1920,25 +1954,110 @@ async def search_stock_images(data: ImageSearchRequest):
 
 # ==================== PUBLIC FILE SERVING (Tigris-backed) ====================
 
+# In-memory LRU-ish cache of transformed image derivatives, keyed by
+# (path, width, format, quality). Kept small; the CDN caches the real traffic.
+_IMG_CACHE: "dict[str, tuple[bytes, str]]" = {}
+_IMG_CACHE_MAX = 64
+_TRANSFORMABLE = {"image/png", "image/jpeg", "image/jpg", "image/webp"}
+_FMT_MEDIA = {"webp": "image/webp", "jpeg": "image/jpeg", "jpg": "image/jpeg", "png": "image/png"}
+
+
+def _pick_target_format(fmt_param: str | None, accept: str, src_ct: str) -> str | None:
+    """Explicit ?format wins; else content-negotiate from Accept; else keep source."""
+    if fmt_param:
+        fmt = fmt_param.lower().strip()
+        return fmt if fmt in _FMT_MEDIA else None  # unknown → degrade to original
+    a = (accept or "").lower()
+    if "image/webp" in a and src_ct != "image/webp":
+        return "webp"
+    return None
+
+
+def _transform_image(data: bytes, width: int | None, target_fmt: str | None, quality: int) -> tuple[bytes, str] | None:
+    """Resize/re-encode with Pillow. Returns (bytes, media_type) or None on any failure."""
+    try:
+        img = Image.open(io.BytesIO(data))
+        img = ImageOps.exif_transpose(img)  # honour orientation, drop most EXIF
+        if width and width > 0 and width < img.width:
+            ratio = width / float(img.width)
+            img = img.resize((width, max(1, int(img.height * ratio))), Image.LANCZOS)
+        out_fmt = target_fmt or (img.format or "PNG").lower()
+        if out_fmt == "jpg":
+            out_fmt = "jpeg"
+        buf = io.BytesIO()
+        save_kwargs = {}
+        if out_fmt in ("jpeg", "webp"):
+            save_kwargs["quality"] = max(1, min(100, quality))
+            if out_fmt == "jpeg" and img.mode in ("RGBA", "P"):
+                img = img.convert("RGB")
+        pil_fmt = {"jpeg": "JPEG", "webp": "WEBP", "png": "PNG"}.get(out_fmt, "PNG")
+        img.save(buf, format=pil_fmt, **save_kwargs)
+        return buf.getvalue(), _FMT_MEDIA.get(out_fmt, "image/png")
+    except Exception as exc:
+        logger.warning(f"image transform failed: {exc}")
+        return None
+
+
 @api_router.get("/public/files/{path:path}", include_in_schema=False)
-async def serve_public_file(path: str):
+async def serve_public_file(path: str, request: Request):
     """Stream an image/asset from object storage. No auth — docs images are public.
 
-    The k8s ingress strips the `/api` prefix when routing to the backend, but
-    the URL clients see is `/api/public/files/<path>` (or via REACT_APP_BACKEND_URL).
+    Supports on-the-fly transforms via query params (all optional):
+      ?w= / ?width=   target width in px (never upscales)
+      ?format= / ?fm= webp | jpeg | png  (unknown values degrade to the original)
+      ?q= / ?quality= 1-100 (webp/jpeg only)
+    Also content-negotiates WebP from the Accept header. `Vary: Accept` is always sent
+    so a CDN never serves an unsupported format to a client that cannot display it.
+    Unknown/absent params return the original untouched.
     """
     try:
         data, content_type = storage_get_object(path)
     except Exception as exc:
         logger.warning(f"public file not found: {path} ({exc})")
         raise HTTPException(status_code=404, detail="File not found")
-    return Response(
-        content=data,
-        media_type=content_type,
-        headers={
-            "Cache-Control": "public, max-age=31536000, immutable",
-        },
-    )
+
+    qp = request.query_params
+    width = None
+    for k in ("w", "width"):
+        if qp.get(k):
+            try:
+                width = int(qp.get(k))
+            except ValueError:
+                width = None
+            break
+    try:
+        quality = int(qp.get("q") or qp.get("quality") or 82)
+    except ValueError:
+        quality = 82
+    fmt_param = qp.get("format") or qp.get("fm")
+    accept = request.headers.get("accept", "")
+
+    out_bytes, out_ct = data, content_type
+    if content_type in _TRANSFORMABLE:
+        target_fmt = _pick_target_format(fmt_param, accept, content_type)
+        if width or target_fmt:
+            cache_key = f"{path}|w={width}|f={target_fmt}|q={quality}"
+            cached = _IMG_CACHE.get(cache_key)
+            if cached is None:
+                res = _transform_image(data, width, target_fmt, quality)
+                if res:
+                    if len(_IMG_CACHE) >= _IMG_CACHE_MAX:
+                        _IMG_CACHE.pop(next(iter(_IMG_CACHE)))
+                    _IMG_CACHE[cache_key] = res
+                cached = res
+            if cached:
+                out_bytes, out_ct = cached
+
+    etag = '"' + hashlib.md5(out_bytes).hexdigest() + '"'
+    headers = {
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "ETag": etag,
+    }
+    if content_type in _TRANSFORMABLE:
+        headers["Vary"] = "Accept"
+    if request.headers.get("if-none-match") == etag:
+        return Response(status_code=304, headers=headers)
+    return Response(content=out_bytes, media_type=out_ct, headers=headers)
 
 
 # ==================== SEO ROUTES ====================
@@ -2179,6 +2298,90 @@ async def llms_txt(request: Request):
 async def llms_full_txt(request: Request):
     body = await _build_llms_txt(_resolve_base_url(request), full=True)
     return Response(content=body, media_type="text/plain; charset=utf-8")
+
+
+# ==================== PER-PAGE RAW MARKDOWN (.md) ====================
+async def _published_doc_by_slug(slug: str):
+    project = await db.projects.find_one({"is_default": True}, {"_id": 0, "id": 1})
+    if not project:
+        project = await db.projects.find_one({}, {"_id": 0, "id": 1})
+    if not project:
+        return None
+    return await db.documents.find_one(
+        {"project_id": project["id"], "slug": slug, "status": "published", "deleted_at": None},
+        {"_id": 0, "title": 1, "content": 1, "description": 1},
+    )
+
+
+async def _render_page_markdown(slug: str) -> Response:
+    """Return a published article's raw Markdown (body only, no nav/HTML wrapper)."""
+    doc = await _published_doc_by_slug(slug)
+    if not doc:
+        raise HTTPException(status_code=404, detail="Page not found")
+    parts = [f"# {doc.get('title') or slug}"]
+    if (doc.get("description") or "").strip():
+        parts.append("")
+        parts.append(f"> {doc['description'].strip()}")
+    parts.append("")
+    parts.append((doc.get("content") or "").strip())
+    body = "\n".join(parts).strip() + "\n"
+    return Response(content=body, media_type="text/markdown; charset=utf-8")
+
+
+@api_router.get("/seo/pages/{slug}.md", include_in_schema=False)
+async def api_page_md(slug: str):
+    return await _render_page_markdown(slug)
+
+
+@app.get("/{slug}.md", include_in_schema=False)
+async def page_md(slug: str):
+    return await _render_page_markdown(slug)
+
+
+# ==================== "WAS THIS HELPFUL?" FEEDBACK ====================
+class FeedbackCreate(BaseModel):
+    slug: str
+    helpful: bool
+    comment: Optional[str] = None
+
+
+@api_router.post("/projects/{project_id}/feedback", include_in_schema=False)
+async def submit_feedback(project_id: str, req: FeedbackCreate, request: Request):
+    """Public: readers rate an article. No auth (docs are public)."""
+    doc = {
+        "id": str(uuid.uuid4()),
+        "project_id": project_id,
+        "slug": req.slug,
+        "helpful": bool(req.helpful),
+        "comment": (req.comment or "").strip()[:2000] or None,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.doc_feedback.insert_one(doc)
+    doc.pop("_id", None)
+    return {"ok": True, "id": doc["id"]}
+
+
+@api_router.get("/projects/{project_id}/feedback/summary", include_in_schema=False)
+async def feedback_summary(project_id: str, user: User = Depends(get_current_user)):
+    """Owner/reviewer report: per-page helpful/not counts, worst pages first."""
+    rows = await db.doc_feedback.find({"project_id": project_id}, {"_id": 0}).to_list(20000)
+    by_slug: dict = {}
+    for r in rows:
+        s = r.get("slug")
+        agg = by_slug.setdefault(s, {"slug": s, "up": 0, "down": 0, "comments": []})
+        if r.get("helpful"):
+            agg["up"] += 1
+        else:
+            agg["down"] += 1
+        if r.get("comment"):
+            agg["comments"].append({"comment": r["comment"], "helpful": r.get("helpful"), "created_at": r.get("created_at")})
+    pages = list(by_slug.values())
+    for p in pages:
+        total = p["up"] + p["down"]
+        p["total"] = total
+        p["score"] = round(100 * p["up"] / total) if total else 0
+    pages.sort(key=lambda p: (p["score"], -p["down"]))
+    return {"pages": pages, "total_responses": len(rows)}
 
 # Include the router in the main app
 # ==================== REVIEW MODE ROUTES ====================

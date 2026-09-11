@@ -18,6 +18,7 @@ import { Helmet } from 'react-helmet-async';
 import {
     Search, Menu, X, ChevronDown, ChevronRight,
     Copy, Check, ArrowLeft, ArrowRight, Sparkles, Book,
+    ThumbsUp, ThumbsDown,
 } from 'lucide-react';
 import { DocContent } from '@/components/docs/DocContent';
 import { getIcon } from '@/components/docs/IconPicker';
@@ -154,7 +155,7 @@ const TopHeader = ({ config, project, onSearchOpen, onMobileMenuToggle, mobileMe
 /* ============================================================
    LEFT SIDEBAR — sticky scroll, tab → groups → pages
    ============================================================ */
-const SidebarLink = ({ active, missing, onClick, children, testId, depth = 0, icon }) => {
+const SidebarLink = ({ active, missing, onClick, href, children, testId, depth = 0, icon }) => {
     const pad = depth === 0 ? 'pl-3' : 'pl-6';
     const IconComp = getIcon(icon);
     if (missing) {
@@ -166,12 +167,19 @@ const SidebarLink = ({ active, missing, onClick, children, testId, depth = 0, ic
             </span>
         );
     }
+    // A5 — render a genuine <a href> so crawlers can follow the nav and users can
+    // Cmd/Ctrl/middle-click to open in a new tab. Plain click stays instant SPA nav.
+    const handleClick = (e) => {
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button === 1) return;
+        e.preventDefault();
+        onClick?.();
+    };
     return (
-        <button
-            type="button"
-            onClick={onClick}
+        <a
+            href={href}
+            onClick={handleClick}
             data-testid={testId}
-            className={`btn-press w-full flex items-center gap-2.5 ${pad} pr-3 py-1.5 rounded-md text-[13px] text-left transition-colors relative ${
+            className={`btn-press w-full flex items-center gap-2.5 ${pad} pr-3 py-1.5 rounded-md text-[13px] text-left transition-colors relative no-underline ${
                 active
                     ? 'text-brand font-semibold bg-brand/5 dark:bg-brand/10 before:absolute before:left-0 before:top-1 before:bottom-1 before:w-[3px] before:bg-brand before:rounded-r'
                     : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-100 hover:bg-zinc-100/70 dark:hover:bg-zinc-900'
@@ -179,7 +187,7 @@ const SidebarLink = ({ active, missing, onClick, children, testId, depth = 0, ic
         >
             <IconComp className="h-3.5 w-3.5 flex-shrink-0" strokeWidth={2} />
             <span className="truncate flex-1">{children}</span>
-        </button>
+        </a>
     );
 };
 
@@ -219,6 +227,7 @@ const GroupSection = ({ group, groupId, documents, activeSlug, onDocSelect, defa
                                 key={`${groupId}-p-${idx}`}
                                 active={active}
                                 missing={!doc}
+                                href={`/${slug}`}
                                 onClick={() => onDocSelect(slug)}
                                 testId={`page-${slug}`}
                                 depth={depth}
@@ -560,6 +569,77 @@ const CopyButton = ({ text }) => {
 };
 
 /* ============================================================
+   "WAS THIS HELPFUL?" — per-article feedback
+   ============================================================ */
+const FeedbackWidget = ({ projectId, slug }) => {
+    const [choice, setChoice] = useState(null);   // 'up' | 'down' | null
+    const [comment, setComment] = useState('');
+    const [done, setDone] = useState(false);
+
+    const post = async (helpful, text) => {
+        try {
+            await axios.post(`${API}/projects/${projectId}/feedback`, {
+                slug, helpful, comment: text || null,
+            });
+        } catch (e) { /* non-blocking */ }
+    };
+
+    if (done) {
+        return (
+            <div className="mt-16 pt-8 border-t border-zinc-200 dark:border-zinc-800" data-testid="feedback-done">
+                <p className="text-sm text-zinc-500">Thanks for your feedback — it helps us improve these docs.</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="mt-16 pt-8 border-t border-zinc-200 dark:border-zinc-800" data-testid="feedback-widget">
+            <div className="flex flex-wrap items-center gap-3">
+                <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Was this page helpful?</span>
+                <div className="flex items-center gap-2">
+                    <button
+                        type="button"
+                        onClick={() => { setChoice('up'); post(true, ''); setDone(true); }}
+                        className={`btn-press inline-flex items-center gap-2 h-9 px-3 rounded-md border text-xs font-medium transition-colors ${choice === 'up' ? 'border-brand text-brand bg-brand/5' : 'border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-300 hover:border-zinc-300 dark:hover:border-zinc-700'}`}
+                        data-testid="feedback-yes"
+                    >
+                        <ThumbsUp className="h-3.5 w-3.5" /> Yes
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setChoice('down')}
+                        className={`btn-press inline-flex items-center gap-2 h-9 px-3 rounded-md border text-xs font-medium transition-colors ${choice === 'down' ? 'border-brand text-brand bg-brand/5' : 'border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-300 hover:border-zinc-300 dark:hover:border-zinc-700'}`}
+                        data-testid="feedback-no"
+                    >
+                        <ThumbsDown className="h-3.5 w-3.5" /> No
+                    </button>
+                </div>
+            </div>
+            {choice === 'down' && (
+                <div className="mt-3 max-w-xl" data-testid="feedback-comment-box">
+                    <textarea
+                        value={comment}
+                        onChange={(e) => setComment(e.target.value)}
+                        placeholder="What was missing or confusing? (optional)"
+                        rows={3}
+                        className="w-full text-sm rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-2 outline-none focus:border-brand text-zinc-800 dark:text-zinc-200"
+                        data-testid="feedback-comment"
+                    />
+                    <button
+                        type="button"
+                        onClick={() => { post(false, comment.trim()); setDone(true); }}
+                        className="btn-press mt-2 inline-flex items-center gap-2 h-9 px-4 rounded-md bg-brand text-white text-xs font-semibold hover:opacity-90"
+                        data-testid="feedback-submit"
+                    >
+                        Send feedback
+                    </button>
+                </div>
+            )}
+        </div>
+    );
+};
+
+/* ============================================================
    MAIN
    ============================================================ */
 const PublicDocs = () => {
@@ -795,7 +875,9 @@ const PublicDocs = () => {
             || config?.site_description)
         : config?.site_description || 'Documentation and guides';
     const pageUrl = `${SITE_ORIGIN}${selectedDoc ? `/${selectedDoc.slug}` : ''}`;
-    const ogImage = config?.logo_dark_url || config?.logo_light_url || config?.favicon_url;
+    // A1 — link-preview / JSON-LD images must be absolute https URLs.
+    const absolutize = (u) => (!u ? u : /^https?:\/\//i.test(u) ? u : `${SITE_ORIGIN}${u.startsWith('/') ? '' : '/'}${u}`);
+    const ogImage = absolutize(config?.logo_dark_url || config?.logo_light_url || config?.favicon_url);
 
     return (
         <div className="min-h-screen bg-background text-foreground">
@@ -933,6 +1015,11 @@ const PublicDocs = () => {
                                 onHeadings={setToc}
                             />
                         </div>
+
+                        {/* Was this helpful? */}
+                        {project?.id && (
+                            <FeedbackWidget key={selectedDoc.slug} projectId={project.id} slug={selectedDoc.slug} />
+                        )}
 
                         {/* Prev / Next */}
                         {(prevDoc || nextDoc) && (

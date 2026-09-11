@@ -5,7 +5,7 @@ import axios from "axios";
 import { 
   ChevronLeft, ChevronDown, ChevronRight, Save, Eye, Code2, 
   Loader2, FileText, FolderOpen, Plus, Settings, Image as ImageIcon, 
-  Check, Monitor, Sun, Moon, MoreHorizontal,
+  Check, Monitor, Sun, Moon, MoreHorizontal, Video,
   Share2, Upload, Trash2, GripVertical, X, Edit3, Smartphone, Tablet,
   History, Pencil, Download
 } from "lucide-react";
@@ -173,6 +173,8 @@ const Editor = () => {
   const [previewDevice, setPreviewDevice] = useState('desktop'); // 'desktop' | 'tablet' | 'mobile'
   const [imagePickerOpen, setImagePickerOpen] = useState(false);
   const [imagePickerMode, setImagePickerMode] = useState('image'); // 'image' | 'gif'
+  const [videoDialogOpen, setVideoDialogOpen] = useState(false);
+  const [videoUrl, setVideoUrl] = useState('');
   const [colorPickerCursor, setColorPickerCursor] = useState(null);
   const colorInputRef = useRef(null);
   const [assistantOpen, setAssistantOpen] = useState(false);
@@ -1173,6 +1175,18 @@ const Editor = () => {
               </button>
             )}
 
+            {/* Add Video Button (YouTube / Loom) */}
+            <button
+              disabled={viewMode === 'visual'}
+              title={viewMode === 'visual' ? 'Switch to Markdown or Split to use' : 'Embed a YouTube or Loom video'}
+              onClick={() => { setVideoUrl(''); setVideoDialogOpen(true); }}
+              className="flex items-center gap-2 px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white text-sm rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              data-testid="add-video-btn"
+            >
+              <Video className="w-4 h-4" />
+              <span>Add video</span>
+            </button>
+
             {/* More overflow menu — always present, keeps the toolbar consistent across views/states */}
             <Popover>
               <PopoverTrigger asChild>
@@ -1312,6 +1326,56 @@ const Editor = () => {
         projectId={projectId}
         mode={imagePickerMode}
       />
+
+      {/* Add Video Dialog (YouTube / Loom → click-to-load embed) */}
+      {videoDialogOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" data-testid="video-dialog">
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-800">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-brand/10 rounded-lg"><Video className="w-5 h-5 text-brand" /></div>
+                <div>
+                  <h2 className="text-lg font-semibold text-zinc-950 dark:text-white">Add video</h2>
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400">Paste a YouTube or Loom link</p>
+                </div>
+              </div>
+              <button onClick={() => setVideoDialogOpen(false)} className="p-2 text-zinc-500 hover:text-zinc-950 dark:hover:text-white rounded-md">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 space-y-3">
+              <input
+                type="url"
+                autoFocus
+                value={videoUrl}
+                onChange={(e) => setVideoUrl(e.target.value)}
+                placeholder="https://youtube.com/watch?v=…  or  https://loom.com/share/…"
+                className="w-full text-sm rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-2.5 outline-none focus:border-brand text-zinc-800 dark:text-zinc-200"
+                data-testid="video-url-input"
+              />
+              <p className="text-xs text-zinc-500">The video loads only when a reader clicks it, so it costs nothing until watched.</p>
+            </div>
+            <div className="flex justify-end gap-3 px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800/50">
+              <button onClick={() => setVideoDialogOpen(false)} className="px-4 py-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white transition-colors">Cancel</button>
+              <button
+                disabled={!videoUrl.trim()}
+                onClick={() => {
+                  const url = videoUrl.trim();
+                  const isLoom = /loom\.com/i.test(url);
+                  const tag = isLoom ? 'Loom' : 'YouTube';
+                  insertAtCursor(`\n<${tag} id="${url}" />\n`);
+                  setVideoDialogOpen(false);
+                  toast.success(`${tag} video embedded`);
+                }}
+                className="px-4 py-2 bg-brand hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-md transition-colors"
+                data-testid="video-embed-confirm"
+              >
+                Embed video
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Hidden native color picker — triggered by /color slash command and TipTap toolbar */}
       <input

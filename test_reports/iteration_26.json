@@ -1,0 +1,24 @@
+{
+  "summary": "Iteration 26 – SEO/AI-discoverability + media optimization (Prompt 1) verification pass on preview. BACKEND (11/11 pytest passed, /app/backend/tests/test_seo_media_iter26.py, xml at /app/test_reports/pytest/iter26_results.xml): (1) IMAGE TRANSFORM — GET /api/public/files/.../brand/favicon.png?w=32&format=webp returns image/webp, Vary contains 'Accept', ETag present, body strictly smaller than original PNG; second request with matching If-None-Match returns 304. (2) CONTENT NEGOTIATION — Accept: image/webp -> image/webp + Vary: Accept; Accept: */* -> image/png. (3) GRACEFUL DEGRADE — ?bogus=1 returns original image/png with 200. (4) PER-PAGE MARKDOWN — /what-is-wingman.md => 200 text/markdown body begins with '# What is Wingman'; /definitely-not-real.md => 404. (5) LLMs INDEX — /llms.txt and /llms-full.txt both 200 with content-type text/plain (no text/html). (6) HTML ROUTES — /definitely-not-a-page-xyz (Accept: text/html) => 404 with 'Not found' + data-testid='not-found-page' in body; /what-is-wingman => 200; /admin => 200 (does NOT 404). (7) FEEDBACK API — POST /api/projects/{pid}/feedback with {slug:'what-is-wingman', helpful:true, comment:'TEST_iter26'} => 200 {ok:true}. FRONTEND (Playwright on preview URL): left-sidebar renders 4 published entries as <a> anchors with data-testid='page-<slug>' and valid /<slug> hrefs (0 <button> tags). Header logo (data-testid='logo-link' img) loads with naturalWidth=240, currentSrc=.../brand/logo_light.webp. og:image + twitter:image metas are absolute https URLs (https://help.emergent.sh/api/public/files/.../brand/logo_dark.webp). FeedbackWidget: 'No' reveals feedback-comment textarea, submit shows feedback-done; after reload, 'Yes' immediately shows feedback-done. Sidebar anchor click performs in-app SPA navigation (URL updates without full reload). No 500s, no broken assets, no relative /api meta URLs observed.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_seo_media_iter26.py",
+    "/app/test_reports/pytest/iter26_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "serve_public_file caches transformed bytes but the ETag is computed from the possibly-cached out_bytes only after cache lookup — correct, but note the cache key is unbounded per (path,w,format,q) up to _IMG_CACHE_MAX with FIFO eviction (pop next(iter)); a hot path with many widths could churn. Consider LRU semantics.",
+    "The 304 branch returns headers including Vary/ETag but NOT Cache-Control on the transformed path when content_type not in _TRANSFORMABLE — minor consistency nit; still functionally correct because ETag is what matters.",
+    "og:image/twitter:image correctly built as absolute https URLs pointing at help.emergent.sh; make sure PUBLIC_SITE_URL stays configured in prod so the meta tags don't degrade to a preview host.",
+    "Frontend still emits two initial 401s on protected /api/auth/me + /api/roles/me on the public docs reader (carryover from iter25). Unrelated to Prompt 1 but visible in console; cosmetic."
+  ],
+  "updated_files": ["/app/backend/tests/test_seo_media_iter26.py"],
+  "success_rate": {"backend": "100% (11/11)", "frontend": "100% of Prompt 1 UI flows verified"},
+  "test_credentials": "N/A — all endpoints tested are public/no-auth. No Google OAuth attempted (admin/review routes were explicitly skipped per request).",
+  "seed_data_creation": "One feedback row via POST /api/projects/{pid}/feedback with comment 'TEST_iter26 automated comment' on slug 'what-is-wingman' (via UI No-flow) and one {helpful:true, comment:'TEST_iter26'} via direct API. If cleanup is desired, filter feedback collection on comment LIKE 'TEST_iter26%'.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Prompt 1 (image transform layer, content negotiation, graceful degrade, per-page .md, /llms(-full).txt, HTML 404, /admin 200, absolute SEO meta URLs, feedback widget + API) fully verified end-to-end. Test file /app/backend/tests/test_seo_media_iter26.py is idempotent and re-runnable. Only 4 published slugs exist (what-is-wingman, channels-web-telegram-whatsapp-imessage-slack, integrations-scheduled-tasks, custom-mcp-integrations) — reuse these for any regression additions.",
+  "rca_of_the_issue": "n/a — no functional issues found."
+}
