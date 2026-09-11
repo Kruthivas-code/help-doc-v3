@@ -472,13 +472,22 @@ def register_review_routes(api_router, ctx):
                 {"project_id": project_id, "assignee_email": _norm(user.email), "slugs": req.doc_slug})
             if not assigned:
                 raise HTTPException(403, "You can only add a verdict to pages assigned to you")
-        key = {"project_id": project_id, "doc_slug": req.doc_slug, "reviewer_email": _norm(user.email)}
+        # One verdict per page (reviewer OR owner) — latest wins; who/when is kept in history.
+        key = {"project_id": project_id, "doc_slug": req.doc_slug}
         await db.review_verdicts.update_one(key, {"$set": {**key, "verdict": req.verdict,
-            "reviewer_name": user.name, "updated_at": _now()}}, upsert=True)
+            "reviewer_email": _norm(user.email), "reviewer_name": user.name, "updated_at": _now()}}, upsert=True)
         if log_activity:
             await log_activity(project_id, "verdict", user.email, user.name,
                                doc_slug=req.doc_slug, meta={"verdict": req.verdict})
         return {"verdict": req.verdict}
+
+    @api_router.get("/projects/{project_id}/verdict-history")
+    async def verdict_history(project_id: str, doc_slug: str, user=Depends(get_current_user)):
+        """Timeline of verdict changes for a page (who set what, when)."""
+        items = await db.activity_log.find(
+            {"project_id": project_id, "doc_slug": doc_slug, "action": "verdict"},
+            {"_id": 0}).sort("created_at", -1).to_list(200)
+        return {"history": items}
 
     # ---------------- Inbox / progress ----------------
     @api_router.get("/projects/{project_id}/review/inbox")

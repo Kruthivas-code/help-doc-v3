@@ -67,8 +67,9 @@ export default function ReviewPage() {
   // Reviewer queue / progress
   const [queue, setQueue] = useState([]);            // ordered unique slugs assigned to the reviewer
   const [docsMap, setDocsMap] = useState({});        // slug -> title
-  const [reviewedSet, setReviewedSet] = useState(new Set()); // slugs with a verdict by the reviewer
-  const [otherVerdicts, setOtherVerdicts] = useState([]); // verdicts left by others (e.g. the reviewer), shown to the owner
+  const [reviewedSet, setReviewedSet] = useState(new Set()); // slugs whose page verdict is "Looks correct"
+  const [verdictBy, setVerdictBy] = useState(null);   // { name, at } — who last set the page verdict
+  const [verdictHistory, setVerdictHistory] = useState(null); // verdict-change timeline (null = not loaded/closed)
   const [pendingNav, setPendingNav] = useState(null); // { url } while the verdict nudge is open
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState('');
@@ -134,19 +135,16 @@ export default function ReviewPage() {
         // Verdicts (for progress + current page state)
         try {
           const vd = await axios.get(`${API}/projects/${projectId}/verdicts`);
+          // One verdict per page (reviewer OR owner). Progress = my assigned pages marked "Looks correct".
           const reviewed = new Set(
             (vd.data.verdicts || [])
-              .filter((v) => (v.reviewer_email || '').toLowerCase() === who && v.verdict === 'Looks correct')
+              .filter((v) => v.verdict === 'Looks correct')
               .map((v) => v.doc_slug)
           );
           setReviewedSet(reviewed);
-          const mineV = (vd.data.verdicts || []).find((v) => v.doc_slug === slug && (v.reviewer_email || '').toLowerCase() === who);
-          setVerdict(mineV?.verdict || '');
-          // Verdicts left by OTHER people (e.g. the assigned reviewer) — always shown so an
-          // owner viewing the page can see the reviewer's verdict even before setting their own.
-          setOtherVerdicts(
-            (vd.data.verdicts || []).filter((v) => v.doc_slug === slug && (v.reviewer_email || '').toLowerCase() !== who && v.verdict)
-          );
+          const pageV = (vd.data.verdicts || []).find((v) => v.doc_slug === slug);
+          setVerdict(pageV?.verdict || '');
+          setVerdictBy(pageV ? { name: pageV.reviewer_name || pageV.reviewer_email, at: pageV.updated_at } : null);
         } catch (e) { /* no verdict yet */ }
       } catch (e) {
         toast.error('Failed to load page');
@@ -277,11 +275,20 @@ export default function ReviewPage() {
 
   const saveVerdict = async (v) => {
     setVerdict(v);
-    setReviewedSet((prev) => { const n = new Set(prev); n.add(slug); return n; });
+    setReviewedSet((prev) => { const n = new Set(prev); if (v === 'Looks correct') n.add(slug); else n.delete(slug); return n; });
+    setVerdictBy({ name: role?.name || role?.email || 'You', at: new Date().toISOString() });
     try {
       await axios.post(`${API}/projects/${pid}/verdicts`, { doc_slug: slug, verdict: v });
       toast.success('Verdict saved');
+      if (verdictHistory !== null) loadHistory();
     } catch { toast.error('Failed to save verdict'); }
+  };
+
+  const loadHistory = async () => {
+    try {
+      const r = await axios.get(`${API}/projects/${pid}/verdict-history`, { params: { doc_slug: slug } });
+      setVerdictHistory(r.data.history || []);
+    } catch { setVerdictHistory([]); }
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-white dark:bg-zinc-950 text-zinc-400">Loading…</div>;
@@ -406,23 +413,35 @@ export default function ReviewPage() {
 
         <aside className="lg:sticky lg:top-20 h-fit">
           <div className="mb-5">
-            <h3 className="text-sm font-semibold text-zinc-500 dark:text-zinc-400 mb-2">Your verdict{!verdict && <span className="ml-1 text-amber-600 dark:text-amber-400">· not set</span>}</h3>
+            <h3 className="text-sm font-semibold text-zinc-500 dark:text-zinc-400 mb-2">Verdict{!verdict && <span className="ml-1 text-amber-600 dark:text-amber-400">· not set</span>}</h3>
             <div className="flex flex-wrap gap-1.5">
               {VERDICTS.map((v) => (
                 <button key={v} onClick={() => saveVerdict(v)} className={`text-xs px-2 py-1 rounded-full border transition-colors ${verdict === v ? 'bg-zinc-900 text-white border-zinc-900 dark:bg-white dark:text-zinc-900 dark:border-white' : 'border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'}`} data-testid={`reviewpage-verdict-${v.replace(/\W+/g, '-')}`}>{v}</button>
               ))}
             </div>
-            {otherVerdicts.length > 0 && (
-              <div className="mt-3 pt-3 border-t border-zinc-200 dark:border-zinc-800" data-testid="reviewer-verdicts">
-                <p className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 mb-1.5">Reviewer's verdict</p>
-                <div className="space-y-1">
-                  {otherVerdicts.map((v) => (
-                    <div key={v.reviewer_email} className="flex items-center gap-2 text-xs" data-testid={`reviewer-verdict-${(v.reviewer_email || '').replace(/\W+/g, '-')}`}>
-                      <span className="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300 font-medium">{v.verdict}</span>
-                      <span className="text-zinc-500 dark:text-zinc-400 truncate">— {v.reviewer_name || v.reviewer_email}</span>
-                    </div>
-                  ))}
-                </div>
+            {verdict && verdictBy && (
+              <p className="mt-2 text-xs text-zinc-400 dark:text-zinc-500" data-testid="verdict-set-by">
+                Set by <span className="text-zinc-600 dark:text-zinc-300 font-medium">{verdictBy.name}</span>{verdictBy.at ? ` · ${new Date(verdictBy.at).toLocaleString()}` : ''}
+              </p>
+            )}
+            <button
+              onClick={() => (verdictHistory === null ? loadHistory() : setVerdictHistory(null))}
+              className="mt-2 text-xs text-brand hover:underline"
+              data-testid="verdict-history-toggle"
+            >
+              {verdictHistory === null ? 'View verdict history' : 'Hide history'}
+            </button>
+            {verdictHistory !== null && (
+              <div className="mt-2 rounded-md border border-zinc-200 dark:border-zinc-800 divide-y divide-zinc-100 dark:divide-zinc-800 max-h-48 overflow-y-auto" data-testid="verdict-history">
+                {verdictHistory.length === 0 ? (
+                  <p className="text-xs text-zinc-400 dark:text-zinc-500 px-2.5 py-2">No verdict changes recorded.</p>
+                ) : verdictHistory.map((h, i) => (
+                  <div key={i} className="px-2.5 py-1.5 text-xs">
+                    <span className="px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300 font-medium">{h.meta?.verdict || '—'}</span>
+                    <span className="text-zinc-500 dark:text-zinc-400"> — {h.actor_name || h.actor_email}</span>
+                    {h.created_at && <span className="text-zinc-400 dark:text-zinc-500"> · {new Date(h.created_at).toLocaleString()}</span>}
+                  </div>
+                ))}
               </div>
             )}
           </div>
