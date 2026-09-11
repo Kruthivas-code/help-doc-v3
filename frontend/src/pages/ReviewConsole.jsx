@@ -67,6 +67,14 @@ export default function ReviewConsole() {
     const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
     const a = document.createElement('a'); a.href = url; a.download = 'mis-reviewers.csv'; a.click(); URL.revokeObjectURL(url);
   };
+  const exportAltCsv = () => {
+    if (!mis) return;
+    const head = ['Page', 'Slug', 'Status', 'Images missing alt'];
+    const rows = (mis.images_missing_alt || []).map(p => [p.title || '', p.slug, p.status || '', p.count]);
+    const csv = [head, ...rows].map(row => row.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    const a = document.createElement('a'); a.href = url; a.download = 'mis-images-missing-alt.csv'; a.click(); URL.revokeObjectURL(url);
+  };
   // assignment form
   const [aScopes, setAScopes] = useState([]);
   const [scopeQuery, setScopeQuery] = useState('');
@@ -824,6 +832,28 @@ export default function ReviewConsole() {
                     <button key={p.slug} onClick={() => navigate(`/review/${p.slug}`)} className={`text-[11px] px-2 py-1 rounded border ${p.hot ? 'border-rose-300 text-rose-600 dark:border-rose-500/40 dark:text-rose-400' : 'border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-300'}`} title={p.title} data-testid={`mis-ch-${p.slug}`}>{(p.title || p.slug).slice(0, 24)} · {p.open}/{p.open + p.resolved}</button>
                   ))}
                 </div>
+              </div>
+              {/* Bulk alt audit — pages that cannot be published until images get alt text */}
+              <div data-testid="mis-images-missing-alt">
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="font-semibold text-sm">Images missing alt text <span className="text-xs text-zinc-500 font-normal">({(mis.images_missing_alt || []).length} page{(mis.images_missing_alt || []).length === 1 ? '' : 's'} — blocks publishing)</span></h3>
+                  {(mis.images_missing_alt || []).length > 0 && (
+                    <button onClick={exportAltCsv} className="ml-auto text-[11px] px-2 py-1 rounded-md border border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800" data-testid="mis-alt-export">Export CSV</button>
+                  )}
+                </div>
+                {(mis.images_missing_alt || []).length === 0 ? (
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> Every page's images have alt text.</p>
+                ) : (
+                  <div className="rounded-lg border border-rose-200 dark:border-rose-500/30 divide-y divide-rose-100 dark:divide-rose-500/20 max-h-64 overflow-y-auto" data-testid="mis-alt-list">
+                    {mis.images_missing_alt.map(p => (
+                      <button key={p.slug} onClick={() => navigate(`/admin/editor/${pid}/${(docBySlug[p.slug] || {}).id || ''}`)} className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-rose-50 dark:hover:bg-rose-500/10" title="Open in editor to add alt text" data-testid={`mis-alt-${p.slug}`}>
+                        <span className="text-[11px] px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-400 font-medium flex-shrink-0">{p.count} missing</span>
+                        <span className="text-sm text-zinc-700 dark:text-zinc-200 truncate flex-1">{p.title || p.slug}</span>
+                        <StatusPill s={p.status || 'in_review'} />
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="grid sm:grid-cols-2 gap-3" data-testid="mis-exceptions">
                 {[['Done without verdict', mis.exceptions.done_no_verdict], ['Wrong info verdict', mis.exceptions.wrong_info_unedited], ['Looks-correct with open bot comment', mis.exceptions.looks_correct_open_nr], ['Duplicate titles', mis.exceptions.duplicate_titles]].map(([l, arr]) => (

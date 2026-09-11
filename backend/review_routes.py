@@ -529,7 +529,7 @@ def register_review_routes(api_router, ctx):
         from datetime import datetime as _dt, timezone as _tz
         DUE = "2026-09-14"
         VERDICTS = ["Looks correct", "Needs small edits", "Wrong info", "More info needed", "Outdated", "Tone / clarity", "Other"]
-        docs = await db.documents.find({"project_id": project_id, "deleted_at": None}, {"_id": 0, "slug": 1, "title": 1, "status": 1}).to_list(2000)
+        docs = await db.documents.find({"project_id": project_id, "deleted_at": None}, {"_id": 0, "slug": 1, "title": 1, "status": 1, "content": 1}).to_list(2000)
         title_by = {d["slug"]: d.get("title") for d in docs}
         status_by = {d["slug"]: d.get("status") for d in docs}
         asg = await db.assignments.find({"project_id": project_id}, {"_id": 0}).to_list(1000)
@@ -632,6 +632,17 @@ def register_review_routes(api_router, ctx):
             seen.setdefault((t or "").strip().lower(), []).append(s)
         exc["duplicate_titles"] = [{"title": t, "slugs": v} for t, v in seen.items() if len(v) > 1]
 
+        # Bulk alt audit — every page with images missing alt text (a publish blocker).
+        alt_missing = []
+        for d in docs:
+            n = count_images_missing_alt(d.get("content") or "")
+            if n > 0:
+                alt_missing.append({
+                    "slug": d["slug"], "title": d.get("title"),
+                    "count": n, "status": d.get("status"),
+                })
+        alt_missing.sort(key=lambda x: -x["count"])
+
         return {
             "generated_at": _dt.now(_tz.utc).isoformat(),
             "due_date": DUE, "overdue_active": overdue_flag,
@@ -641,4 +652,5 @@ def register_review_routes(api_router, ctx):
             "throughput": throughput,
             "comments_health": ch_pages,
             "exceptions": exc,
+            "images_missing_alt": alt_missing,
         }
