@@ -513,3 +513,7 @@ Source: user-provided "User Education Gaps Tracker.csv" (219 rows) → complete 
 - Internal links repointed map (sub-processors->where, DSR/special/regulators->controller-responsibilities, isolation->ai-model-training): 0 live docs actually referenced the old slugs, so no link edits needed.
 - Op-4 verification: Save-to-GitHub target has the plan gate (True) and database-mongodb has export/Mongo-URL detail (True) — trim safe, no fuller bullet retained.
 - All 8 stay in_review; nothing published. Verified via DB (8 live pages, nav = 8 in order).
+
+## 2026-06-11 — MIS metric fix + Data & Trust render check
+- MIS reviewer "Resolved" now = comments the reviewer RAISED that are now closed (was: comments they clicked resolve on). Backend `review_routes.py` cresolved keyed by author_email of resolved comments. Column relabeled Raised/Resolved with tooltips; CSV header updated. Verified akash@emergent.sh: 15 raised / 15 resolved.
+- Render-checked new/merged Data & Trust pages (controller-responsibilities, where-your-data-is-stored, keep-it-safe, your-data-ownership) in review reader via temporary DISABLE_AUTH bypass (reverted to false after). MDX (Callout/Note/Warning/Step/Tip), inline code, bold, links all render cleanly. All remain in_review.

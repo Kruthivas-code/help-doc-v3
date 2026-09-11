@@ -536,14 +536,13 @@ def register_review_routes(api_router, ctx):
         open_by, resolved_by, cmade, cresolved = {}, {}, {}, {}
         for c in cms:
             slug = c.get("doc_slug")
+            am = (c.get("author_email") or "").lower()
             if c.get("resolved"):
                 resolved_by[slug] = resolved_by.get(slug, 0) + 1
-                rb = (c.get("resolved_by") or "").lower()
-                if rb:
-                    cresolved[rb] = cresolved.get(rb, 0) + 1
+                if am:
+                    cresolved[am] = cresolved.get(am, 0) + 1
             else:
                 open_by[slug] = open_by.get(slug, 0) + 1
-            am = (c.get("author_email") or "").lower()
             cmade[am] = cmade.get(am, 0) + 1
 
         def is_done(s):

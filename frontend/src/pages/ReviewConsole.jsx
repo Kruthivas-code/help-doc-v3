@@ -61,7 +61,7 @@ export default function ReviewConsole() {
   useEffect(() => { if (tab === 'mis') loadMis(); }, [tab, loadMis]);
   const exportMisCsv = () => {
     if (!mis) return;
-    const head = ['Reviewer', 'Assigned', 'Done', '% done', ...mis.verdict_labels, 'Done without verdict', 'Comments made', 'Comments resolved', 'Overdue'];
+    const head = ['Reviewer', 'Assigned', 'Done', '% done', ...mis.verdict_labels, 'Done without verdict', 'Comments raised', 'Comments resolved', 'Overdue'];
     const rows = mis.reviewers.map(r => [r.email, r.assigned, r.done, r.pct_done, ...mis.verdict_labels.map(k => r.verdicts[k]), r.done_no_verdict, r.comments_made, r.comments_resolved, r.overdue]);
     const csv = [head, ...rows].map(row => row.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
     const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
@@ -778,7 +778,7 @@ export default function ReviewConsole() {
               </div>
               <div className="overflow-x-auto border border-zinc-200 dark:border-zinc-800 rounded-lg" data-testid="mis-reviewer-table">
                 <table className="w-full text-xs"><thead className="bg-zinc-50 dark:bg-zinc-900/50 text-zinc-500"><tr>
-                  {['Reviewer', 'Assigned', 'Done', '% done', 'Looks correct', 'Other verdicts', 'Done w/o verdict', 'Comments', 'Resolved', 'Overdue'].map(h => <th key={h} className="text-left px-3 py-2 font-medium whitespace-nowrap">{h}</th>)}
+                  {[['Reviewer',''], ['Assigned',''], ['Done',''], ['% done',''], ['Looks correct',''], ['Other verdicts',''], ['Done w/o verdict',''], ['Raised','Comments this reviewer raised'], ['Resolved','Of those raised, how many are now resolved'], ['Overdue','']].map(([h, t]) => <th key={h} title={t} className="text-left px-3 py-2 font-medium whitespace-nowrap">{h}</th>)}
                 </tr></thead><tbody>
                   {mis.reviewers.filter(r => !misPerson || r.email === misPerson).map(r => (
                     <tr key={r.email} className="border-t border-zinc-100 dark:border-zinc-800" data-testid={`mis-row-${r.email}`}>
