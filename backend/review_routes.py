@@ -332,7 +332,8 @@ def register_review_routes(api_router, ctx):
     @api_router.post("/projects/{project_id}/assignments/delegate-pages")
     async def delegate_pages(project_id: str, req: DelegatePagesReq, user=Depends(get_current_user)):
         """Delegate a chosen set of pages (all / several / one) from one reviewer to another.
-        Splits multi-page assignments as needed and merges the pages into the target's queue."""
+        Each page becomes its OWN single-page assignment for the target (so the target sees
+        the pages listed one-by-one, each as its own review) rather than one merged bundle."""
         frm = _norm(req.from_email)
         to = _norm(req.to_email)
         slugs = [s for s in (req.slugs or []) if s]
@@ -343,6 +344,9 @@ def register_review_routes(api_router, ctx):
         if not is_owner(user) and _norm(user.email) != frm:
             raise HTTPException(403, "Only the Owner or the current assignee can delegate these")
         now = _now()
+        title_docs = await db.documents.find(
+            {"project_id": project_id, "slug": {"$in": slugs}}, {"_id": 0, "slug": 1, "title": 1}).to_list(2000)
+        title_by = {d["slug"]: d.get("title") for d in title_docs}
         moved = 0
         for slug in slugs:
             # Pull the page out of every source-reviewer assignment that contains it.
@@ -356,18 +360,17 @@ def register_review_routes(api_router, ctx):
                     await db.assignments.update_one({"id": a["id"]}, {"$set": {"slugs": remaining, "updated_at": now}})
                 else:
                     await db.assignments.delete_one({"id": a["id"]})
-            # Merge into a single delegated assignment for the target (create if none yet).
-            tgt = await db.assignments.find_one(
-                {"project_id": project_id, "assignee_email": to, "scope_type": "pages"})
-            if tgt:
-                await db.assignments.update_one(
-                    {"id": tgt["id"]}, {"$addToSet": {"slugs": slug}, "$set": {"updated_at": now, "status": "in_review"}})
-            else:
+            # One assignee per page: drop the slug from anyone else who still holds it.
+            await _unassign_slugs(project_id, [slug])
+            # Give the target its own single-page assignment (unless it already has one).
+            existing = await db.assignments.find_one(
+                {"project_id": project_id, "assignee_email": to, "slugs": slug})
+            if not existing:
                 await db.assignments.insert_one({
-                    "id": str(uuid.uuid4()), "project_id": project_id, "scope_type": "pages",
-                    "scope_id": "pages", "scope_label": "Delegated pages", "assignee_email": to,
+                    "id": str(uuid.uuid4()), "project_id": project_id, "scope_type": "page",
+                    "scope_id": slug, "scope_label": title_by.get(slug) or slug, "assignee_email": to,
                     "assigned_by": user.email, "assigned_by_name": getattr(user, "name", None),
-                    "status": "in_review", "slugs": [slug],
+                    "status": "in_review", "slugs": [slug], "due_date": "2026-09-14",
                     "delegated_from": frm, "created_at": now, "updated_at": now})
             moved += 1
         if log_activity and moved:
