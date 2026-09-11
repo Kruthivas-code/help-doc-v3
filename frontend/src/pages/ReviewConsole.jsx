@@ -163,10 +163,11 @@ export default function ReviewConsole() {
   }, [inbox]);
   // Images missing alt text per page — mirrors the backend publish gate.
   const countMissingAlt = (content) => {
-    const c = content || '';
-    let n = (c.match(/!\[\s*\]\([^)]+\)/g) || []).length;
+    let c = content || '';
+    c = c.replace(/```[\s\S]*?```/g, '').replace(/~~~[\s\S]*?~~~/g, '').replace(/`[^`]*`/g, '');
+    let n = (c.match(/!\[\s*\]\([^)\s]+\)/g) || []).length;
     const tags = c.match(/<(?:Figure|img)\b[^>]*?\/?>/gi) || [];
-    tags.forEach(t => { if (!/\balt\s*=/i.test(t)) n += 1; });
+    tags.forEach(t => { if (/\bsrc\s*=/i.test(t) && !/\balt\s*=/i.test(t)) n += 1; });
     return n;
   };
   const altByPage = useMemo(() => {

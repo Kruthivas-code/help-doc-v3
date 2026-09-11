@@ -15,13 +15,18 @@ def _now():
 
 
 def count_images_missing_alt(content: str) -> int:
-    """Images that would ship without alt text. Markdown ![](url) with empty alt,
-    and <Figure>/<img> tags with no alt= attribute at all. An explicit alt="" on a
-    component is treated as intentionally decorative and is NOT flagged."""
+    """Real content images that would ship without alt text. Ignores code (fenced blocks
+    and inline `code`) so prose mentions like `<img>` don't count, and only counts
+    <Figure>/<img> tags that actually have a src=. Markdown ![](url) with an empty alt is
+    flagged; an explicit alt="" on a component is treated as decorative and NOT flagged."""
     content = content or ""
-    missing = len(re.findall(r'!\[\s*\]\([^)]+\)', content))
+    content = re.sub(r'```.*?```', '', content, flags=re.DOTALL)
+    content = re.sub(r'~~~.*?~~~', '', content, flags=re.DOTALL)
+    content = re.sub(r'`[^`]*`', '', content)
+    missing = len(re.findall(r'!\[\s*\]\([^)\s]+\)', content))
     for m in re.finditer(r'<(?:Figure|img)\b[^>]*?/?>', content, re.IGNORECASE):
-        if not re.search(r'\balt\s*=', m.group(0), re.IGNORECASE):
+        tag = m.group(0)
+        if re.search(r'\bsrc\s*=', tag, re.IGNORECASE) and not re.search(r'\balt\s*=', tag, re.IGNORECASE):
             missing += 1
     return missing
 
